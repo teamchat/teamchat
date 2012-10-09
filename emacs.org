@@ -1,0 +1,55 @@
+
+* todo
+** write scripts
+*** install package script
+*** start/stop shoes-off
+*** add user to shoes-off?
+*** ircd add user script
+
+* provision
+** install emacs user
+** install emacs
+*** via tarball
+** install boot script
+*** start emacs as a daemon
+** install other scripts?
+*** list
+**** emacs-clean.el
+***** with marmalade or whatever repo we need
+**** package dir?
+***** with all the packages in it
+**** scripts for installing packages
+**** scripts for turning daemon on/off
+***** like shoes-off?
+** boot emacs
+** install packages
+*** where from?
+*** how?
+emacsclient \
+  -s /tmp/emacs1000/nictest1 \
+  -e '(progn (load-file "~/emacs-clean.el")(package-install (quote elnode)))'
+*** packages
+**** elnode
+**** shoes-off
+**** rcirc-ssh
+**** talk app
+** start the bouncer
+
+* talk app
+** register users with keys
+** take
+*** username
+**** irc username to connect as
+*** password
+**** irc password to connect with
+*** key
+**** ssh key to use
+*** email
+**** where to contact you
+** on success
+*** save the ssh key somewhere?
+*** create the user on the irc box
+**** adduser
+**** send the public key
+*** create the shoes-off config
+*** start the session for the new shoes-off user
