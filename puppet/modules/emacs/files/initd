@@ -113,14 +113,14 @@ do_status() {
 do_eval() {
         # Test the daemon with emacs
         $EMACSCLIENT -e '(emacs-pid)' > /dev/null
-        [ $? -eq 0 ] && return 1
+        [ $? -ne 0 ] && return 1
         $EMACSCLIENT -e "$*"
 }
 
 do_install() {
         # Test the daemon with emacs
         $EMACSCLIENT -e '(emacs-pid)' > /dev/null
-        [ $? -eq 0 ] && return 1
+        [ $? -ne 0 ] && return 1
         $EMACSCLIENT -e "(package-install (quote $1))"
 }
 
