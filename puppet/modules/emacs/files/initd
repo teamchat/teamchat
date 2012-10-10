@@ -124,6 +124,12 @@ do_install() {
         $EMACSCLIENT -e "(package-install (quote $1))"
 }
 
+do_command() {
+        # Test the daemon with emacs
+        $EMACSCLIENT -e '(emacs-pid)' > /dev/null
+        [ $? -ne 0 ] && return 1
+        $EMACSCLIENT -e "($*)"
+}
 
 case "$1" in
 
@@ -188,6 +194,13 @@ case "$1" in
         [ $ret -eq 0 ] || exit $ret
         ;;
 
+  command)
+        shift
+        do_command $*
+        ret=$?
+        [ $ret -eq 0 ] || exit $ret
+        ;;
+
   install|package-install)
         shift
         do_install $*
@@ -197,7 +210,7 @@ case "$1" in
 
   *)
 	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|restart|status|install|eval|force-reload}" >&2
 	exit 3
 	;;
 esac
