@@ -15,5 +15,8 @@ Vagrant::Config.run do |config|
     puppet.manifests_path = "puppet/manifests"
     puppet.manifest_file  = "shoesoff.pp"
   end
-
+  
+  # This is needed because of ubuntu
+  # see this fix https://github.com/mitchellh/vagrant/pull/909
+  config.vm.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
 end

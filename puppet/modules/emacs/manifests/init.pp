@@ -18,15 +18,6 @@ class emacs {
          mode => "u=rwx,g=rx,o=rx",
       }
 
-      file { "emacs-init":
-         require => User["emacs"],
-         source => "puppet:///modules/emacs/emacs.el",
-         path => "/home/emacs/.emacs.el",
-         ensure => "present",
-         owner => "emacs",
-         group => "emacs",
-      }
-
       package { "curl":
       }
 
@@ -35,8 +26,8 @@ class emacs {
       exec { "emacs-tarball":
          require => [Package["curl"], User["emacs"]],
          path => "/usr/bin:/bin",
-         command => "curl -Ls $emacs_dist_url -o /tmp/emacs-24.tgz",
-         creates => "/tmp/emacs-24.tgz",
+         command => "curl -Ls $emacs_dist_url -o /vagrant/emacs-24.tgz",
+         creates => "/vagrant/emacs-24.tgz",
          user => "emacs",
          group => "emacs",
          logoutput => true
@@ -46,7 +37,7 @@ class emacs {
          require => [File["/home/emacs"], Exec["emacs-tarball"]],
          path => "/usr/bin:/bin",
          cwd => "/home/emacs",
-         command => "tar xvzf /tmp/emacs-24.tgz",
+         command => "tar xvzf /vagrant/emacs-24.tgz",
          creates => "/home/emacs/emacs/bin/emacs",
          refresh => "rm -rf /home/emacs/emacs",
          logoutput => true,
@@ -64,7 +55,7 @@ class emacs {
       }
 
       service { "emacs":
-         require => [File["initd"], File["emacs-init"]],
+         require => File["initd"],
          ensure => "running",
          enable => "true",
          hasstatus => "true",
