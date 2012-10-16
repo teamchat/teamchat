@@ -11,6 +11,7 @@ Vagrant::Config.run do |config|
 
   # Puppet provision
   config.vm.provision :puppet do |puppet|
+    # puppet-emacs should come from git@github.com:nicferrier/emacs-puppet.git
     puppet.module_path = ["puppet/modules", "puppet-emacs"]
     puppet.manifests_path = "puppet/manifests"
     puppet.manifest_file  = "shoesoff.pp"
