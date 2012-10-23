@@ -8,5 +8,6 @@
             (rcirc-ssh "0.0.7")
             (uuid "0.0.3"))
  :files ("talkapp.el" 
-         "main.html" "registered.html" "register.html" "authd-main.html"
+         "main.html" "registered.html" "register.html" 
+         "authd-main.html" "chat.html"
          "site.js" "style.css"))

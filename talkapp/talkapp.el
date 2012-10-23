@@ -155,7 +155,7 @@ We should expect USERNAME-SPEC to just be a username."
     (setq shoes-off--rcirc-connect-plugin
      'talkapp-rcirc-connect)
     ;; Ensures the time format support us pulling back accurately
-    (setq rcirc-time-format "%H:%M:%S:%N ")))
+    (setq rcirc-time-format "%Y-%m-%d %H:%M:%S:%N ")))
 
 
 ;; Retrieval bits
@@ -218,6 +218,102 @@ We should expect USERNAME-SPEC to just be a username."
         (t
          ;; Just return the status
          (elnode-send-json httpcon (list :session (and session t))))))))
+
+;; Chat webapp
+
+(defun talkapp/timestamp->time (source-time)
+  "Convert a timestamp to a time."
+  (let* ((encodeable-time
+          (progn
+            (string-match
+             (concat
+              "\\([0-9]+-[0-9]+-[0-9]+\\) " ; date part
+              "\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\):" ; time part
+              "\\(.*\\)") ; nano-seconds
+             source-time)
+            (concat
+             (match-string 1 source-time) " "
+             (match-string 2 source-time) ":"
+             (match-string 3 source-time) ":"
+             (match-string 4 source-time))))
+         (nano-seconds (string-to-number (match-string 5 source-time))))
+    (append
+     (apply
+      'encode-time
+      (parse-time-string encodeable-time))
+     (list nano-seconds))))
+
+(defun talkapp/list-since (time buffer-name)
+  "Get the list of chats since TIME from BUFFER-NAME."
+  (let ((time-to-find time)
+        (doit t)
+        (irc-line-re (concat
+                      "^\\([0-9]+-[0-9]+-[0-9]+ " ; date part
+                      "[0-9]+:[0-9]+:[0-9]+:[0-9]+\\) " ; time part
+                      "<\\([^>]+\\)> +\\(.*\\)"))) ; the rest
+    (with-current-buffer (get-buffer buffer-name)
+      (save-excursion
+        (goto-char (point-max))
+        ;; Find the first point greater than the time-to-find
+        (while doit
+          (forward-line -1)
+          (re-search-backward irc-line-re nil t)
+          (setq doit
+                (time-less-p
+                 time-to-find
+                 (talkapp/timestamp->time
+                  (condition-case nil
+                      (match-string-no-properties 1)
+                    (error "1970-01-01 00:00:00:000000"))))))
+        (loop while (progn
+                      (forward-line 1)
+                      (re-search-forward irc-line-re nil t))
+           collect
+             (list
+              (match-string-no-properties 1)
+              (match-string-no-properties 2)
+              (get-text-property
+               (next-single-property-change
+                (line-beginning-position)
+                'rcirc-text)
+               'rcirc-text)))))))
+
+(defun talkapp/list-since-mins-ago (minutes buffer-name)
+  "Return all the chat since MINUTES ago."
+  (let* ((time-to-find
+          (time-subtract (current-time)
+                         (seconds-to-time (* minutes 60)))))
+    (talkapp/list-since time-to-find  buffer-name)))
+
+
+(defun talkapp/list-to-html (username)
+  "Return the list of chat as rows for initial chat display."
+  (let ((channel (concat "#thoughtworks@localhost~" username)))
+    (loop for entry in (talkapp/list-since-mins-ago 30 channel)
+       if (equal 3 (length entry))
+       concat
+         (esxml-to-xml
+          `(tr
+            ()
+            (td
+             ((class ,(concat "username " (elt entry 1)))) ,(elt entry 1))
+            (td ((class "message")) ,(elt entry 2)))))))
+
+(defun talkapp/chat-templater ()
+  "Return the list of chats as template."
+  (let* ((httpcon elnode-replacements-httpcon)
+         (username (talkapp-cookie->user-name httpcon)))
+    (list
+     (cons
+      "messages"
+      (talkapp/list-to-html username)))))
+
+(defun talkapp-chat-handler (httpcon)
+  "Handle the chat page."
+  (with-elnode-auth httpcon 'talkapp-auth
+    (elnode-send-file
+     httpcon (concat talkapp-dir "chat.html")
+     :replacements 'talkapp/chat-templater)))
 
 
 ;; Registration stuff
@@ -302,6 +398,7 @@ We should expect USERNAME-SPEC to just be a username."
      httpcon
      `(("^[^/]*//config/" . talkapp-irc-config-handler)
        ("^[^/]*//session/" . talkapp-shoes-off-session)
+       ("^[^/]*//chat/" . talkapp-chat-handler)
        ("^[^/]*//register/" . talkapp-register-handler)
        ("^[^/]*//registered/"
         . ,(elnode-make-send-file
