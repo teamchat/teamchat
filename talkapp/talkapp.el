@@ -285,19 +285,29 @@ We should expect USERNAME-SPEC to just be a username."
                          (seconds-to-time (* minutes 60)))))
     (talkapp/list-since time-to-find  buffer-name)))
 
+(defun talkapp/entry->html (username message)
+  "Return the templated form of the row."
+  `(tr
+    ()
+    (td
+     ((class . ,(concat "username " username)))
+     ,username)
+    (td
+     ((class . "message"))
+     ,message)))
+
+(defconst talkapp/default-chat-history-minutes 60)
 
 (defun talkapp/list-to-html (username)
   "Return the list of chat as rows for initial chat display."
   (let ((channel (concat "#thoughtworks@localhost~" username)))
-    (loop for entry in (talkapp/list-since-mins-ago 30 channel)
+    (loop for entry in (talkapp/list-since-mins-ago
+                        talkapp/default-chat-history-minutes
+                        channel)
        if (equal 3 (length entry))
        concat
-         (esxml-to-xml
-          `(tr
-            ()
-            (td
-             ((class ,(concat "username " (elt entry 1)))) ,(elt entry 1))
-            (td ((class "message")) ,(elt entry 2)))))))
+         (esxml-to-xml (talkapp/entry->html (elt entry 1)(elt entry 2))))))
+
 
 (defun talkapp/chat-templater ()
   "Return the list of chats as template."

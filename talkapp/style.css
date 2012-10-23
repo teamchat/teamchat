@@ -65,3 +65,24 @@ a.button {
 .hidden {
     display: none;
 }
+
+form#sendchat {
+    margin-left: 1em;
+}
+
+table#chat {
+    background-color: LemonChiffon;
+    width: 80%;
+    margin-left: 1em;
+}
+
+table#chat tr td {
+    border-bottom: solid thin;
+}
+
+td.username {
+    font-style: italic;
+    color: DarkGrey;
+    width: 10%;
+    padding-right: 1em;
+}
