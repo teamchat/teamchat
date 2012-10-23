@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# (A) make a key locally
+# ssh to the ircd box with our key
+#   add a user
+#   install the pub side of the key we made at A
+# 
+# - the bouncer user can now ssh to the irc box as the user
+
+USERNAME=$1
+KEYSHOME=${KEYSHOME:-/home/emacs}
+KEYSDIR=${KEYSDIR:-${KEYSHOME}/ircdkeys}
+
+# This key is provided by puppet
+BOUNCERKEY=${BOUNCERKEY:-${KEYSHOME}/.ssh/ircdprovision}
+
+# The ssh command we'll use
+SSH="ssh -t -o StrictHostKeyChecking=no "
+
+# details for contacting the IRC host to create the registered account
+IRCDHOST="irc.jbx.cc"
+IRCDPORT="" # like: -p 2222 
+IRCDHOSTSSH="${IRCDPORT} -i ${BOUNCERKEY} bouncerprovisioner@${IRCDHOST} "
+
+
+##
+# Now the actual script
+##
+mkdir -p $KEYSDIR
+
+# Create the key pair locally
+[ ! -f ${KEYSDIR}/$USERNAME ] && ssh-keygen -N "" -f ${KEYSDIR}/$USERNAME
+
+# Make the user on the ircd host
+$SSH $IRCDHOSTSSH test -f /home/${USERNAME} > /dev/null
+if [ $? -ne 0 ]
+then
+    $SSH $IRCDHOSTSSH sudo adduser \
+        --home /home/$USERNAME \
+        --shell "/usr/bin/irssi" $USERNAME
+    
+    # Make the ssh directory and auth keys file
+    $SSH $IRCDHOSTSSH sudo -u $USERNAME mkdir -p -m=rwx,g=,o= /home/$USERNAME/.ssh
+    $SSH $IRCDHOSTSSH sudo -u $USERNAME touch /home/$USERNAME/.ssh/authorized_keys
+    $SSH $IRCDHOSTSSH sudo -u $USERNAME chmod u=rwx,g=r,o=r /home/$USERNAME/.ssh/authorized_keys
+
+    # Copy the pub key to the other side
+    cat ${KEYSDIR}/${USERNAME}.pub \
+        | $SSH $IRCDHOSTSSH sudo -u $USERNAME tee -a /home/$USERNAME/.ssh/authorized_keys
+fi
+
+# End

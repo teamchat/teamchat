@@ -1,0 +1,67 @@
+body {
+    font-family: sans-serif;
+}
+
+fieldset {
+    margin-left: 3em;
+    padding-left: 4em;
+    padding-right: 4em;
+    padding-top: 2em;
+    padding-bottom: 1em;
+    width: 35em;
+    border: thin none;
+    background-color: Azure;
+}
+
+label {
+    display: block;
+    width: 30em;
+    padding-bottom: .5em;
+}
+
+label span {
+    float: left;
+    text-align: right;
+}
+
+label div {
+    text-align: right;
+    width: 30em;
+}
+
+label div input {
+    width: 30em;
+}
+
+label textarea {
+    float: right;
+    height: 5em;
+    width: 30em;
+}
+
+div.error {
+    clear: both;
+    width: 30em;
+    color: Crimson;
+}
+
+fieldset input[type=submit] {
+    margin-top: 1em;
+    clear: both;
+    float: right;
+}
+
+a.button {
+    display: block;
+    background-color: Gold;
+    color: Black;
+    border: solid;
+    margin: .25em;
+    width: 7em;
+    text-align: center;
+    text-decoration: none;
+}
+
+.hidden {
+    display: none;
+}

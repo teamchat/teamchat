@@ -1,4 +1,5 @@
 node default {
-     include shoesoff
      include emacs
+     include shoesoff
+     include ircdprovision
 }

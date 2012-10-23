@@ -1,2 +1,12 @@
-(talk
- :files ("talk.el"))
+(talkapp
+ :version "0.0.1"
+ :doc "mish mash app"
+ :requires ((elnode "0.9.9.6.2")
+            (shoes-off "0.1.8")
+            (anaphora "0.0.6")
+            (esxml "0.0.7")
+            (rcirc-ssh "0.0.7")
+            (uuid "0.0.3"))
+ :files ("talkapp.el" 
+         "main.html" "registered.html" "register.html" "authd-main.html"
+         "site.js" "style.css"))
