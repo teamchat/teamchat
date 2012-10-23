@@ -1,39 +1,80 @@
 
 * todo
+** DONE database adapters
+*** DONE make a function to pick up shoes-config from the talk database
+*** DONE make shoes-off use the new function
+** DONE fix rcirc-ssh so that it can just be used instead of rcirc?
+*** rcirc-ssh won't work for multiple users?
+*** so make it so that it doesn't always patch itself in
+*** DONE but can be used directly with a key
+** DONE rcirc multiple users
+*** DONE each rcirc buffer needs to be identified by user
+**** DONE we just need to try changing the pattern used and seeing if there is a problem
+***** fire up the spikyircd
+***** open up the irc port?
+****** or put emacs inside it
+***** fire up emacs -Q and use rcirc a couple of times with different users
+**** DONE talk-rcirc-connect now makes sure that functions are named properly
+** TODO allow app to be configured somehow
+*** the variables that need to change
+**** the talkapp/irc vars
+***** hostname
+****** also needs to change in puppet?
+***** channel
+** TODO on reg
+*** establish the shoes-off connection
+** TODO on reboot
+*** cycle through the users in the db making their shoes off sessions
 ** write scripts
-*** install package script
-*** start/stop shoes-off
-*** add user to shoes-off?
-*** ircd add user script
+*** DONE install package script
+*** TODO puppetize ssh host keys
+*** TODO start/stop shoes-off per user
+**** this can just be shoes-off-start-session / shoes-off-stop-session
+**** for rcirc history webapp to work we also you need
+(setq rcirc-time-format "%H:%M:%S:%N")
+***** not sure what should set this
+*** DONE add user to shoes-off?
+**** this is just adding config
+**** DONE JUST USE THE DATABASE
+*** TODO ircd add user script
+**** when you reg a user we need to
+***** make a new private key from bouncer->ircd
+***** ssh to the ircd and add the user and the key
+**** do this with new handler /init/
+** TODO start talk app
 
-* provision
-** install emacs user
-** install emacs
-*** via tarball
-** install boot script
-*** start emacs as a daemon
-** install other scripts?
-*** list
-**** emacs-clean.el
-***** with marmalade or whatever repo we need
-**** package dir?
-***** with all the packages in it
-**** scripts for installing packages
-**** scripts for turning daemon on/off
-***** like shoes-off?
-** boot emacs
-** install packages
-*** where from?
-*** how?
-emacsclient \
-  -s /tmp/emacs1000/nictest1 \
-  -e '(progn (load-file "~/emacs-clean.el")(package-install (quote elnode)))'
-*** packages
-**** elnode
-**** shoes-off
-**** rcirc-ssh
-**** talk app
-** start the bouncer
+* provision check list
+** DONE bouncer box installs
+** DONE emacs installs on box
+** DONE apps install on emacs
+** TODO talkapp starts
+*** this is what needs to be done from the command line
+sudo /etc/init.d/emacs command elnode-start "(quote talk-router)" :port 8001 :host '"0.0.0.0"'
+** TODO ircdprovisioner script works
+*** it does but it needs alteration
+**** the ircd host is hardcoded
+*** TODO should we template it in puppet?
+** DONE the /config/ url works
+** DONE multiple named ssh bouncer sessions connect
+*** DONE talkapp needs ssh sessions turned on by default
+** DONE starting the shoes-off session
+*** this:
+**** (shoes-off-start-session username)
+*** have a session handler that deals with a user's sessions?
+** TODO the bouncer server starts
+* TODO how does the reg process start the bouncer session for the user?
+** at the end of the shell script?
+
+* userdel on the ircd
+( ps aux | awk '$1 ~ /nic/ {print$2}' \
+ | while read pid ; do kill -9 $pid ; done ) ; \ |
+  /usr/sbin/userdel nic ; rm -rf /home/nic
+
+* packages
+** shoes-off
+** rcirc-ssh-sessions
+** talk
+
 
 * talk app
 ** register users with keys
