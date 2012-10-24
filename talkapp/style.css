@@ -2,6 +2,10 @@ body {
     font-family: sans-serif;
 }
 
+.hidden {
+    display: none;
+}
+
 .footer {
     clear: both;
     margin-top: 5em;
@@ -28,12 +32,6 @@ div.controls input {
     margin-top: 5px;
 }
 
-div.error {
-    clear: both;
-    width: 30em;
-    color: Crimson;
-}
-
 fieldset input[type=submit] {
     margin-top: 2em;
     clear: both;
@@ -52,18 +50,22 @@ fieldset input[type=submit] {
 }
 
 
-.hidden {
-    display: none;
+
+/* Chat window styles */
+
+.chat h1 {
+    color: DarkSlateGrey;
 }
 
-form#sendchat {
-    margin-left: 1em;
+div#chat-panel {
+    margin: 0;
+    height: 250px;
 }
 
 table#chat {
     background-color: LemonChiffon;
-    width: 80%;
-    margin-left: 1em;
+    width: 100%;
+    margin: 0;
 }
 
 table#chat tr td {
@@ -76,3 +78,5 @@ td.username {
     width: 10%;
     padding-right: 1em;
 }
+
+/* End */

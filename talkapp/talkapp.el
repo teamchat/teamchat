@@ -304,15 +304,25 @@ We should expect USERNAME-SPEC to just be a username."
 
 (defconst talkapp/default-chat-history-minutes 60)
 
+(defun talkapp/chat-list (channel)
+  "Make a list of the CHANNEL chatter."
+  (talkapp/list-since-mins-ago
+   talkapp/default-chat-history-minutes
+   channel))
+
+(defun talkapp/chat-list-test (channel)
+  "Replacement for `talkapp/chat-list' that makes dummy chat."
+  '(("2012-10-24 08:23:00" "nic" "this is a test")
+    ("2012-10-24 08:23:00" "jim" "a conversation could occur")))
+
 (defun talkapp/list-to-html (username)
   "Return the list of chat as rows for initial chat display."
   (let ((channel (concat "#thoughtworks@localhost~" username)))
-    (loop for entry in (talkapp/list-since-mins-ago
-                        talkapp/default-chat-history-minutes
-                        channel)
+    (loop for entry in (talkapp/chat-list channel)
        if (equal 3 (length entry))
        concat
-         (esxml-to-xml (talkapp/entry->html (elt entry 1)(elt entry 2))))))
+         (esxml-to-xml
+          (talkapp/entry->html (elt entry 1)(elt entry 2))))))
 
 
 (defun talkapp/chat-templater ()

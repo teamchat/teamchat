@@ -1,23 +1,40 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Chat!</title>
-<link rel="stylesheet" href="/styles.css" type="text/css"/>
+<link rel="stylesheet" href="/bootstrap.css" type="text/css"/>
+<link rel="stylesheet" href="/style.css" type="text/css"/>
 </head>
-<body>
-<div id="page">
-    <h1>Chat!</h1>
-    <form method="POST" action="/chat/send/" target="_sendtarget">
-        <label>message: </label><input type="text" name="msg" value="" size="50"/>
-        <input type="submit" name="send" value="send"/>
+<div class="chat container">
+    <h1>chat!</h1>
+    <form class="form-inline" method="POST" action="/chat/send/" target="_sendtarget">
+        <input class="input-xxlarge" 
+               type="text" name="msg" value="" 
+               placeholder="your message here"/>
+        <input type="submit" name="send" value="send" />
     </form>
-    <table id="chat">
-        <!##E messages E##!>
-        <tr class="hidden">
-            <td class="username"></td>
-            <td class="message"></td>
-        </tr>
-    </table>
 </div>
+<div class="container">
+    <div id="chat-panel" class="span8">
+        <table id="chat">
+            <!##E messages E##!>
+        </table>
+    </div>
+    <div class="span4">
+        <h4>multimedia panel</h4>
+        <p>this is where your multimedia will appear, any pastbin,
+        video chat or whatever.</p>
+    </div>
+</div>
+<footer class="footer">
+    <div class="container">
+        <p class="pull-right"><a href="#">Back to top</a></p>
+        <p>Designed and built by <a href="http://nic.ferrier.me.uk/">Nic Ferrier</a> using Emacs and <a href="http://elnode.org">Elnode</a></p>
+        <ul class="footer-links">
+            <!-- links go here -->
+        </ul>
+    </div>
+</footer>
 </body>
 <iframe 
     style="float:right;" 
@@ -26,6 +43,9 @@
     name="_sendtarget" 
     src="">
 </iframe>
+<script src="/jquery.js"    language="Javascript"></script>
+<script src="/bootstrap.js" language="Javascript"></script>
+<script src="/site.js"      language="Javascript"></script>
 <!-- script src="/chat.js" language="Javascript">
 </script -->
 </html>
