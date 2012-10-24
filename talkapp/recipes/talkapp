@@ -10,4 +10,8 @@
  :files ("talkapp.el" 
          "main.html" "registered.html" "register.html" 
          "authd-main.html" "chat.html"
-         "site.js" "style.css"))
+         "site.js" 
+         "style.css"
+         "jquery-1.8.2.min.js"
+         "bootstrap.js" 
+         "bootstrap.css" "bootstrap-responsive.css"))

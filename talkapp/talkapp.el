@@ -1,4 +1,4 @@
-;;; talkapp.el --- make talking easy
+;;; talkapp.el --- make talking easy -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012  Nic Ferrier
 
@@ -146,16 +146,20 @@ We should expect USERNAME-SPEC to just be a username."
       (when (equal password (aget details "password"))
         (talkapp/irc-details username password email)))))
 
-(eval-after-load "talkapp"
-  '(progn
-    (setq shoes-off--get-config-plugin
-     (symbol-function 'talkapp/get-shoes-off-config))
-    (setq shoes-off--auth-plugin
-     (symbol-function 'talkapp/shoes-off-auth))
-    (setq shoes-off--rcirc-connect-plugin
-     'talkapp-rcirc-connect)
-    ;; Ensures the time format support us pulling back accurately
-    (setq rcirc-time-format "%Y-%m-%d %H:%M:%S:%N ")))
+
+;; Only do the rcirc init if we need to.
+;; If this variable is not bound or bound and t it will eval.
+(when (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
+  (eval-after-load "talkapp"
+    '(progn
+      (setq shoes-off--get-config-plugin
+       (symbol-function 'talkapp/get-shoes-off-config))
+      (setq shoes-off--auth-plugin
+       (symbol-function 'talkapp/shoes-off-auth))
+      (setq shoes-off--rcirc-connect-plugin
+       'talkapp-rcirc-connect)
+      ;; Ensures the time format support us pulling back accurately
+      (setq rcirc-time-format "%Y-%m-%d %H:%M:%S:%N "))))
 
 
 ;; Retrieval bits
@@ -188,9 +192,11 @@ We should expect USERNAME-SPEC to just be a username."
   (with-elnode-auth httpcon 'talkapp-auth
     (let ((username (talkapp-cookie->user-name httpcon)))
       (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
-      (elnode-child-process
-       httpcon
-       "bash" "/home/emacs/ircdmakeuser" username))))
+      (if (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
+          (elnode-child-process
+           httpcon
+           "bash" "/home/emacs/ircdmakeuser" username)
+          (elnode-send-json httpcon (list :error t))))))
 
 ;; Start the shoes-off session for this user
 
@@ -383,10 +389,11 @@ We should expect USERNAME-SPEC to just be a username."
 
 (defun talkapp-register-handler (httpcon)
   "Take a registration and create a user."
-  (esxml-form-handle
-   talkapp-regform httpcon (concat talkapp-dir "register.html")
-   (lambda (data)
-     (talkapp/save-reg httpcon talkapp-regform data))))
+  (let ((esxml-field-style :bootstrap))
+    (esxml-form-handle
+     talkapp-regform httpcon (concat talkapp-dir "register.html")
+     (lambda (data)
+       (talkapp/save-reg httpcon talkapp-regform data)))))
 
 (defun talkapp-main-handler (httpcon)
   "The handler for the main page."
@@ -403,7 +410,10 @@ We should expect USERNAME-SPEC to just be a username."
   "Main router."
   (let ((registered (concat talkapp-dir "registered.html"))
         (css (concat talkapp-dir "style.css"))
-        (js (concat talkapp-dir "site.js")))
+        (js (concat talkapp-dir "site.js"))
+        (jquery (concat talkapp-dir "jquery-1.8.2.min.js"))
+        (bootstrap-js (concat talkapp-dir "bootstrap.js"))
+        (bootstrap-css (concat talkapp-dir "bootstrap.css")))
     (elnode-hostpath-dispatcher
      httpcon
      `(("^[^/]*//config/" . talkapp-irc-config-handler)
@@ -416,6 +426,9 @@ We should expect USERNAME-SPEC to just be a username."
             :replacements 'talkapp/get-user-http))
        ("^[^/]*//style.css" . ,(elnode-make-send-file css))
        ("^[^/]*//site.js" . ,(elnode-make-send-file js))
+       ("^[^/]*//jquery.js" . ,(elnode-make-send-file jquery))
+       ("^[^/]*//bootstrap.js" . ,(elnode-make-send-file bootstrap-js))
+       ("^[^/]*//bootstrap.css" . ,(elnode-make-send-file bootstrap-css))
        ("^[^/]*//$" . talkapp-main-handler)))))
 
 ;; Define the authentication scheme, using our database
@@ -425,7 +438,6 @@ We should expect USERNAME-SPEC to just be a username."
  :cookie-name talkapp-cookie-name
  :redirect (elnode-auth-make-login-wrapper
             'talkapp-router))
-
 
 (provide 'talkapp)
 

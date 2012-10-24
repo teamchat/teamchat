@@ -1,15 +1,36 @@
+<!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" href="/bootstrap.css" type="text/css"/>
 <link rel="stylesheet" href="/style.css" type="text/css"/>
-<script src="/site.js" language="Javascript"></script>
 </head>
 <body>
-<h1>shoes off - register for the bouncy castle</h1>
-<form method="POST" action="/register/">
-    <!##E form E##!>
-    <fieldset>
-    <input type="submit" name="register" value="Register Now!"/>
-    </fieldset>
-</form>
+<div class="container">
+    <div class="hero-unit">
+        <h1>chat on the bouncer</h1>
+        <p>sign up for the bouncer service to get real time chat on your desktop or on the web.</p>
+    </div>
+</div>
+<div class="span8 offset2">
+    <form class="form-horizontal" method="POST" action="/register/">
+        <legend>register for the bouncer now</legend>
+        <!##E form E##!>
+        <fieldset>
+            <input type="submit" name="register" value="Register Now!"/>
+        </fieldset>
+    </form>
+</div>
+<footer class="footer">
+    <div class="container">
+        <p class="pull-right"><a href="#">Back to top</a></p>
+        <p>Designed and built by <a href="http://nic.ferrier.me.uk/">Nic Ferrier</a> using Emacs and <a href="http://elnode.org">Elnode</a></p>
+        <ul class="footer-links">
+            <!-- links go here -->
+        </ul>
+    </div>
+</footer>
 </body>
+<script src="/jquery.js"    language="Javascript"></script>
+<script src="/bootstrap.js" language="Javascript"></script>
+<script src="/site.js"      language="Javascript"></script>
 </html>

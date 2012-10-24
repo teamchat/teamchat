@@ -1,27 +1,50 @@
+<!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="/style.css" type="text/css"/>
+    <link rel="stylesheet" href="/bootstrap.css" type="text/css"/>
+    <link rel="stylesheet" href="/style.css" type="text/css"/>
 </head>
 <body>
-<h1>remember ...</h1>
-<h2>... keep your shoes off on the bouncy castle</h2>
-<p>Thanks for registering, <!##E username E##!>.</p>
-<div id="status-panel">
-    <div id="status-disconnected" class="hidden">
-        you are <i>disconnected</i> from irc
-        <a id="connect" 
-           href="javascript:;" 
-           class="button">connect</a>
-    </div>
-    <div id="status-connected" class="hidden">
-        you are <i>connected</i> to irc
+<div id="registered-header">
+    <div class="container">
+        <h1>you're in! almost ...</h1>
+        <p>Thanks for registering, <!##E username E##!>.</p>
     </div>
 </div>
+<div class="container">
+    <p class="span6">We are not going to connect you with other people from your
+    company yet... we have sent you an email. You need to find it and
+    click the link we've put in there to confirm yourself and then
+    you're good to go.</p>
+
+    <div class="span4"  id="status-panel">
+        <div id="status-disconnected" class="hidden">
+            you are currently <i>disconnected</i> from irc<br/>
+            <a id="connect" 
+               href="javascript:;" 
+               class="btn btn-primary btn-large">connect now</a>
+        </div>
+        <div id="status-connected" class="hidden">
+            you are <i>connected</i> to irc
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <div class="container">
+        <p class="pull-right"><a href="#">Back to top</a></p>
+        <p>Designed and built by <a href="http://nic.ferrier.me.uk/">Nic Ferrier</a> using Emacs and <a href="http://elnode.org">Elnode</a></p>
+        <ul class="footer-links">
+            <!-- links go here -->
+        </ul>
+    </div>
+</footer>
 <script>
     //<!--
-    var talkapp_do_config = true;
+    //var talkapp_do_config = true;
     //-->
 </script>
 </body>
+<script src="/jquery.js"    language="Javascript"></script>
+<script src="/bootstrap.js" language="Javascript"></script>
 <script src="/site.js" language="Javascript"></script>
 </html>

@@ -2,41 +2,30 @@ body {
     font-family: sans-serif;
 }
 
-fieldset {
-    margin-left: 3em;
-    padding-left: 4em;
-    padding-right: 4em;
+.footer {
+    clear: both;
+    margin-top: 5em;
     padding-top: 2em;
-    padding-bottom: 1em;
-    width: 35em;
+    background-color: #eeeeee;
+    padding-bottom: 10em;
+}
+
+fieldset {
     border: thin none;
     background-color: Azure;
 }
 
-label {
-    display: block;
-    width: 30em;
-    padding-bottom: .5em;
+/* Override some bootstrap styles */
+
+.form-horizontal div.control-group {
+    margin-bottom: 2px;
 }
 
-label span {
-    float: left;
-    text-align: right;
-}
-
-label div {
-    text-align: right;
+div.controls span,
+div.controls textarea,
+div.controls input {
     width: 30em;
-}
-
-label div input {
-    width: 30em;
-}
-
-label textarea {
-    float: right;
-    height: 5em;
-    width: 30em;
+    margin-top: 5px;
 }
 
 div.error {
@@ -46,21 +35,22 @@ div.error {
 }
 
 fieldset input[type=submit] {
-    margin-top: 1em;
+    margin-top: 2em;
     clear: both;
     float: right;
 }
 
-a.button {
-    display: block;
+.hero-unit {
     background-color: Gold;
-    color: Black;
-    border: solid;
-    margin: .25em;
-    width: 7em;
-    text-align: center;
-    text-decoration: none;
+    color: DarkSlateGrey;
 }
+
+#registered-header {
+    background-color: Gold;
+    color: DarkSlateGrey;
+    margin-bottom: 3em;
+}
+
 
 .hidden {
     display: none;
