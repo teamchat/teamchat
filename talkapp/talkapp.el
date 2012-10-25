@@ -43,28 +43,33 @@
   (db-make
    `(db-filter
      :source ,talkapp/user-db
-     :filter
-     talkapp/db-filter-get))
+     :filter talkapp/db-filter-get))
   "Token view of the user db.")
 
-(defconst talkapp-cookie-name "talkapp-user"
-  "The name of the cookie we use for auth.")
+(defun talkapp/token-valid-get (key value)
+  (when (aget value "valid")
+    (aget value "token")))
+
+(defconst talkapp/valid-token-db
+  (db-make
+   `(db-filter
+     :source ,talkapp/user-db
+     :filter talkapp/token-valid-get))
+  "Token/valid view of the user db.")
+
+(defconst talkapp/email-valid-db
+  (db-make
+   `(db-hash
+     :filename
+     ,(expand-file-name
+       (concat talkapp-dir "email-db"))))
+  "The database where we store validation details.
+
+We key it by the validation key (a hash of email and secret key)
+and store the username and the email.")
 
 
-(defvar talkapp/irc-server-name "irc.jbx.cc")
-(defvar talkapp/irc-server-port 6667)
-(defvar talkapp/irc-channels '("#thoughtworks"))
-
-(defun talkapp/irc-details (username password email)
-  (list :username username :password password
-        :server-alist
-        `((,talkapp/irc-server-name
-           :nick ,username
-           :port ,talkapp/irc-server-port
-           :user-name ,username
-           :password "secret"
-           :full-name ,email
-           :channels ,talkapp/irc-channels))))
+;; Database utility function
 
 (defun talkapp-list-ssh-keys (&optional make-buf)
   "Make an alist of the ssh-keys from the user database."
@@ -85,6 +90,31 @@
             (switch-to-buffer (current-buffer))))
         keys)))
 
+
+;; Auth cookie constants
+
+(defconst talkapp-session-cookie-name "talkapp-session"
+  "The name of the cookie we use for email-valid auth.")
+
+(defconst talkapp-cookie-name "talkapp-user"
+  "The name of the cookie we use for auth.")
+
+;; IRC setup stuff
+
+(defvar talkapp/irc-server-name "irc.jbx.cc")
+(defvar talkapp/irc-server-port 6667)
+(defvar talkapp/irc-channels '("#thoughtworks"))
+
+(defun talkapp/irc-details (username password email)
+  (list :username username :password password
+        :server-alist
+        `((,talkapp/irc-server-name
+           :nick ,username
+           :port ,talkapp/irc-server-port
+           :user-name ,username
+           :password "secret"
+           :full-name ,email
+           :channels ,talkapp/irc-channels))))
 
 ;; Rcirc stuff
 
@@ -172,24 +202,29 @@ We should expect USERNAME-SPEC to just be a username."
      (if httpcon httpcon elnode-replacements-httpcon)
      talkapp-cookie-name t))))
 
-(defun talkapp-get-user (&optional httpcon)
+(defun talkapp/get-user (&optional httpcon)
   "Get the user via the cookie on the HTTPCON."
   (db-get
    (talkapp-cookie->user-name httpcon)
    talkapp/user-db))
 
+(defun talkapp/keyify (record)
+  "Force RECORD to have string keys."
+  (kvalist-keys->*
+   record
+   (lambda (key) (if (stringp key) key (symbol-name key)))))
+
 (defun talkapp/get-user-http (&optional httpcon)
   "Get the user but force string keys."
-  (kvalist-keys->*
-   (talkapp-get-user httpcon)
-   (lambda (key) (if (stringp key) key (symbol-name key)))))
+  (talkapp/keyify
+   (talkapp/get-user httpcon)))
 
 
 ;; Provision the ircd with this user
 
 (defun talkapp-irc-config-handler (httpcon)
   "Run the ircd provisioning script."
-  (with-elnode-auth httpcon 'talkapp-auth
+  (with-elnode-auth httpcon 'talkapp-session
     (let ((username (talkapp-cookie->user-name httpcon)))
       (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
       (if (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
@@ -202,7 +237,7 @@ We should expect USERNAME-SPEC to just be a username."
 
 (defun talkapp-shoes-off-session (httpcon)
   "Manage sessions from the webapp."
-  (with-elnode-auth httpcon 'talkapp-auth
+  (with-elnode-auth httpcon 'talkapp-session
     (let* ((username (talkapp-cookie->user-name httpcon))
            ;; FIXME hard coded server for now
            (session (gethash
@@ -315,6 +350,11 @@ We should expect USERNAME-SPEC to just be a username."
   '(("2012-10-24 08:23:00" "nic" "this is a test")
     ("2012-10-24 08:23:00" "jim" "a conversation could occur")))
 
+(defun talkapp/chat-list (channel)
+  "Replacement for `talkapp/chat-list' that makes dummy chat."
+  '(("2012-10-24 08:23:00" "nic" "this is a test")
+    ("2012-10-24 08:23:00" "jim" "a conversation could occur")))
+
 (defun talkapp/list-to-html (username)
   "Return the list of chat as rows for initial chat display."
   (let ((channel (concat "#thoughtworks@localhost~" username)))
@@ -323,7 +363,6 @@ We should expect USERNAME-SPEC to just be a username."
        concat
          (esxml-to-xml
           (talkapp/entry->html (elt entry 1)(elt entry 2))))))
-
 
 (defun talkapp/chat-templater ()
   "Return the list of chats as template."
@@ -336,7 +375,7 @@ We should expect USERNAME-SPEC to just be a username."
 
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
-  (with-elnode-auth httpcon 'talkapp-auth
+  (with-elnode-auth httpcon 'talkapp-session
     (elnode-send-file
      httpcon (concat talkapp-dir "chat.html")
      :replacements 'talkapp/chat-templater)))
@@ -344,20 +383,30 @@ We should expect USERNAME-SPEC to just be a username."
 
 ;; Registration stuff
 
-;; Needed because we want to force the login on reg
-(defun* talkapp/login (httpcon
-                       registered-page
-                       &key
-                       username
-                       password)
-  "Log the registered user in."
-  ;; Should this function do the shoes-off session booting?
-  (elnode-auth-http-login
-   httpcon
-   username password
-   registered-page
-   :cookie-name talkapp-cookie-name
-   :auth-db talkapp/auth-token-db))
+(defun talkapp-user-handler (httpcon)
+  "Present the main user page."
+  (with-elnode-auth httpcon 'talkapp-session
+    (let ((user-data (talkapp/get-user-http httpcon)))
+      (elnode-send-file
+       httpcon (concat talkapp-dir "user.html")
+       :replacements user-data))))
+
+(defun talkapp-validate-handler (httpcon)
+  "Validates the user and logs them in."
+  (with-elnode-auth httpcon 'talkapp-auth
+    (let* ((hash (elnode-http-mapping httpcon 1))
+           (record (db-get hash talkapp/email-valid-db))
+           (username (aget record 'username))
+           (user (db-get username talkapp/user-db))
+           (user-page "/user/"))
+      (db-put username (acons "valid" t user) talkapp/user-db)
+      ;; Now log the user in and redirect them
+      (elnode-auth-http-login
+       httpcon
+       username (aget user "password")
+       user-page
+       :cookie-name talkapp-session-cookie-name
+       :auth-db talkapp/valid-token-db))))
 
 (defun talkapp/make-user (regform data)
   "Make a user."
@@ -370,11 +419,15 @@ We should expect USERNAME-SPEC to just be a username."
                   (acons "token" token data))))))
 
 (defun talkapp/save-reg (httpcon regform data)
-  (let ((user (talkapp/make-user regform data)))
-    (talkapp/login
-     httpcon "/registered/"
-     :username (aget user "username")
-     :password (aget user "password"))))
+  (let* ((user (talkapp/make-user regform data))
+         (username (aget user "username"))
+         (password (aget user "password")))
+    (elnode-auth-http-login
+     httpcon
+     username password
+     "/registered/"
+     :cookie-name talkapp-cookie-name
+     :auth-db talkapp/auth-token-db)))
 
 (defconst talkapp-regform
   (esxml-form
@@ -397,6 +450,31 @@ We should expect USERNAME-SPEC to just be a username."
          :check-failure "just the main part of the key"))
   "Registration form.")
 
+(defun talkapp-registered-handler (httpcon)
+  "The registered page.
+
+Makes the validation hash, stores it in the db, queues the email
+and directs you to validate."
+  (let* ((user (talkapp/get-user httpcon))
+         (user-data (talkapp/keyify user))
+         (email (aget user-data "email"))
+         (username (aget user-data "username"))
+         ;; FIXME - this uses elnode's secret key - it would be better to
+         ;; use an app specific one
+         (email-hash (sha1 (format "%s:%s" elnode-secret-key email))))
+    ;; Store the hash with the username and email address
+    (db-put email-hash
+            `((username . ,username)(email . ,email))
+            talkapp/email-valid-db)
+    ;; FIXME - We need to send an email!
+    (message "talkapp reg %s with verify link %s"
+             username
+             (format "http://localhost:8101/validate/%s" email-hash))
+    ;; Send the file back
+    (elnode-send-file
+     httpcon (concat talkapp-dir "registered.html")
+     :replacements user-data)))
+
 (defun talkapp-register-handler (httpcon)
   "Take a registration and create a user."
   (let ((esxml-field-style :bootstrap))
@@ -407,18 +485,21 @@ We should expect USERNAME-SPEC to just be a username."
 
 (defun talkapp-main-handler (httpcon)
   "The handler for the main page."
-  (if-elnode-auth httpcon 'talkapp-auth
+  (if-elnode-auth httpcon 'talkapp-session
     (elnode-send-file
      httpcon
-     (concat talkapp-dir "authd-main.html")
+     (concat talkapp-dir "user.html")
      :replacements 'talkapp/get-user-http)
     ;; Else user is not authenticated so send the main file
+    ;;
+    ;; FIXME - we should really detect first auth and send registered?
     (elnode-send-file httpcon (concat talkapp-dir "main.html"))))
+
 
 ;;;###autoload
 (define-elnode-handler talkapp-router (httpcon)
   "Main router."
-  (let ((registered (concat talkapp-dir "registered.html"))
+  (let (
         (css (concat talkapp-dir "style.css"))
         (js (concat talkapp-dir "site.js"))
         (jquery (concat talkapp-dir "jquery-1.8.2.min.js"))
@@ -430,10 +511,10 @@ We should expect USERNAME-SPEC to just be a username."
        ("^[^/]*//session/" . talkapp-shoes-off-session)
        ("^[^/]*//chat/" . talkapp-chat-handler)
        ("^[^/]*//register/" . talkapp-register-handler)
-       ("^[^/]*//registered/"
-        . ,(elnode-make-send-file
-            registered
-            :replacements 'talkapp/get-user-http))
+       ("^[^/]*//registered/" . talkapp-registered-handler)
+       ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
+       ("^[^/]*//user/$" . talkapp-user-handler)
+       ;; Static content
        ("^[^/]*//style.css" . ,(elnode-make-send-file css))
        ("^[^/]*//site.js" . ,(elnode-make-send-file js))
        ("^[^/]*//jquery.js" . ,(elnode-make-send-file jquery))
@@ -441,11 +522,26 @@ We should expect USERNAME-SPEC to just be a username."
        ("^[^/]*//bootstrap.css" . ,(elnode-make-send-file bootstrap-css))
        ("^[^/]*//$" . talkapp-main-handler)))))
 
-;; Define the authentication scheme, using our database
+
+;; First level auth scheme
+;;
+;; Used after registration to see the email-validation thing.  I guess
+;; service notices and such like could be this as well. Also "please
+;; turn off any email sending"
 (elnode-auth-define-scheme
  'talkapp-auth
  :auth-db talkapp/auth-token-db
  :cookie-name talkapp-cookie-name
+ :redirect (elnode-auth-make-login-wrapper
+            'talkapp-router))
+
+;; Second level auth scheme
+;;
+;; Used after email validation.
+(elnode-auth-define-scheme
+ 'talkapp-session
+ :auth-db talkapp/valid-token-db
+ :cookie-name talkapp-session-cookie-name
  :redirect (elnode-auth-make-login-wrapper
             'talkapp-router))
 

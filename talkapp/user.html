@@ -5,18 +5,20 @@
     <link rel="stylesheet" href="/style.css" type="text/css"/>
 </head>
 <body>
-<div id="registered-header">
+<div id="user-header">
     <div class="container">
-        <h1>you're in! almost ...</h1>
-        <p>Thanks for registering, <!##E username E##!>.</p>
+        <h1><!##E username E##!> chat console</h1>
+        <p id="verified-email">your email is: <!##E email E##!></p>
     </div>
 </div>
-<div id="please-verify" class="container">
-    <p class="span6">We are not going to connect you with other people
-    from your company yet... we have sent an email to
-    <!##E email E##!>. 
-    You need to find it and click the link we've put in there to
-    confirm yourself and then you're good to go.</p>
+<div id="user-console" class="container">
+    <div class="span6">
+        <p>This is the chat console page. You can start the
+        chat app from here.</p>
+        <ul>
+            <li><a href="/chat/">go to your chat page</a></li>
+        </ul>
+    </div>
 
     <div class="span4"  id="status-panel">
         <div id="status-disconnected" class="hidden">

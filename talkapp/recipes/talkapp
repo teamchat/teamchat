@@ -9,7 +9,7 @@
             (uuid "0.0.3"))
  :files ("talkapp.el" 
          "main.html" "registered.html" "register.html" 
-         "authd-main.html" "chat.html"
+         "user.html" "chat.html"
          "site.js" 
          "style.css"
          "jquery-1.8.2.min.js"

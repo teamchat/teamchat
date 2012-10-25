@@ -43,12 +43,15 @@ fieldset input[type=submit] {
     color: DarkSlateGrey;
 }
 
+#chat-header,
+#user-header,
 #registered-header {
     background-color: Gold;
     color: DarkSlateGrey;
     margin-bottom: 3em;
 }
 
+#user-console,
 #please-verify {
     height: 200px;
 }

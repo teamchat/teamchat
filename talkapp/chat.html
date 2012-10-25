@@ -5,8 +5,14 @@
 <link rel="stylesheet" href="/bootstrap.css" type="text/css"/>
 <link rel="stylesheet" href="/style.css" type="text/css"/>
 </head>
-<div class="chat container">
-    <h1>chat!</h1>
+<body>
+<div id="chat-header">
+    <div class="container">
+        <h1>chat!</h1>
+    </div>
+</div>
+
+<div class="container">
     <form class="form-inline" method="POST" action="/chat/send/" target="_sendtarget">
         <input class="input-xxlarge" 
                type="text" name="msg" value="" 
