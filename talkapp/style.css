@@ -49,7 +49,9 @@ fieldset input[type=submit] {
     margin-bottom: 3em;
 }
 
-
+#please-verify {
+    height: 200px;
+}
 
 /* Chat window styles */
 
