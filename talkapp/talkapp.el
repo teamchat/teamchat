@@ -161,9 +161,12 @@ name."
 (defun talkapp/get-shoes-off-config (username)
   "Return a db record in the form that can be used by shoes-off."
   (awhen (db-get username talkapp/user-db)
-    (destructuring-bind (&key token username password key email)
-        (kvalist->plist it)
+    (destructuring-bind (&key username password email)
+        (kvplist->filter-keys
+         (kvalist->plist it)
+         :username :password :email)
       (talkapp/irc-details username password email))))
+
 
 (defun talkapp/shoes-off-auth (username-spec password)
   "DB based implementation of `shoes-off--auth-check'.
@@ -182,12 +185,9 @@ We should expect USERNAME-SPEC to just be a username."
 (when (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
   (eval-after-load "talkapp"
     '(progn
-      (setq shoes-off--get-config-plugin
-       (symbol-function 'talkapp/get-shoes-off-config))
-      (setq shoes-off--auth-plugin
-       (symbol-function 'talkapp/shoes-off-auth))
-      (setq shoes-off--rcirc-connect-plugin
-       'talkapp-rcirc-connect)
+      (setq shoes-off--get-config-plugin 'talkapp/get-shoes-off-config)
+      (setq shoes-off--auth-plugin 'talkapp/shoes-off-auth)
+      (setq shoes-off--rcirc-connect-plugin 'talkapp-rcirc-connect)
       ;; Ensures the time format support us pulling back accurately
       (setq rcirc-time-format "%Y-%m-%d %H:%M:%S:%N "))))
 
@@ -346,11 +346,6 @@ We should expect USERNAME-SPEC to just be a username."
    channel))
 
 (defun talkapp/chat-list-test (channel)
-  "Replacement for `talkapp/chat-list' that makes dummy chat."
-  '(("2012-10-24 08:23:00" "nic" "this is a test")
-    ("2012-10-24 08:23:00" "jim" "a conversation could occur")))
-
-(defun talkapp/chat-list (channel)
   "Replacement for `talkapp/chat-list' that makes dummy chat."
   '(("2012-10-24 08:23:00" "nic" "this is a test")
     ("2012-10-24 08:23:00" "jim" "a conversation could occur")))
