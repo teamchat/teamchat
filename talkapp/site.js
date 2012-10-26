@@ -10,7 +10,8 @@ var talkapp =
                       dataType: "json",
                       success: function (data, status) {
                           console.log("we started the service with: " + data);
-                          if (data["session"] == true) {
+                          if (data["session"] == true 
+                              || data["error"] == "already started") {
                               $("#status-disconnected").addClass("hidden");
                               $("#status-connected").removeClass("hidden");
                           }
@@ -49,11 +50,12 @@ var talkapp =
 
          // If we have a connect button add the link
          var connect_button = $("#connect");
-         /*if (connect_button) {
-             bean.on(connect_button[0], "click", function (evt) {
-                         service();
-                     });
-         }*/
+         if (connect_button) {
+             connect_button.on(
+                 "click", function (evt) {
+                     service();
+                 });
+         }
          
          // If we should configure the user then do it
          if (typeof talkapp_do_config != "undefined") {

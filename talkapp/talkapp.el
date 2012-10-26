@@ -200,7 +200,8 @@ We should expect USERNAME-SPEC to just be a username."
    (elnode-auth-cookie-decode
     (elnode-http-cookie
      (if httpcon httpcon elnode-replacements-httpcon)
-     talkapp-cookie-name t))))
+     ;; DO WE NEED BOTH COOKIES?
+     talkapp-session-cookie-name t))))
 
 (defun talkapp/get-user (&optional httpcon)
   "Get the user via the cookie on the HTTPCON."
@@ -226,12 +227,17 @@ We should expect USERNAME-SPEC to just be a username."
   "Run the ircd provisioning script."
   (with-elnode-auth httpcon 'talkapp-session
     (let ((username (talkapp-cookie->user-name httpcon)))
-      (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
-      (if (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
-          (elnode-child-process
-           httpcon
-           "bash" "/home/emacs/ircdmakeuser" username)
-          (elnode-send-json httpcon (list :error t))))))
+      (if (file-exists-p
+           (expand-file-name (concat "~/ircdkeys/" username)))
+          ;; If the key exists then don't do it again
+          (elnode-send-status httpcon 204)
+          ;; else make the key
+          (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
+          (if (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
+              (elnode-child-process
+               httpcon
+               "bash" "/home/emacs/ircdmakeuser" username)
+              (elnode-send-json httpcon (list :error t)))))))
 
 ;; Start the shoes-off session for this user
 
@@ -341,9 +347,10 @@ We should expect USERNAME-SPEC to just be a username."
 
 (defun talkapp/chat-list (channel)
   "Make a list of the CHANNEL chatter."
-  (talkapp/list-since-mins-ago
-   talkapp/default-chat-history-minutes
-   channel))
+  (reverse
+   (talkapp/list-since-mins-ago
+    talkapp/default-chat-history-minutes
+    channel)))
 
 (defun talkapp/chat-list-test (channel)
   "Replacement for `talkapp/chat-list' that makes dummy chat."
