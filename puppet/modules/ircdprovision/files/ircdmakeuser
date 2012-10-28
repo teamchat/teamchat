@@ -10,6 +10,7 @@
 USERNAME=$1
 KEYSHOME=${KEYSHOME:-/home/emacs}
 KEYSDIR=${KEYSDIR:-${KEYSHOME}/ircdkeys}
+LOGSDIR=${LOGSDIR:-${KEYSHOME}/ircdmakeuserlogs}
 
 # This key is provided by puppet
 BOUNCERKEY=${BOUNCERKEY:-${KEYSHOME}/.ssh/ircdprovision}
@@ -26,6 +27,8 @@ IRCDHOSTSSH="${IRCDPORT} -i ${BOUNCERKEY} bouncerprovisioner@${IRCDHOST} "
 ##
 # Now the actual script
 ##
+function makeuser ()
+{
 mkdir -p $KEYSDIR
 
 # Create the key pair locally
@@ -48,5 +51,10 @@ then
     cat ${KEYSDIR}/${USERNAME}.pub \
         | $SSH $IRCDHOSTSSH sudo -u $USERNAME tee -a /home/$USERNAME/.ssh/authorized_keys
 fi
+}
+
+# Now call it
+mkdir -p $LOGSDIR
+makeuser | tee $LOGSDIR/$$.log
 
 # End
