@@ -17,6 +17,13 @@
 ;; The local elpa dir
 (elpakit "~/work/shoes-off-aas/shoesoff-elpa" shoes-off-elpakit)
 
+;; the remote elpa
+(let ((remote
+       "/ssh:nferrier@po1.ferrier:irc--talk/shoesoffaas/shoesoff-elpa/"))
+  (delete-directory remote t)
+  (elpakit remote shoes-off-elpakit))
+
+;; Inside your emacs
 (elpakit-eval shoes-off-elpakit)
 
 ;; End
