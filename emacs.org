@@ -1,5 +1,63 @@
 
+* multi hosting
+** registration
+*** user registers with an email
+**** user confirms their email
+***** we throw them in their room
+*** user comes to a branded site
+**** can use any email
+**** we just throw them in that way
+** TODO we must have an organization attached to each record
+** questions
+*** where do we store email?
+*** how to create a room when someone registers?
+**** when someone confirms an email make a channel with that
+** how do we key in their dns?
+*** people will want chat.mycompany.com
+
+
 * todo
+** TODO rename everything to teamchat.net
+** TODO config create bug
+*** zaargy experienced this
+*** the config does not create the user
+*** log
+**** fixed the ircdprovision script to do logging for every provision
+*** DONE need a file test for the key in ircdkeys
+**** to test whether to do that or not
+** TODO ircdprovisioner script works
+*** it does but it needs alteration
+**** the ircd host is hardcoded
+*** TODO looks like we need to make it more complicated because we need to start ircd's
+** TODO status messages don't get picked up by the list-since
+*** things like joins and parts - these would be useful?
+**** I think so.
+*** also /me messages
+** TODO user connects to the bouncer
+*** does the provisioner need to make a user on the bouncer?
+**** how will the users connect to the bouncer?
+***** could they connect as emacs@bouncer (or whatever)?
+****** don't think so. the ssh is the auth.
+** TODO erwin
+*** we need to auto-install erwin for each
+**** irc server
+**** channel
+** TODO email sending
+*** send an email with the link in it
+*** from ferrier.me.uk right now?
+** TODO on reboot
+*** cycle through the users in the db making their shoes off sessions
+** TODO the comet queue isn't turned on
+** TODO auto start talk app
+** DONE twitter/bootstrap
+*** which needs elpakit for testing
+**** eval all the elisp files specified in the kit
+*** design - split screen for chat
+** DONE reg changes for email
+*** reg login changes
+**** you now only get the send reg page
+**** another handler provides the full login
+**** send the link to the handler
 ** DONE database adapters
 *** DONE make a function to pick up shoes-config from the talk database
 *** DONE make shoes-off use the new function
@@ -21,10 +79,8 @@
 ***** hostname
 ****** also needs to change in puppet?
 ***** channel
-** TODO on reg
+** DONE on reg
 *** establish the shoes-off connection
-** TODO on reboot
-*** cycle through the users in the db making their shoes off sessions
 ** write scripts
 *** DONE install package script
 *** TODO puppetize ssh host keys
@@ -36,24 +92,56 @@
 *** DONE add user to shoes-off?
 **** this is just adding config
 **** DONE JUST USE THE DATABASE
-*** TODO ircd add user script
+*** DONE ircd add user script
 **** when you reg a user we need to
 ***** make a new private key from bouncer->ircd
 ***** ssh to the ircd and add the user and the key
 **** do this with new handler /init/
-** TODO start talk app
 
-* provision check list
+* maintenance
+** how to refresh a file from the cache
+sudo grep -lr "/-/site.js" /var/cache/nginx/ | xargs -L1 sudo rm -f
+** userdel on the ircd
+( ps aux | awk '$1 ~ /nic/ {print$2}' \
+ | while read pid ; do kill -9 $pid ; done ) ; \ |
+  /usr/sbin/userdel nic ; rm -rf /home/nic
+
+* bluesky
+** bot control from the webapp
+** password change - kinda priority actually
+** people come online their gravatar should appear
+** make the gravatar wobble when they chat
+** configurable services
+*** gravatar should be turn off/on-able
+*** colors, name, etc... should all be controllable
+
+* initial rollout notes
+** DONE elnode access logs have unnecessary whitespace lines
+** nginx install
+*** PPA here
+*** http://wiki.nginx.org/Install#Ubuntu_PPA
+** DONE nginx needs tuning
+*** DONE set the poll proxying to be long running
+*** DONE cache everything else
+** DONE the double layer auth isn't working?
+*** seems like people can only auth to 1 at a time
+**** except me, which is wierd
+*** can we make a test
+** DONE the connect to irc button isn't connected to anything
+*** jquery fail
+** it's a pain assembling everything
+*** need a rakefile to pull all the git depends
+*** could we make an output for the rakefile to deal with elpakit?
+** the emacsd didn't start on boot
+
+
+* initial provision check list
 ** DONE bouncer box installs
 ** DONE emacs installs on box
 ** DONE apps install on emacs
 ** TODO talkapp starts
 *** this is what needs to be done from the command line
 sudo /etc/init.d/emacs command elnode-start "(quote talk-router)" :port 8001 :host '"0.0.0.0"'
-** TODO ircdprovisioner script works
-*** it does but it needs alteration
-**** the ircd host is hardcoded
-*** TODO should we template it in puppet?
 ** DONE the /config/ url works
 ** DONE multiple named ssh bouncer sessions connect
 *** DONE talkapp needs ssh sessions turned on by default
@@ -62,21 +150,15 @@ sudo /etc/init.d/emacs command elnode-start "(quote talk-router)" :port 8001 :ho
 **** (shoes-off-start-session username)
 *** have a session handler that deals with a user's sessions?
 ** TODO the bouncer server starts
-* TODO how does the reg process start the bouncer session for the user?
+* DONE how does the reg process start the bouncer session for the user?
 ** at the end of the shell script?
 
-* userdel on the ircd
-( ps aux | awk '$1 ~ /nic/ {print$2}' \
- | while read pid ; do kill -9 $pid ; done ) ; \ |
-  /usr/sbin/userdel nic ; rm -rf /home/nic
-
-* packages
+* initial elpa package list
 ** shoes-off
 ** rcirc-ssh-sessions
 ** talk
 
-
-* talk app
+* initial design of talk app
 ** register users with keys
 ** take
 *** username
