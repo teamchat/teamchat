@@ -72,10 +72,15 @@ fieldset input[type=submit] {
     color: DarkSlateGrey;
 }
 
+.media-inset {
+    margin-top: 2em;
+    padding: .5em;
+    border-top: solid thin;
+}
+
 div#chat-panel {
     margin: 0;
     height: 100%;
-    overflow: scroll;
 }
 
 table#chat {

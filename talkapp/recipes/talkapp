@@ -13,5 +13,6 @@
          "site.js" 
          "style.css"
          "jquery-1.8.2.min.js"
+         "md5.js"
          "bootstrap.js" 
          "bootstrap.css" "bootstrap-responsive.css"))

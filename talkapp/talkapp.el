@@ -28,12 +28,25 @@
     anaphora esxml esxml-form db kv uuid
     shoes-off rcirc-ssh network-stream)
 
+(defgroup talkapp nil
+  "An web and irc based application.
+
+talkapp helps teams communicate. It offers a signup process to
+provision IRC accounts, protects an IRC service with SSH and
+provides a web interface to it as well."
+  :group 'applications)
+
+(defcustom talkapp-db-dir talkapp-dir
+  "The directory used to store the talkapp databases."
+  :group 'talkapp
+  :type 'directory)
+
 (defconst talkapp/user-db
   (db-make
    `(db-hash
      :filename
      ,(expand-file-name
-       (concat talkapp-dir "auth-db"))))
+       (concat talkapp-db-dir "auth-db"))))
   "The database where we store authentication details.")
 
 (defun talkapp/db-filter-get (key value)
@@ -62,7 +75,7 @@
    `(db-hash
      :filename
      ,(expand-file-name
-       (concat talkapp-dir "email-db"))))
+       (concat talkapp-db-dir "email-db"))))
   "The database where we store validation details.
 
 We key it by the validation key (a hash of email and secret key)
@@ -303,15 +316,18 @@ We should expect USERNAME-SPEC to just be a username."
         (goto-char (point-max))
         ;; Find the first point greater than the time-to-find
         (while doit
-          (forward-line -1)
-          (re-search-backward irc-line-re nil t)
-          (setq doit
-                (time-less-p
-                 time-to-find
-                 (talkapp/timestamp->time
-                  (condition-case nil
-                      (match-string-no-properties 1)
-                    (error "1970-01-01 00:00:00:000000"))))))
+          (if (not (re-search-backward irc-line-re nil t))
+              ;; No match - stop straight away
+              (setq doit nil)
+              ;; Else we have a match so check the time
+              (match-string-no-properties 0)
+              (setq doit
+                    (time-less-p
+                     time-to-find
+                     (talkapp/timestamp->time
+                      (condition-case nil
+                          (match-string-no-properties 1)
+                        (error "1970-01-01 00:00:00:000000")))))))
         (loop while (progn
                       (forward-line 1)
                       (re-search-forward irc-line-re nil t))
@@ -334,14 +350,19 @@ We should expect USERNAME-SPEC to just be a username."
 
 (defun talkapp/entry->html (username message)
   "Return the templated form of the row."
-  `(tr
-    ()
-    (td
-     ((class . ,(concat "username " username)))
-     ,username)
-    (td
-     ((class . "message"))
-     ,message)))
+  (let ((email (aif (db-get username talkapp/user-db)
+                   (aget it "email")
+                 "unknown@thoughtworks.com")))
+    `(tr
+      ()
+      (td
+       ((class . ,(concat "username " username)))
+       (abbr
+        ((title . ,email))
+        ,username))
+      (td
+       ((class . "message"))
+       ,message))))
 
 (defconst talkapp/default-chat-history-minutes 60)
 
@@ -352,19 +373,39 @@ We should expect USERNAME-SPEC to just be a username."
     talkapp/default-chat-history-minutes
     channel)))
 
-(defun talkapp/chat-list-test (channel)
-  "Replacement for `talkapp/chat-list' that makes dummy chat."
-  '(("2012-10-24 08:23:00" "nic" "this is a test")
-    ("2012-10-24 08:23:00" "jim" "a conversation could occur")))
-
 (defun talkapp/list-to-html (username)
   "Return the list of chat as rows for initial chat display."
-  (let ((channel (concat "#thoughtworks@localhost~" username)))
-    (loop for entry in (talkapp/chat-list channel)
-       if (equal 3 (length entry))
-       concat
-         (esxml-to-xml
-          (talkapp/entry->html (elt entry 1)(elt entry 2))))))
+  (let* ((channel (concat "#thoughtworks@localhost~" username))
+         (chat-list (talkapp/chat-list channel)))
+    (if chat-list
+        (loop for entry in chat-list
+           if (equal 3 (length entry))
+           concat
+             (esxml-to-xml
+              (talkapp/entry->html (elt entry 1)(elt entry 2))))
+        ;; Else send some appropriate xml
+        (esxml-to-xml '(div ((id . "empty-chat")) "no chat")))))
+
+(defun talkapp-comet-handler (httpcon)
+  "Defer until there is new chat."
+  (let* ((username (talkapp-cookie->user-name httpcon))
+         (channel (concat "#thoughtworks@localhost~" username))
+         (entered (current-time)))
+    (elnode-defer-until (talkapp/list-since entered channel)
+        (elnode-send-json
+         httpcon
+         elnode-defer-guard-it :jsonp t))))
+
+(defun talkapp-chat-add-handler (httpcon)
+  (with-elnode-auth httpcon 'talkapp-session
+    (let* ((msg (elnode-http-param httpcon "msg"))
+           (username (talkapp-cookie->user-name httpcon))
+           (channel (concat "#thoughtworks@localhost~" username)))
+      (with-current-buffer (get-buffer channel)
+        (goto-char (point-max))
+        (insert msg)
+        (rcirc-send-input))
+      (elnode-send-html httpcon "<html>thanks for that chat</html>"))))
 
 (defun talkapp/chat-templater ()
   "Return the list of chats as template."
@@ -501,9 +542,9 @@ and directs you to validate."
 ;;;###autoload
 (define-elnode-handler talkapp-router (httpcon)
   "Main router."
-  (let (
-        (css (concat talkapp-dir "style.css"))
+  (let ((css (concat talkapp-dir "style.css"))
         (js (concat talkapp-dir "site.js"))
+        (md5 (concat talkapp-dir "md5.js"))
         (jquery (concat talkapp-dir "jquery-1.8.2.min.js"))
         (bootstrap-js (concat talkapp-dir "bootstrap.js"))
         (bootstrap-css (concat talkapp-dir "bootstrap.css")))
@@ -512,16 +553,19 @@ and directs you to validate."
      `(("^[^/]*//config/" . talkapp-irc-config-handler)
        ("^[^/]*//session/" . talkapp-shoes-off-session)
        ("^[^/]*//chat/" . talkapp-chat-handler)
+       ("^[^/]*//send/" . talkapp-chat-add-handler)
+       ("^[^/]*//poll/" . talkapp-comet-handler)
        ("^[^/]*//register/" . talkapp-register-handler)
        ("^[^/]*//registered/" . talkapp-registered-handler)
        ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
        ("^[^/]*//user/$" . talkapp-user-handler)
-       ;; Static content
-       ("^[^/]*//style.css" . ,(elnode-make-send-file css))
-       ("^[^/]*//site.js" . ,(elnode-make-send-file js))
-       ("^[^/]*//jquery.js" . ,(elnode-make-send-file jquery))
-       ("^[^/]*//bootstrap.js" . ,(elnode-make-send-file bootstrap-js))
-       ("^[^/]*//bootstrap.css" . ,(elnode-make-send-file bootstrap-css))
+       ;; Static content#
+       ("^[^/]*//-/style.css" . ,(elnode-make-send-file css))
+       ("^[^/]*//-/md5.js" . ,(elnode-make-send-file md5))
+       ("^[^/]*//-/site.js" . ,(elnode-make-send-file js))
+       ("^[^/]*//-/jquery.js" . ,(elnode-make-send-file jquery))
+       ("^[^/]*//-/bootstrap.js" . ,(elnode-make-send-file bootstrap-js))
+       ("^[^/]*//-/bootstrap.css" . ,(elnode-make-send-file bootstrap-css))
        ("^[^/]*//$" . talkapp-main-handler)))))
 
 
