@@ -38,8 +38,8 @@
      ("email" . "test1@example.com")
      ("key" . "AFFSGSHhajsdkakdn"))))
 
-(ert-deftest talk-start-session-config ()
-  "Test the config abstraction."
+(ert-deftest talkapp-start-session-config ()
+  "Test the shoes-off config abstraction."
   (talkapp/mock-db
     (talkapp/test-make-user)
     (let (connected
@@ -48,7 +48,7 @@
           (talkapp/irc-server-name "irc.example.com")
           (talkapp/irc-channels '("#test")))
       (flet ((shoes-off--get-config (username)
-               (talk--get-shoes-off-config username))
+               (talkapp/get-shoes-off-config username))
              (rcirc-connect ; match the rcirc-connect arglist exactly
                  (server
                   &optional
