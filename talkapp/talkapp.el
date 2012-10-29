@@ -144,8 +144,16 @@ and store the username and the email.")
                   ("primary-channel" . ,primary-channel))))
     (db-put org-name record talkapp/org-db)))
 
-(defun talkapp/get-my-org (username email)
-  )
+(defun talkapp/get-my-org (email &optional http-host)
+  "Get the organization for my EMAIL or HTTP-HOST.
+
+Try EMAIL first (by pulling out the domain) and then HTTP-HOST."
+  (let ((domain (when (string-match "^[^@]+@\\(.+\\)" email)
+                  (match-string 1 email))))
+    (or
+     (db-query talkapp/org-db `(= "domain" ,domain))
+     (when http-host
+       (db-query talkapp/org-db `(= "host" ,http-host))))))
 
 ;; Auth cookie constants
 

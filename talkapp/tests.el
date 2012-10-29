@@ -112,4 +112,19 @@
         ("primary-channel" . "#testorg"))
       (db-get "test-org" talkapp/org-db)))))
 
+(ert-deftest talkapp/get-my-org ()
+  "Test the finding of orgs."
+  (talkapp/mock-db
+    (talkapp/org-new "test-org"
+                     :match-host "testorg.teamchat.net"
+                     :domain-name "test.org"
+                     :irc-server "testorg.teamchat.net:6901"
+                     :primary-channel "#testorg")
+    (should
+     (talkapp/get-my-org "nferrier@test.org"))
+    (should
+     (talkapp/get-my-org "nferrier@gmail.com" "testorg.teamchat.net"))
+    (should-not
+     (talkapp/get-my-org "nferrier@gmail.com" "www.teamchat.net"))))
+
 ;; end
