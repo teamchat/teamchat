@@ -46,7 +46,9 @@ provides a web interface to it as well."
    `(db-hash
      :filename
      ,(expand-file-name
-       (concat talkapp-db-dir "auth-db"))))
+       (concat
+        (file-name-as-directory talkapp-db-dir)
+        "auth-db"))))
   "The database where we store authentication details.")
 
 (defun talkapp/db-filter-get (key value)
@@ -75,7 +77,9 @@ provides a web interface to it as well."
    `(db-hash
      :filename
      ,(expand-file-name
-       (concat talkapp-db-dir "email-db"))))
+       (concat
+        (file-name-as-directory talkapp-db-dir)
+        "email-db"))))
   "The database where we store validation details.
 
 We key it by the validation key (a hash of email and secret key)
@@ -209,12 +213,14 @@ We should expect USERNAME-SPEC to just be a username."
 
 (defun talkapp-cookie->user-name (httpcon)
   "Convert the cookie to a user-name."
-  (car
-   (elnode-auth-cookie-decode
-    (elnode-http-cookie
-     (if httpcon httpcon elnode-replacements-httpcon)
-     ;; DO WE NEED BOTH COOKIES?
-     talkapp-session-cookie-name t))))
+  (let ((httpc (if httpcon
+                   httpcon
+                   elnode-replacements-httpcon)))
+    (car
+     (elnode-auth-cookie-decode
+      (or
+       (elnode-http-cookie httpc talkapp-session-cookie-name t)
+       (elnode-http-cookie httpc talkapp-cookie-name t))))))
 
 (defun talkapp/get-user (&optional httpcon)
   "Get the user via the cookie on the HTTPCON."
@@ -498,25 +504,26 @@ We should expect USERNAME-SPEC to just be a username."
 
 Makes the validation hash, stores it in the db, queues the email
 and directs you to validate."
-  (let* ((user (talkapp/get-user httpcon))
-         (user-data (talkapp/keyify user))
-         (email (aget user-data "email"))
-         (username (aget user-data "username"))
-         ;; FIXME - this uses elnode's secret key - it would be better to
-         ;; use an app specific one
-         (email-hash (sha1 (format "%s:%s" elnode-secret-key email))))
-    ;; Store the hash with the username and email address
-    (db-put email-hash
-            `((username . ,username)(email . ,email))
-            talkapp/email-valid-db)
-    ;; FIXME - We need to send an email!
-    (message "talkapp reg %s with verify link %s"
-             username
-             (format "http://localhost:8101/validate/%s" email-hash))
-    ;; Send the file back
-    (elnode-send-file
-     httpcon (concat talkapp-dir "registered.html")
-     :replacements user-data)))
+  (with-elnode-auth httpcon 'talkapp-auth
+    (let* ((user (talkapp/get-user httpcon))
+           (user-data (talkapp/keyify user))
+           (email (aget user-data "email"))
+           (username (aget user-data "username"))
+           ;; FIXME - this uses elnode's secret key - it would be better to
+           ;; use an app specific one
+           (email-hash (sha1 (format "%s:%s" elnode-secret-key email))))
+      ;; Store the hash with the username and email address
+      (db-put email-hash
+              `((username . ,username)(email . ,email))
+              talkapp/email-valid-db)
+      ;; FIXME - We need to send an email!
+      (message "talkapp reg %s with verify link %s"
+               username
+               (format "http://localhost:8101/validate/%s" email-hash))
+      ;; Send the file back
+      (elnode-send-file
+       httpcon (concat talkapp-dir "registered.html")
+       :replacements user-data))))
 
 (defun talkapp-register-handler (httpcon)
   "Take a registration and create a user."
