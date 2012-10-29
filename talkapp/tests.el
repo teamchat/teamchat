@@ -5,6 +5,8 @@
   (declare (debug (&rest form))
            (indent 0))
   `(let ((db-hash-do-not-save t))
+     ;; FIXME -This is a mess... would be great to find a way to
+     ;; abstract db creation
      (let* ((talkapp/user-db
              (db-make
               `(db-hash
