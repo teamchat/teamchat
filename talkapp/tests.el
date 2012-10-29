@@ -32,13 +32,30 @@
             ,@body)))
 
 (defun talkapp/test-make-user ()
-  "Make a user."
+  "Make a user using the standard interface."
   (talkapp/make-user
    talkapp-regform
    '(("username" . "testuser1")
      ("password" . "secret")
      ("email" . "test1@example.com")
      ("key" . "AFFSGSHhajsdkakdn"))))
+
+(ert-deftest talkapp/make-user ()
+  "Test making a user."
+  (talkapp/mock-db
+    (talkapp/test-make-user)
+    (should
+     (equal
+      (kvalist-sort
+       (copy-list '(("username" . "testuser1")
+                    ("org" . "UNKNOWN-ORG")
+                    ("password" . "secret")
+                    ("email" . "test1@example.com")
+                    ("key" . "AFFSGSHhajsdkakdn"))) 'kvcmp)
+      (kvalist-sort
+       (kvalist->filter-keys
+        (db-get "testuser1" talkapp/user-db)
+        "username" "org" "password" "email" "key") 'kvcmp)))))
 
 (ert-deftest talkapp-start-session-config ()
   "Test the shoes-off config abstraction."

@@ -261,7 +261,9 @@ We should expect USERNAME-SPEC to just be a username."
   (let* ((record (db-query talkapp/user-db `(= "username" ,username-spec)))
          (details (aget record username-spec)))
     (destructuring-bind (&key username password email key token)
-        (kvalist->plist details)
+        (kvplist->filter-keys
+         (kvalist->plist details)
+         :username :password :email :key :token)
       (when (equal password (aget details "password"))
         (talkapp/irc-details username password email)))))
 
@@ -526,18 +528,29 @@ We should expect USERNAME-SPEC to just be a username."
        :cookie-name talkapp-session-cookie-name
        :auth-db talkapp/valid-token-db))))
 
-(defun talkapp/make-user (regform data)
-  "Make a user."
+(defun talkapp/make-user (regform data &optional http-host)
+  "Make a user.
+
+Optional HTTP-HOST is the host-name the call was sent to, if
+present this is used to try to find an organization for the
+user."
   (esxml-form-save
    regform data
    :db-data (lambda (data)
               (destructuring-bind (&key username password key email)
                   (kvalist->plist data)
-                (let* ((token (elnode--auth-make-hash username password)))
-                  (acons "token" token data))))))
+                ;; Add in the org
+                (let ((org (talkapp/get-my-org email http-host)))
+                  (acons
+                   "org" (or org "UNKNOWN-ORG")
+                   ;; Add in the auth token
+                   (let* ((token (elnode--auth-make-hash
+                                  username password)))
+                     (acons "token" token data))))))))
 
 (defun talkapp/save-reg (httpcon regform data)
-  (let* ((user (talkapp/make-user regform data))
+  (let* ((http-host (elnode-http-header httpcon "Host"))
+         (user (talkapp/make-user regform data http-host))
          (username (aget user "username"))
          (password (aget user "password")))
     (elnode-auth-http-login
