@@ -41,6 +41,28 @@ provides a web interface to it as well."
   :group 'talkapp
   :type 'directory)
 
+(defconst talkapp/db-change-db
+  (db-make
+   `(db-hash
+     :filename
+     ,(expand-file-name
+       (concat
+        (file-name-as-directory talkapp-db-dir)
+        "db-change-db"))))
+  "META!!! The db of changes.
+
+Each change is a nanosecond timestamp key with a single field
+alist record:
+
+  timestamp
+
+eg: ((\"20120629160609914467000\"
+      (\"timestamp\" . \"20120629160609914467000\")))
+
+There are no other primitives for managing db-changes, though
+there is the function `db-change-timestamp' which puts a useful
+timestamp in the kill-ring.")
+
 (defconst talkapp/org-db
   (db-make
    `(db-hash
