@@ -111,10 +111,12 @@ var talkapp =
                           if (data["session"] == true) {
                               $("#status-disconnected").addClass("hidden");
                               $("#status-connected").removeClass("hidden");
+                              $("#connect-to-chat").removeClass("hidden");
                           }
                           else {
                               $("#status-connected").addClass("hidden");
                               $("#status-disconnected").removeClass("hidden");
+                              $("#connect-to-chat").addClass("hidden");
                           }
                       }
                     });
