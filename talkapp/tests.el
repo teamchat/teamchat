@@ -18,8 +18,16 @@
              (db-make
               `(db-filter
                 :source ,talkapp/user-db
-                :filter talkapp/token-valid-get))))
-       ,@body)))
+                :filter talkapp/token-valid-get)))
+            (talkapp/email-valid-db
+             (db-make
+              `(db-hash
+                :filename ,(format "/tmp/talk-email-db-%s" (uuid-string)))))
+            (talkapp/org-db
+             (db-make
+              `(db-hash
+                :filename ,(format "/tmp/talk-org-db-%s" (uuid-string))))))
+            ,@body)))
 
 (defun talkapp/test-make-user ()
   "Make a user."
@@ -83,5 +91,23 @@
       (db-put "testuser1" (acons "valid" t user) talkapp/user-db)
       (let ((v (db-get "testuser1" talkapp/valid-token-db)))
         (should v)))))
+
+
+(ert-deftest talkapp/org-new ()
+  "Test the direcct creation of new organizations."
+  (talkapp/mock-db
+    (talkapp/org-new "test-org"
+                     :match-host "testorg.teamchat.net"
+                     :domain-name "test.org"
+                     :irc-server "testorg.teamchat.net:6901"
+                     :primary-channel "#testorg")
+    (should
+     (equal
+      '(("name" . "test-org")
+        ("host" . "testorg.teamchat.net")
+        ("domain" . "test.org")
+        ("irc-server" . "testorg.teamchat.net:6901")
+        ("primary-channel" . "#testorg"))
+      (db-get "test-org" talkapp/org-db)))))
 
 ;; end

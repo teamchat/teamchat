@@ -41,6 +41,24 @@ provides a web interface to it as well."
   :group 'talkapp
   :type 'directory)
 
+(defconst talkapp/org-db
+  (db-make
+   `(db-hash
+     :filename
+     ,(expand-file-name
+       (concat
+        (file-name-as-directory talkapp-db-dir)
+        "org-db"))))
+  "The organization list.
+
+Contains the following fields:
+
+  host             the web server hostname for the service, or nil
+  name             the name of the organization
+  domain           the domain name, last part of any email
+  irc-server       the irc server to use
+  primary-channel  main channel to join everyone in this org to.")
+
 (defconst talkapp/user-db
   (db-make
    `(db-hash
@@ -107,6 +125,27 @@ and store the username and the email.")
             (switch-to-buffer (current-buffer))))
         keys)))
 
+
+;; Org function
+
+(defun* talkapp/org-new (org-name
+                         &key
+                         match-host
+                         domain-name
+                         irc-server
+                         primary-channel)
+  "Make a new organisation record in the `talkapp/org-db'."
+  (assert (and (stringp org-name)
+               (not (equal org-name ""))))
+  (let ((record `(("name" . ,org-name)
+                  ("host" . ,match-host)
+                  ("domain" . ,domain-name)
+                  ("irc-server" . ,irc-server)
+                  ("primary-channel" . ,primary-channel))))
+    (db-put org-name record talkapp/org-db)))
+
+(defun talkapp/get-my-org (username email)
+  )
 
 ;; Auth cookie constants
 
