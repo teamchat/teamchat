@@ -53,6 +53,10 @@ fieldset input[type=submit] {
     color: DarkSlateGrey;
 }
 
+.hero-unit #login {
+    margin-top: -2em;
+}
+
 #chat-header,
 #user-header,
 #registered-header {
