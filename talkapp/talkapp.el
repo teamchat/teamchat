@@ -633,6 +633,7 @@ and directs you to validate."
   (let ((css (concat talkapp-dir "style.css"))
         (js (concat talkapp-dir "site.js"))
         (md5 (concat talkapp-dir "md5.js"))
+        (carousel (concat talkapp-dir "jquery.carouFredSel-6.1.0.js"))
         (jquery (concat talkapp-dir "jquery-1.8.2.min.js"))
         (bootstrap-js (concat talkapp-dir "bootstrap.js"))
         (bootstrap-css (concat talkapp-dir "bootstrap.css")))
@@ -649,6 +650,7 @@ and directs you to validate."
        ("^[^/]*//user/$" . talkapp-user-handler)
        ;; Static content#
        ("^[^/]*//-/style.css" . ,(elnode-make-send-file css))
+       ("^[^/]*//-/carousel.js" . ,(elnode-make-send-file carousel))
        ("^[^/]*//-/md5.js" . ,(elnode-make-send-file md5))
        ("^[^/]*//-/site.js" . ,(elnode-make-send-file js))
        ("^[^/]*//-/jquery.js" . ,(elnode-make-send-file jquery))
