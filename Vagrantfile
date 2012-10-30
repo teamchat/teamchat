@@ -27,7 +27,7 @@ Vagrant::Config.run do |config|
     end
 
     # The elnode app
-    bouncer_config.vm.forward_port 8001, 8100
+    bouncer_config.vm.forward_port 8100, 8100
     # The bouncer port
     bouncer_config.vm.forward_port 6901, 6667
     # The internal network for the ircd

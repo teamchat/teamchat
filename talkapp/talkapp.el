@@ -685,7 +685,7 @@ and directs you to validate."
 (defun talkapp-start ()
   (interactive)
   (talkapp/rcirc-config)
-  (elnode-start 'talkapp-router :port 8001 :host "0.0.0.0"))
+  (elnode-start 'talkapp-router :port 8100 :host "0.0.0.0"))
 
 (provide 'talkapp)
 
