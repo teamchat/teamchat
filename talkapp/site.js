@@ -73,8 +73,8 @@ var talkapp =
          };
          
          var chat_poll = function () {
-             var template = function (username, message) {
-                 return $("<tr>"
+             var template = function (date, username, message) {
+                 return $("<tr id='" + date + "'>"
                           + "<td class='username " + username + "'>" + username + "</td>"
                           + "<td class='message'>" + url_it(message) + "</td>"
                           + "</tr>");
@@ -85,17 +85,25 @@ var talkapp =
                    success: function (data, status) {
                        $.each(data,
                               function (key, arr) {
-                                  var username = arr[0];
-                                  var message = arr[1];
-                                  template(username,
-                                           message).insertBefore("table tr:first-child");
+                                  var looked_up = $("#" + key);
+                                  if (looked_up.length < 1) {
+                                      var username = arr[0];
+                                      var message = arr[1];
+                                      template(
+                                          key, username, message
+                                        ).insertBefore("table tr:first-child");
+                                  }
+                                  else {
+                                      // For debugging
+                                      //  console.log("already got that one");
+                                  }
                               });
                    },
                    error: function (jqXHR, status) {
                        console.log("poll returned status " + status);
                    },
                   complete: function(jqXHR, status) {
-                      // restart even if we failed                                                                                                    
+                      // restart even if we failed
                       setTimeout(chat_poll, 100);
                   }
                  }

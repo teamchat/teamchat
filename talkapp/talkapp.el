@@ -253,7 +253,6 @@ name."
          :username :password :email)
       (talkapp/irc-details username password email))))
 
-
 (defun talkapp/shoes-off-auth (username-spec password)
   "DB based implementation of `shoes-off--auth-check'.
 
@@ -396,7 +395,7 @@ If this variable is not bound or bound and t it will eval."
               ;; No match - stop straight away
               (setq doit nil)
               ;; Else we have a match so check the time
-              (match-string-no-properties 0)
+              ;;; (match-string-no-properties 0) ; useful for debug
               (setq doit
                     (time-less-p
                      time-to-find
@@ -424,13 +423,19 @@ If this variable is not bound or bound and t it will eval."
                          (seconds-to-time (* minutes 60)))))
     (talkapp/list-since time-to-find  buffer-name)))
 
-(defun talkapp/entry->html (username message)
+(defun talkapp/date->id (date)
+  "Convert DATE to a form usable as an HTML ID."
+  (subst-char-in-string
+   ?: ?-
+   (apply 'format "%s-%s" (split-string date))))
+
+(defun talkapp/entry->html (date username message)
   "Return the templated form of the row."
   (let ((email (aif (db-get username talkapp/user-db)
                    (aget it "email")
                  "unknown@thoughtworks.com")))
     `(tr
-      ()
+      ((id . ,(talkapp/date->id date)))
       (td
        ((class . ,(concat "username " username)))
        (abbr
@@ -458,9 +463,16 @@ If this variable is not bound or bound and t it will eval."
            if (equal 3 (length entry))
            concat
              (esxml-to-xml
-              (talkapp/entry->html (elt entry 1)(elt entry 2))))
+              (apply 'talkapp/entry->html entry)))
         ;; Else send some appropriate xml
         (esxml-to-xml '(div ((id . "empty-chat")) "no chat")))))
+
+(defun talkapp/since-list->htmlable (since-list)
+  "Convert SINCE-LIST into something with HTML IDs."
+  (loop
+     for (date username msg) in since-list
+     collect
+       (list (talkapp/date->id date) username msg)))
 
 (defun talkapp-comet-handler (httpcon)
   "Defer until there is new chat."
@@ -468,9 +480,9 @@ If this variable is not bound or bound and t it will eval."
          (channel (concat "#thoughtworks@localhost~" username))
          (entered (current-time)))
     (elnode-defer-until (talkapp/list-since entered channel)
-        (elnode-send-json
-         httpcon
-         elnode-defer-guard-it :jsonp t))))
+        (let ((messages
+               (talkapp/since-list->htmlable elnode-defer-guard-it)))
+          (elnode-send-json httpcon messages :jsonp t)))))
 
 (defun talkapp-chat-add-handler (httpcon)
   (with-elnode-auth httpcon 'talkapp-session
