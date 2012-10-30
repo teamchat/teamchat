@@ -1,9 +1,9 @@
 class ircdprovision {
 
-      host { "ircd":
-         ip => "192.168.1.11", # from vagrant multi config
-         name => "irc.jbx.cc",
-      }
+      # host { "ircd":
+      #    ip => "192.168.1.11", # from vagrant multi config
+      #    name => "irc.jbx.cc",
+      # }
 
       file { ".ssh":
          require => User["emacs"],
