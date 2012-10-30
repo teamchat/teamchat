@@ -11,28 +11,41 @@
         <h1>chat!</h1>
     </div>
 </div>
-
-<div class="container">
-    <form class="form-inline" method="POST" action="/send/" target="_sendtarget">
-        <input class="input-xxlarge" 
-               type="text" autocomplete="off" name="msg" value="" 
-               placeholder="your message here"/>
-        <input type="submit" name="send" value="send" />
-    </form>
-</div>
-<div class="container">
+<div id="carousel" class="row">
     <div id="chat-panel" class="span8">
+        <form class="form-inline" method="POST" action="/send/" target="_sendtarget">
+            <input class="input-xxlarge" 
+                   type="text" autocomplete="off" name="msg" value="" 
+                   placeholder="type your chat message here"/>
+            <input type="submit" name="send" value="send" />
+        </form>
         <table id="chat">
             <!##E messages E##!>
         </table>
     </div>
-    <div class="span4">
+    <div id="media-panel" class="span8">
         <h4>multimedia panel</h4>
         <p>this is where your multimedia will appear, any pastebin,
         video chat or whatever.</p>
         <div id="gravatars" class="media-inset hidden">
             <p>go to <a href="http://www.gravatar.com">gravatar</a> to setup your photo</p>
         </div>
+    </div>
+    <div id="paste-panel" class="span8 hidden">
+        <h4>paste panel - your program text</h4>
+        <pre>
+        </pre>
+    </div>
+    <div id="paste-text-panel" class="span8 hidden">
+        <h4>paste panel - upload program text or notes</h4>
+        <form method="POST" action="/paste/">
+            <textarea rows="10" cols="80" name="text" 
+                      placeholder="paste your code">
+                </textarea><br/>
+                <input type="text" name="type" value="" 
+                       placeholder="what type of file is it?"/>
+                <input type="submit" name="paste" value="paste"/>
+        </form>
     </div>
 </div>
 <footer class="footer">
@@ -58,6 +71,7 @@ var talkapp_do_chat = 1;
 // -->
 </script>
 <script src="/-/jquery.js"    language="Javascript"></script>
+<script src="/-/carousel.js"  language="Javascript"></script>
 <script src="/-/bootstrap.js" language="Javascript"></script>
 <script src="/-/md5.js"       language="Javascript"></script>
 <script src="/-/site.js"      language="Javascript"></script>

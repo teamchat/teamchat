@@ -1,7 +1,31 @@
 // Main js
 var talkapp = 
     (function () {
-         // Do some page init
+         // Init the carousel
+         var carousel_boot = function () {
+             $("#carousel").carouFredSel(
+                 {
+                     items: {
+                         visible: 2,
+                     },
+                     cookie: true,
+                     align: "right",
+                     height: "auto",
+                     auto: {
+                         play: false,
+                     },
+                     prev: { 
+                         key: "left",
+                         items: 1,
+                     },
+                     next: { 
+                         key: "right",
+                         items: 1,
+                     }
+                     
+                 }
+             );
+         };
 
          // Setup some functions
          var service = function () {
@@ -14,10 +38,12 @@ var talkapp =
                               || data["error"] == "already started") {
                               $("#status-disconnected").addClass("hidden");
                               $("#status-connected").removeClass("hidden");
+                              $("#connect-to-chat").removeClass("hidden");
                           }
                           else {
                               $("#status-connected").addClass("hidden");
                               $("#status-disconnected").removeClass("hidden");
+                              $("#connect-to-chat").addClass("hidden");
                           }
                       }
                     });
@@ -89,7 +115,6 @@ var talkapp =
              $.each(emails,
                     function (key, arr) {
                         var grav_url = "http://www.gravatar.com/avatar/" + arr;
-                        console.log(grav_url);
                         var html = "<abbr title='" + key + "'>"
                             + "<img src='" + grav_url + "'/></abbr>";
                         $("#gravatars").append($(html));
@@ -153,6 +178,10 @@ var talkapp =
              urlize("#chat-panel");
              // also collect gravatars
              gravatarize();
+             // also turn on the carousel
+             if (true) {
+                 //$(document).ready(carousel_boot);
+             }
          }
 
          // Return public API in an object

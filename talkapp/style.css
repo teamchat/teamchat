@@ -85,16 +85,27 @@ fieldset input[type=submit] {
     color: DarkSlateGrey;
 }
 
-.media-inset {
-    margin-top: 2em;
-    padding: .5em;
-    border-top: solid thin;
+#carousel {
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
-div#chat-panel {
-    margin: 0;
-    height: 100%;
+#chat-panel {
 }
+
+#media-panel {
+}
+
+#paste-panel pre {
+    height: 500px;
+    overflow: auto;
+}
+
+#paste-text-panel textarea {
+    width: 95%;
+}
+
+/* chat-panel styles */
 
 table#chat {
     background-color: LemonChiffon;
@@ -114,5 +125,18 @@ td.username {
     vertical-align: top;
     text-align: right;
 }
+
+td.message {
+    width: 90%;
+}
+
+/* media-panel styles */
+
+.media-inset {
+    margin-top: 2em;
+    padding: .5em;
+    border-top: solid thin;
+}
+
 
 /* End */
