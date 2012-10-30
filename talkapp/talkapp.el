@@ -267,17 +267,16 @@ We should expect USERNAME-SPEC to just be a username."
       (when (equal password (aget details "password"))
         (talkapp/irc-details username password email)))))
 
+(defun talkapp/rcirc-config ()
+  "Only do the rcirc init if we need to.
 
-;; Only do the rcirc init if we need to.
-;; If this variable is not bound or bound and t it will eval.
-(when (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
-  (eval-after-load "talkapp"
-    '(progn
-      (setq shoes-off--get-config-plugin 'talkapp/get-shoes-off-config)
-      (setq shoes-off--auth-plugin 'talkapp/shoes-off-auth)
-      (setq shoes-off--rcirc-connect-plugin 'talkapp-rcirc-connect)
-      ;; Ensures the time format support us pulling back accurately
-      (setq rcirc-time-format "%Y-%m-%d %H:%M:%S:%N "))))
+If this variable is not bound or bound and t it will eval."
+  (when (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
+    (setq shoes-off--get-config-plugin 'talkapp/get-shoes-off-config)
+    (setq shoes-off--auth-plugin 'talkapp/shoes-off-auth)
+    (setq shoes-off--rcirc-connect-plugin 'talkapp-rcirc-connect)
+    ;; Ensures the time format support us pulling back accurately
+    (setq rcirc-time-format "%Y-%m-%d %H:%M:%S:%N ")))
 
 
 ;; Retrieval bits
@@ -679,6 +678,12 @@ and directs you to validate."
  :cookie-name talkapp-session-cookie-name
  :redirect (elnode-auth-make-login-wrapper
             'talkapp-router))
+
+;;;###autoload
+(defun talkapp-start ()
+  (interactive)
+  (talkapp/rcirc-config)
+  (elnode-start 'talkapp-router :port 8001 :host "0.0.0.0"))
 
 (provide 'talkapp)
 
