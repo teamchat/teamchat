@@ -63,14 +63,16 @@ var talkapp =
 
          // Convert text urls into A link HTML
          var url_it = function (text) {
-             var link_text = text;
-             if (text.length > 20) {
-                 link_text = text.substring(0,20) + "...";
-             }
              var exp=/(http:\/\/[^ <>]+)/ig;
              return text.replace(
-                 exp, 
-                 "<a target='_blank' href='$1'>" + link_text + "</a>"
+                 exp,
+                 function (match) {
+                     if (debug) { console.log("link text = " + match + " (" + match.length + ")"); }
+                     // if the url is too long then truncate it as content
+                     var length = 30;
+                     var content = (match.length > length) ? match.substring(0,length) + "..." : match;
+                     return "<a target='_blank' href='" + match + "'>" + content + "</a>";
+                 }
              );
          };
 
