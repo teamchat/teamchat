@@ -110,10 +110,10 @@ var talkapp =
                    error: function (jqXHR, status) {
                        console.log("poll returned status " + status);
                    },
-                  complete: function(jqXHR, status) {
-                      // restart even if we failed
-                      setTimeout(chat_poll, 100);
-                  }
+                   complete: function(jqXHR, status) {
+                       // restart even if we failed
+                       setTimeout(chat_poll, 100);
+                   }
                  }
              );
          };
