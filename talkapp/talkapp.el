@@ -156,7 +156,9 @@ and store the username and the email.")
                          domain-name
                          irc-server
                          primary-channel)
-  "Make a new organisation record in the `talkapp/org-db'."
+  "Make a new organisation record in the `talkapp/org-db'.
+
+PRIMARY-CHANNEL should include the #."
   (assert (and (stringp org-name)
                (not (equal org-name ""))))
   (let ((record `(("name" . ,org-name)
