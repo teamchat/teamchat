@@ -1,6 +1,8 @@
 // Main js
 var talkapp = 
     (function () {
+         var debug = document.location.search.indexOf("debug") >= 0;
+
          // Init the carousel
          var carousel_boot = function () {
              $("#carousel").carouFredSel(
@@ -33,7 +35,7 @@ var talkapp =
              $.ajax({ url: "/session/?start=1",
                       dataType: "json",
                       success: function (data, status) {
-                          console.log("we started the service with: " + data);
+                          if (debug) { console.log("we started the service with: " + data); }
                           if (data["session"] == true 
                               || data["error"] == "already started") {
                               $("#status-disconnected").addClass("hidden");
@@ -53,7 +55,7 @@ var talkapp =
              $.ajax({ url: "/config/",
                       dataType: "text",
                       success: function (data, status) {
-                          console.log("we configured with: " + data);
+                          if (debug) { console.log("we configured with: " + data); }
                           service();
                       }
                     });
@@ -108,7 +110,7 @@ var talkapp =
                               });
                    },
                    error: function (jqXHR, status) {
-                       console.log("poll returned status " + status);
+                       if (debug) { console.log("poll returned status " + status); }
                    },
                    complete: function(jqXHR, status) {
                        // restart even if we failed
