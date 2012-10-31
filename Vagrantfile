@@ -6,11 +6,14 @@ Vagrant::Config.run do |config|
   config.vm.define :ircd do |ircd_config|
     ircd_config.vm.box = "Centos63"
     ircd_config.vm.box_url = "https://dl.dropbox.com/u/7225008/Vagrant/CentOS-6.3-x86_64-minimal.box"
+
+    # Puppet the irc
     ircd_config.vm.provision :puppet do |ircd_puppet|
-      ircd_puppet.manifests_path = "~/work/SpikyIRC/puppet/manifests"
-      ircd_puppet.module_path = "~/work/SpikyIRC/puppet/modules"
-      ircd_puppet.manifest_file  = "site.pp"
+      ircd_puppet.module_path = ["puppet-ircd/modules"]
+      ircd_puppet.manifests_path = "puppet-ircd/manifests"
+      ircd_puppet.manifest_file  = "irc.pp"
     end
+
     ircd_config.vm.network :hostonly, "192.168.1.11"
   end
 

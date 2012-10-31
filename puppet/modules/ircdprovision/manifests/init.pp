@@ -1,9 +1,10 @@
 class ircdprovision {
 
-      # host { "ircd":
-      #    ip => "192.168.1.11", # from vagrant multi config
-      #    name => "irc.jbx.cc",
-      # }
+      # This is the host where we'll start provisioned irc servers
+      host { "ircd":
+         ip => "192.168.1.11", # from vagrant multi config
+         name => "irc.teamchat.net",
+      }
 
       file { ".ssh":
          require => User["emacs"],
