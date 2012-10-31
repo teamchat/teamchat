@@ -3,6 +3,12 @@
 (defun talkapp/user-db-init ()
   (let ((test-hash (make-hash-table :test 'equal)))
     (plist-put talkapp/user-db :db test-hash)
+    (talkapp/org-new
+     "example-org"
+     :match-host "example.teamchat.net"
+     :domain-name "example.org"
+     :irc-server "example-irc.teamchat.net"
+     :primary-channel "#example")
     ;; FIXME - these users both have the same tokens
     (let ((h1 (elnode--auth-make-hash "nic" "test"))
           (h2 (elnode--auth-make-hash "jim" "test")))
@@ -10,6 +16,7 @@
              `(("valid" . t)
                ("token" . ,h1)
                ("username" . "nic")
+               ("org" . "UNKNOWN-ORG")
                ("password" . "test")
                ("email" . "nferrier@thoughtworks.com")
                ("key" . "ssh-dss AAAAB3NzaC test2"))
@@ -19,7 +26,8 @@
                ("token" . ,h2)
                ("username" . "jim")
                ("password" . "test")
-               ("email" . "jim@test.com")
+               ("org" . "example-org")
+               ("email" . "jim@example.org")
                ("key" . "ssh-dss AAAAB3 test1"))
              test-hash))))
 

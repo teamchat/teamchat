@@ -172,12 +172,17 @@ PRIMARY-CHANNEL should include the #."
   "Get the organization for my EMAIL or HTTP-HOST.
 
 Try EMAIL first (by pulling out the domain) and then HTTP-HOST."
-  (let ((domain (when (string-match "^[^@]+@\\(.+\\)" email)
-                  (match-string 1 email))))
-    (or
-     (db-query talkapp/org-db `(= "domain" ,domain))
-     (when http-host
-       (db-query talkapp/org-db `(= "host" ,http-host))))))
+  (let ((domain
+         (when (string-match "^[^@]+@\\(.+\\)" email)
+           (match-string 1 email))))
+    (aget
+     (car
+      (kvalist->values
+       (or
+        (db-query talkapp/org-db `(= "domain" ,domain))
+       (when http-host
+         (db-query talkapp/org-db `(= "host" ,http-host))))))
+     "name")))
 
 ;; Auth cookie constants
 
@@ -187,22 +192,32 @@ Try EMAIL first (by pulling out the domain) and then HTTP-HOST."
 (defconst talkapp-cookie-name "talkapp-user"
   "The name of the cookie we use for auth.")
 
+
 ;; IRC setup stuff
 
-(defvar talkapp/irc-server-name "irc.jbx.cc")
-(defvar talkapp/irc-server-port 6667)
-(defvar talkapp/irc-channels '("#thoughtworks"))
-
 (defun talkapp/irc-details (username password email)
-  (list :username username :password password
-        :server-alist
-        `((,talkapp/irc-server-name
-           :nick ,username
-           :port ,talkapp/irc-server-port
-           :user-name ,username
-           :password "secret"
-           :full-name ,email
-           :channels ,talkapp/irc-channels))))
+  "Get the IRC details for the user specified.
+
+We look up the organization in the db. If no organization is
+present it's not possible to connect someone."
+  (let* ((user-rec (db-get username talkapp/user-db))
+         (org (aget user-rec "org"))
+         (org-rec (db-get org talkapp/org-db))
+         (irc-server-desc (aget org-rec "irc-server"))
+         (irc-server-pair (split-string irc-server-desc ":"))
+         (irc-server (car irc-server-pair))
+         (irc-port (string-to-number (cadr irc-server-pair)))
+         (channel (aget org-rec "primary-channel")))
+    (list :username username
+          :password password
+          :server-alist
+          `((,irc-server
+             :nick ,username
+             :port ,irc-port
+             :user-name ,username
+             :password "secret"
+             :full-name ,email
+             :channels ,(list channel))))))
 
 ;; Rcirc stuff
 
@@ -433,9 +448,12 @@ If this variable is not bound or bound and t it will eval."
 
 (defun talkapp/entry->html (date username message)
   "Return the templated form of the row."
-  (let ((email (aif (db-get username talkapp/user-db)
-                   (aget it "email")
-                 "unknown@thoughtworks.com")))
+  (let ((email
+         ;; FIXME this is ONLY because thoughtworks ran it's own irc
+         ;; with people registered out of band of the webapp
+         (aif (db-get username talkapp/user-db)
+             (aget it "email")
+           "unknown@thoughtworks.com")))
     `(tr
       ((id . ,(talkapp/date->id date)))
       (td
@@ -456,9 +474,19 @@ If this variable is not bound or bound and t it will eval."
     talkapp/default-chat-history-minutes
     channel)))
 
+(defun talkapp/get-channel (username)
+  "Given a USERNAME return the channel name."
+  (let* ((record (db-get username talkapp/user-db))
+         (org (aget record "org"))
+         (org-record (db-get org talkapp/org-db))
+         (channel-name (aget org-record "primary-channel")))
+    ;; FIXME!!! the localhost bit is only when we are connecting via
+    ;; ssh/irc. So it should be adapted via db settings for the user.
+    (format "%s@localhost~%s" channel-name username)))
+
 (defun talkapp/list-to-html (username)
   "Return the list of chat as rows for initial chat display."
-  (let* ((channel (concat "#thoughtworks@localhost~" username))
+  (let* ((channel (talkapp/get-channel username))
          (chat-list (talkapp/chat-list channel)))
     (if chat-list
         (loop for entry in chat-list
@@ -479,7 +507,14 @@ If this variable is not bound or bound and t it will eval."
 (defun talkapp-comet-handler (httpcon)
   "Defer until there is new chat."
   (let* ((username (talkapp-cookie->user-name httpcon))
-         (channel (concat "#thoughtworks@localhost~" username))
+         (record (db-get username talkapp/user-db))
+         (org (aget record "org"))
+         (org-record (db-get org talkapp/org-db))
+         (channel-name (aget org-record "primary-channel"))
+         (channel (format
+                   "%s@localhost~%s"
+                   channel-name
+                   username))
          (entered (current-time)))
     (elnode-defer-until (talkapp/list-since entered channel)
         (let ((messages
@@ -490,7 +525,7 @@ If this variable is not bound or bound and t it will eval."
   (with-elnode-auth httpcon 'talkapp-session
     (let* ((msg (elnode-http-param httpcon "msg"))
            (username (talkapp-cookie->user-name httpcon))
-           (channel (concat "#thoughtworks@localhost~" username)))
+           (channel (talkapp/get-channel username)))
       (with-current-buffer (get-buffer channel)
         (goto-char (point-max))
         (insert msg)
@@ -557,8 +592,9 @@ user."
                   (acons
                    "org" (or org "UNKNOWN-ORG")
                    ;; Add in the auth token
-                   (let* ((token (elnode--auth-make-hash
-                                  username password)))
+                   (let* ((token
+                           (elnode--auth-make-hash
+                            username password)))
                      (acons "token" token data))))))))
 
 (defun talkapp/save-reg (httpcon regform data)

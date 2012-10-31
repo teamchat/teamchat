@@ -57,15 +57,72 @@
         (db-get "testuser1" talkapp/user-db)
         "username" "org" "password" "email" "key") 'kvcmp)))))
 
+(defun talkapp/test-make-user-and-org ()
+  "Make a user and an org using the standard interface."
+  (talkapp/org-new
+   "test-org"
+   :match-host "testorg.teamchat.net"
+   :domain-name "test.org"
+   :irc-server "testorg-irc.teamchat.net:6901"
+   :primary-channel "#testorg")
+  (talkapp/make-user
+   talkapp-regform
+   '(("username" . "testuser2")
+     ("password" . "secret")
+     ("email" . "test2@test.org")
+     ("key" . "AFFSGSHhajsdkakdn"))))
+
+(ert-deftest talkapp/make-user-with-org ()
+  "Test making a user."
+  (talkapp/mock-db
+    (talkapp/test-make-user-and-org)
+    (should
+     (equal
+      (kvalist-sort
+       (copy-list '(("username" . "testuser2")
+                    ("org" . "test-org")
+                    ("password" . "secret")
+                    ("email" . "test2@test.org")
+                    ("key" . "AFFSGSHhajsdkakdn"))) 'kvcmp)
+      (kvalist-sort
+       (kvalist->filter-keys
+        (db-get "testuser2" talkapp/user-db)
+        "username" "org" "password" "email" "key") 'kvcmp)))))
+
+(ert-deftest talkapp/get-channel ()
+  (talkapp/mock-db
+   (talkapp/test-make-user-and-org)
+   (should
+    (equal
+     "#testorg@localhost~testuser2"
+     (talkapp/get-channel "testuser2")))))
+
+(ert-deftest talkapp/irc-details ()
+  (talkapp/mock-db
+   (talkapp/test-make-user-and-org)
+   (should
+    (equal
+     (list :username "testuser2"
+           :password "secret"
+           :server-alist
+           (list
+            (list "testorg-irc.teamchat.net"
+                  :nick "testuser2"
+                  :port 6901
+                  :user-name "testuser2"
+                  :password "secret"
+                  :full-name "test2@test.org"
+                  :channels (list "#testorg"))))
+     (talkapp/irc-details
+      "testuser2" "secret" "test2@test.org")))))
+
 (ert-deftest talkapp-start-session-config ()
   "Test the shoes-off config abstraction."
   (talkapp/mock-db
-    (talkapp/test-make-user)
+    (talkapp/test-make-user-and-org)
     (let (connected
           (shoes-off--sessions ; mock to an empty
-           (make-hash-table :test 'equal))
-          (talkapp/irc-server-name "irc.example.com")
-          (talkapp/irc-channels '("#test")))
+           (make-hash-table :test 'equal)))
       (flet ((shoes-off--get-config (username)
                (talkapp/get-shoes-off-config username))
              (rcirc-connect ; match the rcirc-connect arglist exactly
@@ -76,31 +133,29 @@
                (setq connected
                      (list server port nick user-name
                            full-name startup-channels password encryption))))
-        (shoes-off-start-session "testuser1")
+        (shoes-off-start-session "testuser2")
         (should
          (equal
           connected
-          '("irc.example.com" 6667 "testuser1" "testuser1"
-            "test1@example.com" ("#test") "secret" nil)))))))
+          '("testorg-irc.teamchat.net" 6901 "testuser2" "testuser2"
+            "test2@test.org" ("#testorg") "secret" nil)))))))
 
 (ert-deftest talkapp/shoes-off-auth ()
   (talkapp/mock-db
-    (talkapp/test-make-user)
-    (let ((talkapp/irc-server-name "irc.example.com")
-          (talkapp/irc-channels '("#test")))
-      (should
-       (equal
-        (list :username "testuser1"
-              :password "secret"
-              :server-alist
-              `(("irc.example.com"
-                 :nick "testuser1"
-                 :port 6667
-                 :user-name "testuser1"
-                 :password "secret"
-                 :full-name "test1@example.com"
-                 :channels ("#test"))))
-        (talkapp/shoes-off-auth "testuser1" "secret"))))))
+    (talkapp/test-make-user-and-org)
+    (should
+     (equal
+      (list :username "testuser2"
+            :password "secret"
+            :server-alist
+            `(("testorg-irc.teamchat.net"
+               :nick "testuser2"
+               :port 6901
+               :user-name "testuser2"
+               :password "secret"
+               :full-name "test2@test.org"
+               :channels ("#testorg"))))
+      (talkapp/shoes-off-auth "testuser2" "secret")))))
 
 (ert-deftest talkapp/shoes-off-valid ()
   (talkapp/mock-db
