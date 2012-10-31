@@ -89,6 +89,7 @@ var talkapp =
              $.ajax(
                  { url: '/poll/',
                    dataType: "jsonp",
+                   timeout: 350 * 1000,
                    success: function (data, status) {
                        $.each(data,
                               function (key, arr) {
