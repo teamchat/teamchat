@@ -1,5 +1,5 @@
 // Main js
-var talkapp = 
+var talkapp =
     (function () {
          var debug = document.location.search.indexOf("debug") >= 0;
 
@@ -16,15 +16,14 @@ var talkapp =
                      auto: {
                          play: false,
                      },
-                     prev: { 
+                     prev: {
                          key: "left",
                          items: 1,
                      },
-                     next: { 
+                     next: {
                          key: "right",
                          items: 1,
                      }
-                     
                  }
              );
          };
@@ -36,7 +35,7 @@ var talkapp =
                       dataType: "json",
                       success: function (data, status) {
                           if (debug) { console.log("we started the service with: " + data); }
-                          if (data["session"] == true 
+                          if (data["session"] == true
                               || data["error"] == "already started") {
                               $("#status-disconnected").addClass("hidden");
                               $("#status-connected").removeClass("hidden");
@@ -82,34 +81,55 @@ var talkapp =
                  url_it($(selector).html())
              );
          };
-         
+
+         var msg_template = function (date, username, message) {
+             return $("<tr id='" + date + "'>"
+                      + "<td class='username " + username + "'>" + username + "</td>"
+                      + "<td class='message'>" + url_it(message) + "</td>"
+                      + "</tr>");
+         };
+
+         var do_messages = function (data) {
+             $.each(data,
+                    function (key, arr) {
+                        var looked_up = $("#" + key);
+                        if (looked_up.length < 1) {
+                            var username = arr[0];
+                            var message = arr[1];
+                            msg_template(
+                                key, username, message
+                            ).insertBefore("table tr:first-child");
+                        }
+                        else {
+                            if (debug) { console.log("already got that one"); }
+                        }
+                    });
+         };
+
          var chat_poll = function () {
-             var template = function (date, username, message) {
-                 return $("<tr id='" + date + "'>"
-                          + "<td class='username " + username + "'>" + username + "</td>"
-                          + "<td class='message'>" + url_it(message) + "</td>"
-                          + "</tr>");
-             };
              $.ajax(
                  { url: '/poll/',
                    dataType: "jsonp",
                    timeout: 350 * 1000,
                    success: function (data, status) {
+                       // data key can be "message" or "user" or something else like "video""
                        $.each(data,
                               function (key, arr) {
-                                  var looked_up = $("#" + key);
-                                  if (looked_up.length < 1) {
-                                      var username = arr[0];
-                                      var message = arr[1];
-                                      template(
-                                          key, username, message
-                                        ).insertBefore("table tr:first-child");
+                                  if (key == "message") {
+                                      do_messages(arr);
+                                  }
+                                  else if (key == "user") {
+                                      do_users(arr);
+                                  }
+                                  else if (key == "videocall") {
+                                      do_videocall(arr);
                                   }
                                   else {
-                                      // For debugging
-                                      //  console.log("already got that one");
+                                      // Should be debug really
+                                      console.log("unknown message: " + key + " " + arr);
                                   }
-                              });
+                              }
+                             );
                    },
                    error: function (jqXHR, status) {
                        if (debug) { console.log("poll returned status " + status); }
@@ -125,7 +145,7 @@ var talkapp =
          // The list of emails in the page - email: md5(lower(email))
          var emails = {};
          var gravatarize = function () {
-             $.each($("abbr"), 
+             $.each($("abbr"),
                     function (key, arr) {
                         if (!emails[arr.title]) {
                             emails[arr.title] = hex_md5(arr.title.toLowerCase());
@@ -185,7 +205,7 @@ var talkapp =
                      $("[name=msg]").focus();
                  });
          }
-         
+
          // If we should configure the user then do it
          if (typeof talkapp_do_config != "undefined") {
              config();

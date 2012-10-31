@@ -511,22 +511,50 @@ If this variable is not bound or bound and t it will eval."
      collect
        (list (talkapp/date->id date) username msg)))
 
+(defvar talkapp/online-cache
+  (make-hash-table :test 'equal)
+  "Key of usernames to http connections.")
+
+(defvar talkapp/httpcon-online-cache
+  (make-hash-table :test 'equal)
+  "Key of http-connections to usernames.")
+
+(defun talkapp/comet-since-list (entered channel)
+  "Comet form of `talkapp/since-list'."
+  (let ((lst (talkapp/list-since entered channel)))
+    (when lst
+      (list :message (talkapp/since-list->htmlable lst)))))
+
+(defun talkapp/comet-interrupt (entered channel)
+  (let ((msg-list (talkapp/comet-since-list entered channel)))
+    msg-list))
+
 (defun talkapp-comet-handler (httpcon)
-  "Defer until there is new chat."
-  (let* ((username (talkapp-cookie->user-name httpcon))
-         (record (db-get username talkapp/user-db))
-         (org (aget record "org"))
-         (org-record (db-get org talkapp/org-db))
-         (channel-name (aget org-record "primary-channel"))
-         (channel (format
-                   "%s@localhost~%s"
-                   channel-name
-                   username))
-         (entered (current-time)))
-    (elnode-defer-until (talkapp/list-since entered channel)
-        (let ((messages
-               (talkapp/since-list->htmlable elnode-defer-guard-it)))
-          (elnode-send-json httpcon messages :jsonp t)))))
+  "Defer until there is some change.
+
+A change could be new chat messages, a new user online or offline
+or a video call or some other action."
+  (with-elnode-auth httpcon 'talkapp-session
+    (let* ((username (talkapp-cookie->user-name httpcon))
+           (channel (talkapp/get-channel username))
+           (entered (current-time))
+           (online (gethash username talkapp/online-cache)))
+      ;; Mark the user online
+      (unless online
+        (puthash username httpcon talkapp/online-cache))
+      ;; Defer till the talk changes
+      (elnode-defer-until (talkapp/comet-interrupt entered channel)
+          (elnode-send-json httpcon elnode-defer-guard-it :jsonp t)))))
+
+(defun talkapp/comet-fail-hook (httpcon)
+  ;;; keep log of who is going off and coming on
+  ;;; return comet when it changes
+  ;;;
+  ;;; comet also needed on "accept video call"
+  (let ((username (gethash httpcon talkapp/httpcon-online-cache)))
+    (when username
+      (remhash username talkapp/online-cache)
+      (remhash httpcon talkapp/httpcon-online-cache))))
 
 (defun talkapp-chat-add-handler (httpcon)
   (with-elnode-auth httpcon 'talkapp-session
