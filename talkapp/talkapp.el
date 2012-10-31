@@ -350,9 +350,16 @@ If this variable is not bound or bound and t it will eval."
   "Manage sessions from the webapp."
   (with-elnode-auth httpcon 'talkapp-session
     (let* ((username (talkapp-cookie->user-name httpcon))
+           (user-rec (db-get username talkapp/user-db))
+           (org (aget user-rec "org"))
+           (org-rec (db-get org talkapp/org-db))
+           (irc-server-desc (aget org-rec "irc-server"))
+           (irc-server-pair (split-string irc-server-desc ":"))
+           (irc-server (car irc-server-pair))
+           (irc-port (string-to-number (cadr irc-server-pair)))
            ;; FIXME hard coded server for now
            (session (gethash
-                     (concat username "@" talkapp/irc-server-name)
+                     (concat username "@" irc-server)
                      shoes-off--sessions))
            (do-start (elnode-http-param httpcon "start"))
            (do-stop (elnode-http-param httpcon "stop")))
