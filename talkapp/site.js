@@ -70,7 +70,9 @@ var talkapp =
                      // if the url is too long then truncate it as content
                      var length = 30;
                      var content = (match.length > length) ? match.substring(0,length) + "..." : match;
-                     return "<a target='_blank' href='" + match + "'>" + content + "</a>";
+                     return "<a target='_blank' href='" + match + "'>"
+                         + content
+                         + "</a>";
                  }
              );
          };
@@ -84,7 +86,8 @@ var talkapp =
 
          var msg_template = function (date, username, message) {
              return $("<tr id='" + date + "'>"
-                      + "<td class='username " + username + "'>" + username + "</td>"
+                      + "<td class='username " + username + "'>"
+                      + username + "</td>"
                       + "<td class='message'>" + url_it(message) + "</td>"
                       + "</tr>");
          };
@@ -112,7 +115,8 @@ var talkapp =
                    dataType: "jsonp",
                    timeout: 350 * 1000,
                    success: function (data, status) {
-                       // data key can be "message" or "user" or something else like "video""
+                       // data key can be "message" or "user" or
+                       // something else like "video""
                        $.each(data,
                               function (key, arr) {
                                   if (key == "message") {
@@ -126,7 +130,9 @@ var talkapp =
                                   }
                                   else {
                                       // Should be debug really
-                                      console.log("unknown message: " + key + " " + arr);
+                                      console.log("unknown message: "
+                                                  + key
+                                                  + " " + arr);
                                   }
                               }
                              );
@@ -148,7 +154,8 @@ var talkapp =
              $.each($("abbr"),
                     function (key, arr) {
                         if (!emails[arr.title]) {
-                            emails[arr.title] = hex_md5(arr.title.toLowerCase());
+                            emails[arr.title]
+                                = hex_md5(arr.title.toLowerCase());
                         }
                     }
                    );
