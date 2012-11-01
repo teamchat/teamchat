@@ -96,6 +96,10 @@ fieldset input[type=submit] {
 #media-panel {
 }
 
+#emails abbr {
+    margin-left: 5px;
+}
+
 #paste-panel pre {
     height: 500px;
     overflow: auto;

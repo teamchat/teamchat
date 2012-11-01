@@ -11,25 +11,44 @@
      :primary-channel "#example")
     ;; FIXME - these users both have the same tokens
     (let ((h1 (elnode--auth-make-hash "nic" "test"))
-          (h2 (elnode--auth-make-hash "jim" "test")))
-    (puthash "nic"
-             `(("valid" . t)
-               ("token" . ,h1)
-               ("username" . "nic")
-               ("org" . "UNKNOWN-ORG")
-               ("password" . "test")
-               ("email" . "nferrier@thoughtworks.com")
-               ("key" . "ssh-dss AAAAB3NzaC test2"))
-             test-hash)
-    (puthash "jim"
-             `(("valid" . t)
-               ("token" . ,h2)
-               ("username" . "jim")
-               ("password" . "test")
-               ("org" . "example-org")
-               ("email" . "jim@example.org")
-               ("key" . "ssh-dss AAAAB3 test1"))
-             test-hash))))
+          (h2 (elnode--auth-make-hash "jim" "test"))
+          (h3 (elnode--auth-make-hash "nic5" "test"))
+          (h4 (elnode--auth-make-hash "bob" "test")))
+      (puthash "nic"
+               `(("valid" . t)
+                 ("token" . ,h1)
+                 ("username" . "nic")
+                 ("org" . "UNKNOWN-ORG")
+                 ("password" . "test")
+                 ("email" . "nferrier@thoughtworks.com")
+                 ("key" . "ssh-dss AAAAB3NzaC test2")) test-hash)
+      (puthash "jim"
+               `(("valid" . t)
+                 ("token" . ,h2)
+                 ("username" . "jim")
+                 ("password" . "test")
+                 ("org" . "example-org")
+                 ("email" . "jim@example.org")
+                 ("key" . "ssh-dss AAAAB3 test1")) test-hash)
+      (puthash "nic5"
+               `(("valid" . t)
+                 ("token" . ,h3)
+                 ("username" . "nic5")
+                 ("password" . "test")
+                 ("org" . "example-org")
+                 ("email" . "nic@example.org")
+                 ("key" . "ssh-dss AAAAB3 test1")) test-hash)
+      (puthash "bob"
+               `(("valid" . t)
+                 ("token" . ,h4)
+                 ("username" . "bob")
+                 ("password" . "test")
+                 ("org" . "example-org")
+                 ("email" . "bob@example.org")
+                 ("key" . "ssh-dss AAAAB3 test1")) test-hash)
+      ;; Setup the online cache as well
+      (clrhash talkapp/online-cache)
+      (puthash "jim@example.org" :fakehttpcon talkapp/online-cache))))
 
 ;; FIXME - need values in DB
 ;;
@@ -54,6 +73,16 @@
   "Run a fake comet thing."
   (interactive)
   (setq talkapp-comet-handler-doit t)
+  (puthash "bob@example.org" :fakehttpcon talkapp/online-cache)
+  (setq talkapp/user-state-changes
+        '(("bob@example.org" . :online)))
+  (elnode-deferred-queue-process))
+
+(defun talkapp/fake-offline ()
+  "Fake offlining."
+  (interactive)
+  (setq talkapp/user-state-changes
+        '(("bob@example.org" . :offline)))
   (elnode-deferred-queue-process))
 
 ;; talkapp-test.el ends here

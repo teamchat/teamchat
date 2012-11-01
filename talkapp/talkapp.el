@@ -180,9 +180,19 @@ Try EMAIL first (by pulling out the domain) and then HTTP-HOST."
       (kvalist->values
        (or
         (db-query talkapp/org-db `(= "domain" ,domain))
-       (when http-host
-         (db-query talkapp/org-db `(= "host" ,http-host))))))
+        (when http-host
+          (db-query talkapp/org-db `(= "host" ,http-host))))))
      "name")))
+
+(defun talkapp/get-org (username &optional field)
+  (let* ((record (db-get username talkapp/user-db))
+         (org (aget record "org"))
+         (org-record (db-get org talkapp/org-db)))
+    (if field
+        (aget org-record field)
+        ;; Else return the whole org-record
+        org-record)))
+
 
 ;; Auth cookie constants
 
@@ -483,13 +493,12 @@ If this variable is not bound or bound and t it will eval."
 
 (defun talkapp/get-channel (username)
   "Given a USERNAME return the channel name."
-  (let* ((record (db-get username talkapp/user-db))
-         (org (aget record "org"))
-         (org-record (db-get org talkapp/org-db))
-         (channel-name (aget org-record "primary-channel")))
-    ;; FIXME!!! the localhost bit is only when we are connecting via
-    ;; ssh/irc. So it should be adapted via db settings for the user.
-    (format "%s@localhost~%s" channel-name username)))
+  ;; FIXME!!! the localhost bit is only when we are connecting via
+  ;; ssh/irc. So it should be adapted via db settings for the user.
+  (format
+   "%s@localhost~%s"
+   (talkapp/get-org username "primary-channel")
+   username))
 
 (defun talkapp/list-to-html (username)
   "Return the list of chat as rows for initial chat display."
@@ -511,23 +520,61 @@ If this variable is not bound or bound and t it will eval."
      collect
        (list (talkapp/date->id date) username msg)))
 
-(defvar talkapp/online-cache
-  (make-hash-table :test 'equal)
-  "Key of usernames to http connections.")
-
-(defvar talkapp/httpcon-online-cache
-  (make-hash-table :test 'equal)
-  "Key of http-connections to usernames.")
-
 (defun talkapp/comet-since-list (entered channel)
   "Comet form of `talkapp/since-list'."
   (let ((lst (talkapp/list-since entered channel)))
     (when lst
       (list :message (talkapp/since-list->htmlable lst)))))
 
+(defvar talkapp/online-cache
+  (make-hash-table :test 'equal)
+  "Key of emails to http connections.")
+
+(defvar talkapp/httpcon-online-cache
+  (make-hash-table :test 'equal)
+  "Key of http-connections to emails.")
+
+(defvar talkapp/user-state-changes nil
+  "List of email and state as cons cells.
+
+The state is either `:online' or `:offline'.")
+
+(defun talkapp/people-list (username)
+  "Template include for the people list.
+
+Filters `talkapp/online-cache' to the people who are in the same
+org as USERNAME."
+  (let* ((org (aget (db-get username talkapp/user-db) "org"))
+         online-list)
+    (when org
+      (maphash
+       (lambda (key value)
+         (let* ((rec (db-query talkapp/user-db `(= "email" ,key)))
+                (key-org (aget (cdr (car rec)) "org")))
+           (when (equal org key-org)
+             (setq online-list
+                   (append (list `(abbr ((title . ,key)))) online-list)))))
+       talkapp/online-cache)
+      (esxml-to-xml `(div ((id . "emails")) ,@online-list)))))
+
+(defun talkapp/comet-user-state ()
+  "List the users who have changed state."
+  (when talkapp/user-state-changes
+    (let ((to-send (copy-list talkapp/user-state-changes)))
+      (setq talkapp/user-state-changes nil)
+      (list :user to-send))))
+
 (defun talkapp/comet-interrupt (entered channel)
-  (let ((msg-list (talkapp/comet-since-list entered channel)))
-    msg-list))
+  "Produce a list of interrupts."
+ (let ((msg-list (talkapp/comet-since-list entered channel))
+        (user-list (talkapp/comet-user-state)))
+    (cond
+      ((and msg-list user-list)
+       (append msg-list user-list))
+      (msg-list
+       msg-list)
+      (user-list
+       user-list))))
 
 (defun talkapp-comet-handler (httpcon)
   "Defer until there is some change.
@@ -570,14 +617,19 @@ or a video call or some other action."
 (defun talkapp/chat-templater ()
   "Return the list of chats as template."
   (let* ((httpcon elnode-replacements-httpcon)
-         (username (talkapp-cookie->user-name httpcon)))
+         (username (talkapp-cookie->user-name httpcon))
+         (org ))
     (list
      (cons
       "messages"
-      (talkapp/list-to-html username)))))
+      (talkapp/list-to-html username))
+     (cons
+      "people"
+      (talkapp/people-list username)))))
 
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
+  ;; FIXME - redirecct when chat not connected?
   (with-elnode-auth httpcon 'talkapp-session
     (elnode-send-file
      httpcon (concat talkapp-dir "chat.html")

@@ -199,4 +199,17 @@
     (should-not
      (talkapp/get-my-org "nferrier@gmail.com" "www.teamchat.net"))))
 
+(ert-deftest talkapp/people-list ()
+  (talkapp/mock-db
+    (talkapp/test-make-user-and-org)
+    ;; Fake the online users
+    (let ((talkapp/online-cache (make-hash-table :test 'equal)))
+      (puthash "test2@test.org" :fakehttpcon talkapp/online-cache)
+      (puthash "test1@example.com" :fakehttpcon talkapp/online-cache)
+      ;; Now test
+      (should
+       (equal
+        "<div><abbr title=\"test2@test.org\"/></div>"
+        (talkapp/people-list "testuser2"))))))
+
 ;; end

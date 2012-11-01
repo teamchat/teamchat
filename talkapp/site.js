@@ -69,7 +69,10 @@ var talkapp =
                      if (debug) { console.log("link text = " + match + " (" + match.length + ")"); }
                      // if the url is too long then truncate it as content
                      var length = 30;
-                     var content = (match.length > length) ? match.substring(0,length) + "..." : match;
+                     var content
+                         = (match.length > length)
+                         ? match.substring(0, length) + "..."
+                         : match;
                      return "<a target='_blank' href='" + match + "'>"
                          + content
                          + "</a>";
@@ -82,6 +85,58 @@ var talkapp =
              $(selector).html(
                  url_it($(selector).html())
              );
+         };
+
+         // The list of emails in the page - email: md5(lower(email))
+         var emails = {};
+
+         var gravatarize = function () {
+             $.each(emails,
+                    function (key, arr) {
+                        var grav_url
+                            = "http://www.gravatar.com/avatar/" + arr;
+                        var abbr = $("#emails abbr[title='" + key + "']");
+                        if (abbr.length < 1) {
+                            $("<abbr title='" + key + "'/>").appendTo(
+                                $("#emails")
+                            );
+                            abbr = $("#emails abbr[title='" + key + "']");
+                        }
+                        abbr.html(
+                            "<img src='" + grav_url + "'/></abbr>"
+                        );
+                    }
+                   );
+             if ($(emails).length > 0) {
+                 $("#gravatars").removeClass("hidden");
+             }
+         };
+
+         // Initialize the email list
+         $.each(
+             $("#emails abbr"),
+             function (key, arr) {
+                 emails[arr.title] = hex_md5(arr.title.toLowerCase());
+             }
+         );
+         gravatarize();
+
+
+         var do_users = function (data) {
+             $.each(
+                 data,
+                 function (key,arr) {
+                     if (debug) { console.log("do_users key " + key + " arr " + arr); }
+                     if (arr == "offline") {
+                         delete emails[key];
+                         $("#emails abbr[title='" + key + "']").remove();
+                     }
+                     else if (arr == "online") {
+                         emails[key] = hex_md5(key.toLowerCase());
+                     }
+                 }
+             );
+             gravatarize();
          };
 
          var msg_template = function (date, username, message) {
@@ -142,34 +197,12 @@ var talkapp =
                    },
                    complete: function(jqXHR, status) {
                        // restart even if we failed
-                       setTimeout(chat_poll, 100);
+                       if (!debug) {
+                           setTimeout(chat_poll, 100);
+                       }
                    }
                  }
              );
-         };
-
-         // The list of emails in the page - email: md5(lower(email))
-         var emails = {};
-         var gravatarize = function () {
-             $.each($("abbr"),
-                    function (key, arr) {
-                        if (!emails[arr.title]) {
-                            emails[arr.title]
-                                = hex_md5(arr.title.toLowerCase());
-                        }
-                    }
-                   );
-             $.each(emails,
-                    function (key, arr) {
-                        var grav_url = "http://www.gravatar.com/avatar/" + arr;
-                        var html = "<abbr title='" + key + "'>"
-                            + "<img src='" + grav_url + "'/></abbr>";
-                        $("#gravatars").append($(html));
-                    }
-                   );
-             if ($(emails).length > 0) {
-                 $("#gravatars").removeClass("hidden");
-             }
          };
 
          // initialize the value of the status
