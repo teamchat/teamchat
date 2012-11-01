@@ -583,25 +583,30 @@ A change could be new chat messages, a new user online or offline
 or a video call or some other action."
   (with-elnode-auth httpcon 'talkapp-session
     (let* ((username (talkapp-cookie->user-name httpcon))
+           (email (aget (db-get username talkapp/user-db) "email"))
            (channel (talkapp/get-channel username))
            (entered (current-time))
            (online (gethash username talkapp/online-cache)))
-      ;; Mark the user online
+      ;; Mark the user online with the double hash
       (unless online
-        (puthash username httpcon talkapp/online-cache))
+        (puthash httpcon email talkapp/httpcon-online-cache)
+        (puthash email httpcon talkapp/online-cache))
       ;; Defer till the talk changes
       (elnode-defer-until (talkapp/comet-interrupt entered channel)
           (elnode-send-json httpcon elnode-defer-guard-it :jsonp t)))))
 
-(defun talkapp/comet-fail-hook (httpcon)
-  ;;; keep log of who is going off and coming on
-  ;;; return comet when it changes
-  ;;;
-  ;;; comet also needed on "accept video call"
-  (let ((username (gethash httpcon talkapp/httpcon-online-cache)))
-    (when username
-      (remhash username talkapp/online-cache)
-      (remhash httpcon talkapp/httpcon-online-cache))))
+(defun talkapp/comet-fail-hook (httpcon state)
+  "Remove the associated user from online state.
+
+Updates `talkapp/user-state-changes' with the username.
+
+Either `closed' or `failed' is the same for this purpose."
+  (let ((email (gethash httpcon talkapp/httpcon-online-cache)))
+    (when email
+      (remhash email talkapp/online-cache)
+      (remhash httpcon talkapp/httpcon-online-cache)
+      (add-to-list 'talkapp/user-state-changes
+                   (cons email :offline)))))
 
 (defun talkapp-chat-add-handler (httpcon)
   (with-elnode-auth httpcon 'talkapp-session
@@ -823,6 +828,7 @@ and directs you to validate."
   (interactive)
   (talkapp/rcirc-config)
   (elnode-start 'talkapp-router :port 8100 :host "0.0.0.0")
+  (add-hook 'elnode-defer-failure-hook 'talkapp/comet-fail-hook)
   (elnode-deferred-queue-start))
 
 (provide 'talkapp)
