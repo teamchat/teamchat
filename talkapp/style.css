@@ -91,9 +91,17 @@ fieldset input[type=submit] {
 }
 
 #chat-panel {
+    overflow: auto;
+    height: 100%;
 }
 
 #media-panel {
+    height: 500px;
+}
+
+#video {
+    height: 300px;
+    border: solid thin LemonChiffon;
 }
 
 #emails abbr {

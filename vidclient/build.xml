@@ -1,0 +1,19 @@
+<project name="vidclient-build" default="swf" basedir="src">
+
+    <dirname property="build_dir" file="${ant.file}"/>
+
+    <property name="flex_dir" location="${user.home}/flex_sdk_3.5"/>
+    <property name="mxmlc" location="${flex_dir}/bin/mxmlc"/>
+    <property name="dest_swf" location="${build_dir}/../talkapp/vidclient.swf"/> 
+
+    <target name="swf">
+        <delete file="${dest_swf}"/>
+        <exec executable="${mxmlc}" dir="${basedir}" failonerror="true">
+            <arg line="-incremental"/>
+            <arg line="--target-player=10.0.0"/>
+            <arg line="-output ${dest_swf}"/>
+            <arg line="--"/>
+            <arg line="VideoClient.mxml"/>
+        </exec>
+    </target>
+</project>

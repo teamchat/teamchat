@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<local:VidClient
+    xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+    xmlns:local="*"
+    height="100%" 
+    width="100%"
+    backgroundColor="#FFFFFF"
+    backgroundAlpha="0">
+    <!-- 
+         Amusingly, this file always has to be named different to the
+         top level xml element.
+         
+         The top level xml element must always be called the same as
+         the class in the corresponding .as file, which MUST be named
+         for the same as the class it contains.
+    -->
+    <mx:HBox id="mxml_displayBox" 
+             width="100%" height="100%" 
+             horizontalGap="1" 
+             backgroundColor="#FFFFFF">
+    </mx:HBox>
+</local:VidClient>
