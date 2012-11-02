@@ -87,12 +87,20 @@ var talkapp =
              );
          };
 
+         var email2id = function (email, prefix) {
+             var str_pre = (prefix != null) ? prefix : "";
+             var key_id = str_pre
+                 + email.replace("@", "at").replace(/\./g, "-", "g");
+             return key_id;
+         };
+
          // The list of emails in the page - email: md5(lower(email))
          var emails = {};
 
          var gravatarize = function () {
              $.each(emails,
                     function (key, arr) {
+                        if (debug) { console.log("gravatarize email = " + key); }
                         var grav_url
                             = "http://www.gravatar.com/avatar/" + arr;
                         var abbr = $("#emails abbr[title='" + key + "']");
@@ -102,8 +110,20 @@ var talkapp =
                             );
                             abbr = $("#emails abbr[title='" + key + "']");
                         }
+                        var a_id = email2id(key, "call-");
                         abbr.html(
-                            "<img src='" + grav_url + "'/></abbr>"
+                            "<img src='" + grav_url + "'/>"
+                            + "<a id='" + a_id + "'"
+                                + " href='javascript:;' "
+                                + " class='btn btn-small btn-primary'>call</a>"
+                        );
+                        // Attach the event to the call button
+                        $("#" + a_id).on(
+                            "click",
+                            function (evt) {
+                                video.display();
+                                console.log("call " + a_id);
+                            }
                         );
                     }
                    );

@@ -601,13 +601,15 @@ or a video call or some other action."
 Updates `talkapp/user-state-changes' with the username.
 
 Either `closed' or `failed' is the same for this purpose."
-  (let ((email (gethash httpcon talkapp/httpcon-online-cache)))
-    (when email
-      (remhash email talkapp/online-cache)
-      (remhash httpcon talkapp/httpcon-online-cache)
-      (setq talkapp/user-state-changes
-            (append (list (cons email :offline))
-                    talkapp/user-state-changes)))))
+  (when (eq state 'failed)
+    (let ((email (gethash httpcon talkapp/httpcon-online-cache)))
+      (message "found %s in the online-cache, called with: %s" email state)
+      (when email
+        (remhash email talkapp/online-cache)
+        (remhash httpcon talkapp/httpcon-online-cache)
+        (setq talkapp/user-state-changes
+              (append (list (cons email :offline))
+                      talkapp/user-state-changes))))))
 
 (defun talkapp-chat-add-handler (httpcon)
   (with-elnode-auth httpcon 'talkapp-session

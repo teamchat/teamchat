@@ -10,7 +10,15 @@ var video =
              swfobject.video_log("doing video display");
 
              // Work out the height of the video.
-             $("#video").removeClass("hidden");
+             $("#videocall").removeClass("hidden");
+
+             $("#end-call").on(
+                 "click",
+                 function (evt) {
+                     $("#videocall").addClass("hidden");
+                 }
+             );
+
              var height = $("#video")[0].clientHeight - 1;
              var width = $("#video")[0].clientWidth - 1;
              

@@ -110,13 +110,38 @@ fieldset input[type=submit] {
     height: 500px;
 }
 
+#gravatars {
+    margin-top: 2em;
+    padding: .5em;
+    border-top: solid thin;
+}
+
+#gravatars abbr {
+    border-bottom: none;
+}
+
+#videocall {
+    border: solid thin LemonChiffon;
+}
+
+#videobtnbar {
+    text-align: right;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
 #video {
     height: 300px;
-    border: solid thin LemonChiffon;
 }
 
 #emails abbr {
     margin-left: 5px;
+}
+
+#emails abbr a {
+    position: relative;
+    left: -80px;
+    top: 30px;
 }
 
 #paste-panel pre {
@@ -151,14 +176,6 @@ td.username {
 
 td.message {
     width: 90%;
-}
-
-/* media-panel styles */
-
-.media-inset {
-    margin-top: 2em;
-    padding: .5em;
-    border-top: solid thin;
 }
 
 
