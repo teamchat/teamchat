@@ -605,8 +605,9 @@ Either `closed' or `failed' is the same for this purpose."
     (when email
       (remhash email talkapp/online-cache)
       (remhash httpcon talkapp/httpcon-online-cache)
-      (add-to-list 'talkapp/user-state-changes
-                   (cons email :offline)))))
+      (setq talkapp/user-state-changes
+            (append (list (cons email :offline))
+                    talkapp/user-state-changes)))))
 
 (defun talkapp-chat-add-handler (httpcon)
   (with-elnode-auth httpcon 'talkapp-session
