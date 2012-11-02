@@ -79,6 +79,17 @@ fieldset input[type=submit] {
     height: 200px;
 }
 
+/* top stuff */
+.logo {
+    float: right;
+    margin-top: .5em;
+}
+
+.logo * {
+    margin: .1em;
+}
+
+
 /* Chat window styles */
 
 .chat h1 {
