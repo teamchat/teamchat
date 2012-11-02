@@ -28,9 +28,12 @@ var video =
                  size: "2",
                  height: "" + height,
                  width: "" + width,
-                 wowza: "some url",
+                 wowza: "rtmp://localhost",
                  log: "swfobject.video_log",
                  flash_inited: "video.flash_inited",
+                 flash_connected: "video.flash_connected",
+                 flash_published: "video.flash_published",
+                 flash_subscribed: "video.flash_subscribed"
              };
              
              var params = {
@@ -55,11 +58,31 @@ var video =
              swfobject.video_log("inited called");
              var camlist = swfobject.getObjectById('video').cameras();
              swfobject.getObjectById('video').camera_select(camlist);
+
+             // Where are we gonna pull these from?
+             swfobject.getObjectById("video").connect("localhost", "/vidclient");
          };
+
+         var connected = function () {
+             swfobject.video_log("flash connected!");
+             swfobject.getObjectById("video").send_me("nic5");
+         };
+
+         var published = function () {
+             swfobject.video_log("flash published!");
+             swfobject.getObjectById("video").get_them("nic5");
+         };
+
+         var subscribed = function () {
+             swfobject.video_log("flash published!");
+         };
+
          
          return {
              display: display,
-             flash_inited: inited
+             flash_inited: inited,
+             flash_connected: connected,
+             flash_published: published
          };
      }
     )();
