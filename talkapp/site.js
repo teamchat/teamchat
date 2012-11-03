@@ -2,6 +2,8 @@
 var talkapp =
     (function () {
          var debug = document.location.search.indexOf("debug") >= 0;
+         var video_server = "localhost";
+         var me = "nic5";
 
          // Init the carousel
          var carousel_boot = function () {
@@ -87,11 +89,30 @@ var talkapp =
              );
          };
 
+         // Convert an email to an id
          var email2id = function (email, prefix) {
              var str_pre = (prefix != null) ? prefix : "";
              var key_id = str_pre
                  + email.replace("@", "at").replace(/\./g, "-", "g");
              return key_id;
+         };
+
+         // Attach the event to the call button
+         var on_call = function (key, a_id) {
+             $("#" + a_id).on(
+                 "click",
+                 function (evt) {
+                     $.ajax(
+                         { url: "/vidcall/",
+                           success: function (data, status) {
+                               console.log("video call got " + data);
+                           }
+                         }
+                     );
+                     video.display(video_server, me, key);
+                     console.log("call " + me + " " + key);
+                 }
+             );
          };
 
          // The list of emails in the page - email: md5(lower(email))
@@ -113,18 +134,11 @@ var talkapp =
                         var a_id = email2id(key, "call-");
                         abbr.html(
                             "<img src='" + grav_url + "'/>"
-                            + "<a id='" + a_id + "'"
+                                + "<a id='" + a_id + "'"
                                 + " href='javascript:;' "
                                 + " class='btn btn-small btn-primary'>call</a>"
                         );
-                        // Attach the event to the call button
-                        $("#" + a_id).on(
-                            "click",
-                            function (evt) {
-                                video.display();
-                                console.log("call " + a_id);
-                            }
-                        );
+                        on_call(key, a_id);
                     }
                    );
              if ($(emails).length > 0) {
@@ -141,6 +155,13 @@ var talkapp =
          );
          gravatarize();
 
+
+         // Process a video call from someone else, received via comet
+         var do_videocall = function (data) {
+             var caller_email = data[0];
+             var my_email = data[1];
+             video.display("localhost", my_email, caller_email);
+         };
 
          var do_users = function (data) {
              $.each(
@@ -191,23 +212,25 @@ var talkapp =
                    timeout: 350 * 1000,
                    success: function (data, status) {
                        // data key can be "message" or "user" or
-                       // something else like "video""
+                       // something else like "video"
+                       console.log(data);
                        $.each(data,
                               function (key, arr) {
+                                  if (debug) { console.log("key=" + key + " arr=" + arr); }
                                   if (key == "message") {
                                       do_messages(arr);
                                   }
                                   else if (key == "user") {
                                       do_users(arr);
                                   }
-                                  else if (key == "videocall") {
+                                  else if (key == "video") {
                                       do_videocall(arr);
                                   }
                                   else {
                                       // Should be debug really
                                       console.log("unknown message: "
-                                                  + key
-                                                  + " " + arr);
+                                                  + "key=" + key
+                                                  + " arr=" + arr);
                                   }
                               }
                              );
@@ -255,6 +278,18 @@ var talkapp =
                      service();
                  });
          }
+
+         // If we have an end-call button bind it
+         var end_call = $("#end-call");
+         if (end_call.length > 0) {
+             end_call.on(
+                 "click",
+                 function (evt) {
+                     $("#videocall").addClass("hidden");
+                 }
+             );
+         }
+
 
          // Bind the send form stuff, if it's on the page
          var send_form_target = $("[name=_sendtarget]");

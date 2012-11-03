@@ -5,19 +5,14 @@ var video =
          swfobject["video_log"] = function (str) {
              console.log("video " + str);
          };
-        
-         var display = function () {
+
+         /** Take a server and person A and person B.
+          */
+         var display = function (server, a, b) {
              swfobject.video_log("doing video display");
 
              // Work out the height of the video.
              $("#videocall").removeClass("hidden");
-
-             $("#end-call").on(
-                 "click",
-                 function (evt) {
-                     $("#videocall").addClass("hidden");
-                 }
-             );
 
              var height = $("#video")[0].clientHeight - 1;
              var width = $("#video")[0].clientWidth - 1;
@@ -60,17 +55,17 @@ var video =
              swfobject.getObjectById('video').camera_select(camlist);
 
              // Where are we gonna pull these from?
-             swfobject.getObjectById("video").connect("localhost", "/vidclient");
+             swfobject.getObjectById("video").connect(server, "/vidclient");
          };
 
          var connected = function () {
              swfobject.video_log("flash connected!");
-             swfobject.getObjectById("video").send_me("nic5");
+             swfobject.getObjectById("video").send_me(a);
          };
 
          var published = function () {
              swfobject.video_log("flash published!");
-             swfobject.getObjectById("video").get_them("nic5");
+             swfobject.getObjectById("video").get_them(b);
          };
 
          var subscribed = function () {

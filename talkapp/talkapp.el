@@ -564,17 +564,34 @@ org as USERNAME."
       (setq talkapp/user-state-changes nil)
       (list :user to-send))))
 
-(defun talkapp/comet-interrupt (entered channel)
+(defvar talkapp/video-calls (make-hash-table :test 'equal)
+  "Hash of emails being video called.
+
+The value is the email of the caller.")
+
+(defun talkapp/comet-video-call (my-email)
+  "Return any call indicator.
+
+Returns the whole cons cell to the client.  The car is the
+caller's email address, the cdr is the person being called which
+is the person making this COMET request."
+  (awhen (gethash my-email talkapp/video-calls)
+    (remhash my-email talkapp/video-calls)
+    (list :video (list it my-email))))
+
+(defun talkapp/comet-interrupt (entered channel my-email)
   "Produce a list of interrupts."
  (let ((msg-list (talkapp/comet-since-list entered channel))
-        (user-list (talkapp/comet-user-state)))
-    (cond
-      ((and msg-list user-list)
-       (append msg-list user-list))
-      (msg-list
-       msg-list)
-      (user-list
-       user-list))))
+       (user-list (talkapp/comet-user-state))
+       (video (talkapp/comet-video-call my-email))
+       to-send)
+   (when msg-list
+     (setq to-send msg-list))
+   (when user-list
+     (setq to-send (append user-list to-send)))
+   (when video
+     (setq to-send (append video to-send)))
+   to-send))
 
 (defun talkapp-comet-handler (httpcon)
   "Defer until there is some change.
@@ -592,7 +609,7 @@ or a video call or some other action."
         (puthash httpcon email talkapp/httpcon-online-cache)
         (puthash email httpcon talkapp/online-cache))
       ;; Defer till the talk changes
-      (elnode-defer-until (talkapp/comet-interrupt entered channel)
+      (elnode-defer-until (talkapp/comet-interrupt entered channel email)
           (elnode-send-json httpcon elnode-defer-guard-it :jsonp t)))))
 
 (defun talkapp/comet-fail-hook (httpcon state)
@@ -611,7 +628,20 @@ Either `closed' or `failed' is the same for this purpose."
               (append (list (cons email :offline))
                       talkapp/user-state-changes))))))
 
+(defun talkapp-video-call-handler (httpcon)
+  "Do a video call."
+  (with-elnode-auth httpcon 'talkapp-session
+    (let* ((call-to (elnode-http-param httpcon "to"))
+           (username (talkapp-cookie->user-name httpcon))
+           (record (db-get username talkapp/user-db))
+           (email (aget record "email")))
+      (puthash call-to email talkapp/video-calls)
+      ;; Not sure about tbis for response - do I need the other email?
+      (elnode-send-html
+       httpcon "<html>enjoy the call</html>"))))
+
 (defun talkapp-chat-add-handler (httpcon)
+  "Send some chat to somewhere."
   (with-elnode-auth httpcon 'talkapp-session
     (let* ((msg (elnode-http-param httpcon "msg"))
            (username (talkapp-cookie->user-name httpcon))
