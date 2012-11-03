@@ -846,6 +846,10 @@ and directs you to validate."
 (defun talkapp-start ()
   (interactive)
   (talkapp/rcirc-config)
+  ;; Not sure if I should put these in or not.
+  (elnode-error-log-to-messages nil)
+  (revert-without-query (quote ("~/\\.emacs.d/elpa/.*")))
+  ;; Start the server
   (elnode-start 'talkapp-router :port 8100 :host "0.0.0.0")
   (add-hook 'elnode-defer-failure-hook 'talkapp/comet-fail-hook)
   (elnode-deferred-queue-start))
