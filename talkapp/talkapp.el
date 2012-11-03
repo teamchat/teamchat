@@ -771,44 +771,24 @@ and directs you to validate."
     ;; FIXME - we should really detect first auth and send registered?
     (elnode-send-file httpcon (concat talkapp-dir "main.html"))))
 
-
 ;;;###autoload
 (define-elnode-handler talkapp-router (httpcon)
   "Main router."
-  (let ((css (concat talkapp-dir "style.css"))
-        (js (concat talkapp-dir "site.js"))
-        (md5 (concat talkapp-dir "md5.js"))
-        (swfobject (concat talkapp-dir "swfobject.js"))
-        (video (concat talkapp-dir "video.js"))
-        (swf (concat talkapp-dir "vidclient.swf"))
-        (carousel (concat talkapp-dir "jquery.carouFredSel-6.1.0.js"))
-        (jquery (concat talkapp-dir "jquery-1.8.2.min.js"))
-        (bootstrap-js (concat talkapp-dir "bootstrap.js"))
-        (bootstrap-css (concat talkapp-dir "bootstrap.css")))
+  (let ((webserver (elnode-webserver-handler-maker talkapp-dir)))
     (elnode-hostpath-dispatcher
      httpcon
      `(("^[^/]*//config/" . talkapp-irc-config-handler)
        ("^[^/]*//session/" . talkapp-shoes-off-session)
        ("^[^/]*//chat/" . talkapp-chat-handler)
        ("^[^/]*//send/" . talkapp-chat-add-handler)
+       ("^[^/]*//vidcall/" . talkapp-video-call-handler)
        ("^[^/]*//poll/" . talkapp-comet-handler)
        ("^[^/]*//register/" . talkapp-register-handler)
        ("^[^/]*//registered/" . talkapp-registered-handler)
        ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
        ("^[^/]*//user/$" . talkapp-user-handler)
-       ;; Static content#
-       ("^[^/]*//-/vidclient.swf" . ,(elnode-make-send-file swf))
-       ("^[^/]*//-/style.css" . ,(elnode-make-send-file css))
-       ("^[^/]*//-/carousel.js" . ,(elnode-make-send-file carousel))
-       ("^[^/]*//-/md5.js" . ,(elnode-make-send-file md5))
-       ("^[^/]*//-/video.js" . ,(elnode-make-send-file video))
-       ("^[^/]*//-/swfobject.js" . ,(elnode-make-send-file swfobject))
-       ("^[^/]*//-/site.js" . ,(elnode-make-send-file js))
-       ("^[^/]*//-/jquery.js" . ,(elnode-make-send-file jquery))
-       ("^[^/]*//-/bootstrap.js" . ,(elnode-make-send-file bootstrap-js))
-       ("^[^/]*//-/bootstrap.css" . ,(elnode-make-send-file bootstrap-css))
+       ("^[^/]*//-/\\(.*\\)$" . ,webserver)
        ("^[^/]*//$" . talkapp-main-handler)))))
-
 
 ;; First level auth scheme
 ;;
