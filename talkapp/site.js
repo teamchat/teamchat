@@ -2,8 +2,8 @@
 var talkapp =
     (function () {
          var debug = document.location.search.indexOf("debug") >= 0;
-         var video_server = "localhost";
-         var me = "nic5";
+         var video_server = $("#videoserver").text();
+         if (debug) { console.log("video-server: " + video_server); }
 
          // Init the carousel
          var carousel_boot = function () {

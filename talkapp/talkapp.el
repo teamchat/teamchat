@@ -41,6 +41,11 @@ provides a web interface to it as well."
   :group 'talkapp
   :type 'directory)
 
+(defcustom talkapp-video-server "localhost"
+  "The server name of the media server."
+  :group 'talkapp
+  :type 'string)
+
 (defconst talkapp/db-change-db
   (db-make
    `(db-hash
@@ -663,7 +668,8 @@ Either `closed' or `failed' is the same for this purpose."
       (talkapp/list-to-html username))
      (cons
       "people"
-      (talkapp/people-list username)))))
+      (talkapp/people-list username))
+     (cons "video-server" talkapp-video-server))))
 
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
