@@ -661,7 +661,8 @@ Either `closed' or `failed' is the same for this purpose."
   "Return the list of chats as template."
   (let* ((httpcon elnode-replacements-httpcon)
          (username (talkapp-cookie->user-name httpcon))
-         (org ))
+         (record (db-get username talkapp/user-db))
+         (email (aget record "email")))
     (list
      (cons
       "messages"
@@ -669,6 +670,7 @@ Either `closed' or `failed' is the same for this purpose."
      (cons
       "people"
       (talkapp/people-list username))
+     (cons "my-email" email)
      (cons "video-server" talkapp-video-server))))
 
 (defun talkapp-chat-handler (httpcon)
