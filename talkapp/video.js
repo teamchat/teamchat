@@ -9,7 +9,13 @@ var video =
          /** Take a server and person A and person B.
           */
          var display = function (server, a, b) {
-             swfobject.video_log("doing video display");
+             video_server = server;
+             video_me = a;
+             video_them = b;
+             swfobject.video_log("doing video display " 
+                                 + video_server 
+                                 + " " + a 
+                                 + " " + b);
 
              // Work out the height of the video.
              $("#videocall").removeClass("hidden");
@@ -55,17 +61,24 @@ var video =
              swfobject.getObjectById('video').camera_select(camlist);
 
              // Where are we gonna pull these from?
-             swfobject.getObjectById("video").connect(server, "/vidclient");
+             try {
+                 swfobject.getObjectById("video").connect(
+                     video_server, 
+                     "/vidclient"
+                 );
+             } catch (x) {
+                 swfobject.video_log("failed to connect: " + x);
+             }
          };
 
          var connected = function () {
              swfobject.video_log("flash connected!");
-             swfobject.getObjectById("video").send_me(a);
+             swfobject.getObjectById("video").send_me(video_me);
          };
 
          var published = function () {
              swfobject.video_log("flash published!");
-             swfobject.getObjectById("video").get_them(b);
+             swfobject.getObjectById("video").get_them(video_them);
          };
 
          var subscribed = function () {

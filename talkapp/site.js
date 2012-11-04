@@ -109,6 +109,7 @@ var talkapp =
                            }
                          }
                      );
+                     var me = $("#myemail").text();
                      video.display(video_server, me, key);
                      console.log("call " + me + " " + key);
                  }
