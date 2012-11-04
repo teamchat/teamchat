@@ -94,8 +94,11 @@
 (defun talkapp/fake-video ()
   "Fake video."
   (interactive)
+  ;; This fakes what happens with the http call from a user making a
+  ;; call.
   (puthash
-   "nic@ferrier.me.uk" "cjtapsell@tapsellferrier.co.uk"
+   "nic@ferrier.me.uk"
+   (cons "cjtapsell@tapsellferrier.co.uk" "1352037650231")
    talkapp/video-calls)
   (elnode-deferred-queue-process))
 

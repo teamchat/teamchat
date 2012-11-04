@@ -572,7 +572,12 @@ org as USERNAME."
 (defvar talkapp/video-calls (make-hash-table :test 'equal)
   "Hash of emails being video called.
 
-The value is the email of the caller.")
+The value is a cons of the email of the caller and the time,
+like:
+
+  email-getting-the-call => (email-sending-the-call time).
+
+The data here is only sent by `talkapp/comet-video-call'.")
 
 (defun talkapp/comet-video-call (my-email)
   "Return any call indicator.
@@ -582,7 +587,7 @@ caller's email address, the cdr is the person being called which
 is the person making this COMET request."
   (awhen (gethash my-email talkapp/video-calls)
     (remhash my-email talkapp/video-calls)
-    (list :video (list it my-email))))
+    (list :video (cons my-email (list (car it) (cdr it))))))
 
 (defun talkapp/comet-interrupt (entered channel my-email)
   "Produce a list of interrupts."
@@ -636,14 +641,15 @@ Either `closed' or `failed' is the same for this purpose."
 (defun talkapp-video-call-handler (httpcon)
   "Do a video call."
   (with-elnode-auth httpcon 'talkapp-session
-    (let* ((call-to (elnode-http-param httpcon "to"))
+    (let* ((call-to (elnode-http-param httpcon "to")) ; email you're calling
+           (time (elnode-http-param httpcon "time")) ; to unique the call
            (username (talkapp-cookie->user-name httpcon))
            (record (db-get username talkapp/user-db))
            (email (aget record "email")))
-      (puthash call-to email talkapp/video-calls)
+      (puthash call-to (cons email time) talkapp/video-calls)
       ;; Not sure about tbis for response - do I need the other email?
-      (elnode-send-html
-       httpcon "<html>enjoy the call</html>"))))
+      (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
+      (elnode-http-return httpcon "enjoy the call"))))
 
 (defun talkapp-chat-add-handler (httpcon)
   "Send some chat to somewhere."
@@ -658,7 +664,7 @@ Either `closed' or `failed' is the same for this purpose."
       (elnode-send-html httpcon "<html>thanks for that chat</html>"))))
 
 (defun talkapp/chat-templater ()
-  "Return the list of chats as template."
+  "Return the chat page template variables."
   (let* ((httpcon elnode-replacements-httpcon)
          (username (talkapp-cookie->user-name httpcon))
          (record (db-get username talkapp/user-db))

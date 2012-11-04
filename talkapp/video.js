@@ -60,10 +60,14 @@ var video =
 
          var inited = function () {
              swfobject.video_log("inited called");
-             var camlist = swfobject.getObjectById('video').cameras();
-             swfobject.getObjectById('video').camera_select(camlist);
+             var camlist = swfobject.getObjectById('video').cameras().split(",");
+             swfobject.getObjectById('video').camera_select(camlist[0]);
 
-             // Where are we gonna pull these from?
+             // then select the microphone
+             var miclist = swfobject.getObjectById("video").get_microphones().split(",");
+             swfobject.getObjectById("video").set_microphone(miclist[0]);
+
+             // then connect, which cases a callback
              try {
                  swfobject.getObjectById("video").connect(
                      video_server, 

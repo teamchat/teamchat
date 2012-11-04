@@ -478,25 +478,31 @@ package {
             }
         }
 
-
         public function micStop():void {
-            debug("stopMic");
+            debug("micStop");
             if (myStream != null) {
                 muted = true;
-                microphone.gain = 0;
+                if (microphone) {
+                    microphone.gain = 0;
+                }
                 // myStream.attachAudio(null);
             }
         }
 
         public function micStart():void {
             debug("startMic");
-            microphone.setSilenceLevel(0);
-            microphone.setUseEchoSuppression(true);
-            microphone.rate = 11;
-            microphone.gain = 30;
-            muted = false;
-            if (myStream != null) {
-                myStream.attachAudio(microphone);
+            if (microphone == null) {
+                debug("micStart failed; call micSelect first");
+            }
+            else {
+                microphone.setSilenceLevel(0);
+                microphone.setUseEchoSuppression(true);
+                microphone.rate = 11;
+                microphone.gain = 30;
+                muted = false;
+                if (myStream != null) {
+                    myStream.attachAudio(microphone);
+                }
             }
         }
 

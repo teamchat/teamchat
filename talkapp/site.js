@@ -3,6 +3,7 @@ var talkapp =
     (function () {
          var debug = document.location.search.indexOf("debug") >= 0;
          var video_server = $("#videoserver").text();
+         var me = $("#myemail").text();
          if (debug) { console.log("video-server: " + video_server); }
 
          // Init the carousel
@@ -98,20 +99,22 @@ var talkapp =
          };
 
          // Attach the event to the call button
-         var on_call = function (key, a_id) {
+         var on_call = function (to_email, a_id) {
              $("#" + a_id).on(
                  "click",
                  function (evt) {
+                     var time = Date.now();
                      $.ajax(
                          { url: "/vidcall/",
+                           data: { to: to_email, time: time },
+                           dataType: "text",
                            success: function (data, status) {
-                               console.log("video call got " + data);
+                               if (debug) { console.log("video-call got " + data); }
                            }
                          }
                      );
-                     var me = $("#myemail").text();
-                     video.display(video_server, me, key);
-                     console.log("call " + me + " " + key);
+                     video.display(video_server, me + time, to_email + time);
+                     if (debug) { console.log("video-call " + me + " " + to_email); }
                  }
              );
          };
@@ -159,9 +162,12 @@ var talkapp =
 
          // Process a video call from someone else, received via comet
          var do_videocall = function (data) {
-             var caller_email = data[0];
-             var my_email = data[1];
-             video.display("localhost", my_email, caller_email);
+             if (debug) { console.log("videocall data = " + data); }
+             var from = data[0];
+             var to = data[1];
+             var time = data[2];
+             // Unique the from and to with the time
+             video.display(video_server, from + time, to + time);
          };
 
          var do_users = function (data) {
@@ -242,8 +248,8 @@ var talkapp =
                    complete: function(jqXHR, status) {
                        // restart even if we failed
                        if (!debug) {
-                           setTimeout(chat_poll, 100);
                        }
+                       setTimeout(chat_poll, 100);
                    }
                  }
              );
@@ -322,7 +328,6 @@ var talkapp =
 
          // Return public API in an object
          return {
-             poll: chat_poll
          };
      })();
 
