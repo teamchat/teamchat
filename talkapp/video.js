@@ -1,5 +1,8 @@
 /* initialize the video */
 
+var video_server;
+var video_me;
+var video_them;
 var video = 
     (function () {
          swfobject["video_log"] = function (str) {
