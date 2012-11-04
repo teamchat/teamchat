@@ -3,6 +3,7 @@
 var video_server;
 var video_me;
 var video_them;
+var video_unpublished_handler;
 var video = 
     (function () {
          swfobject["video_log"] = function (str) {
@@ -11,10 +12,11 @@ var video =
 
          /** Take a server and person A and person B.
           */
-         var display = function (server, a, b) {
+         var display = function (server, a, b, unpublished_handler) {
              video_server = server;
              video_me = a;
              video_them = b;
+             video_unpublished_handler = unpublished_handler;
              swfobject.video_log("doing video display " 
                                  + video_server 
                                  + " " + a 
@@ -37,6 +39,7 @@ var video =
                  flash_inited: "video.flash_inited",
                  flash_connected: "video.flash_connected",
                  flash_published: "video.flash_published",
+                 flash_unpublished: "video.flash_unpublished",
                  flash_subscribed: "video.flash_subscribed"
              };
              
@@ -92,12 +95,18 @@ var video =
              swfobject.video_log("flash published!");
          };
 
+         var unpublished = function () {
+             if (typeof(video_unpublished_handler) == "function") {
+                 video_unpublished_handler();
+             }
+         };
          
          return {
              display: display,
              flash_inited: inited,
              flash_connected: connected,
-             flash_published: published
+             flash_published: published,
+             flash_unpublished: unpublished
          };
      }
     )();

@@ -113,7 +113,14 @@ var talkapp =
                            }
                          }
                      );
-                     video.display(video_server, me + time, to_email + time);
+                     video.display(
+                         video_server,
+                         me + time,
+                         to_email + time,
+                         function () { // unpublished handler
+                             $("#videocall").addClass("hidden");
+                         }
+                     );
                      if (debug) { console.log("video-call " + me + " " + to_email); }
                  }
              );

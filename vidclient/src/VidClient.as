@@ -69,6 +69,7 @@ package {
         private var javascript_method_flash_cameraon:String;
         private var javascript_method_flash_initialized:String;
         private var javascript_method_flash_published:String;
+        private var javascript_method_flash_unpublished:String;
         private var javascript_method_flash_subscribed:String;
         private var javascript_method_set_hash_id:String;
         private var javascript_method_log:String;
@@ -148,6 +149,7 @@ package {
             javascript_method_flash_vidstream = flashVars["flash_vidstream"];
             javascript_method_flash_notify = flashVars["flash_notify"];
             javascript_method_flash_published = flashVars["flash_published"];
+            javascript_method_flash_unpublished = flashVars["flash_unpublished"];
             javascript_method_flash_subscribed = flashVars["flash_subscribed"];
             javascript_method_flash_cameraon = flashVars["flash_cameraon"];
             javascript_method_set_hash_id = flashVars["set_hash_id"];
@@ -386,6 +388,7 @@ package {
                     }
                     else if (infoObject.info.code == "NetStream.Play.UnpublishNotify") {
                         _debug("nsPlayOnStatus netstream unpublished");
+                        ExternalInterface.call(javascript_method_flash_unpublished);
                     }
                     else if (infoObject.info.code == "NetStream.Play.Start") {
                         _debug("started");
