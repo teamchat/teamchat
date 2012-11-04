@@ -322,6 +322,7 @@ var talkapp =
 
          // Return public API in an object
          return {
+             poll: chat_poll
          };
      })();
 
