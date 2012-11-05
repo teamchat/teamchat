@@ -4,6 +4,7 @@ var talkapp =
          var debug = document.location.search.indexOf("debug") >= 0;
          var video_server = $("#videoserver").text();
          var me = $("#myemail").text();
+         var blurred = false;
          if (debug) { console.log("video-server: " + video_server); }
 
          // Init the carousel
@@ -126,6 +127,13 @@ var talkapp =
              );
          };
 
+
+         var do_cough = function () {
+             var audioElement = document.createElement('audio');
+             audioElement.setAttribute('src', '/-/2012-11-05-220508.ogg');
+             audioElement.play();
+         };
+
          // The list of emails in the page - email: md5(lower(email))
          var emails = {};
 
@@ -148,7 +156,7 @@ var talkapp =
                             + ((key != me) ?
                                ("<a id='" + a_id + "'"
                                 + " href='javascript:;' "
-                                + " class='btn btn-small btn-primary'>\""
+                                + " class='btn btn-small btn-primary'>"
                                 + "call</a>") : "")
                         );
                         on_call(key, a_id);
@@ -214,6 +222,9 @@ var talkapp =
                             msg_template(
                                 key, username, message
                             ).insertBefore("table tr:first-child");
+                            if (blurred) {
+                                do_cough();
+                            }
                         }
                         else {
                             if (debug) { console.log("already got that one"); }
@@ -323,11 +334,15 @@ var talkapp =
 
          // If we should start the chat poller
          if (typeof talkapp_do_chat != "undefined") {
+             // Make the chat poller run
              setTimeout(chat_poll, 1000);
              // also urlize the chat panel everything
              urlize("#chat-panel");
              // also collect gravatars
              gravatarize();
+             // also turn on blur notifications
+             $(window).on("blur", function (evt) { blurred = true; });
+             $(window).on("focus", function (evt) { blurred = false; });
              // also turn on the carousel
              if (true) {
                  //$(document).ready(carousel_boot);

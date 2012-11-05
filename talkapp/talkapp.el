@@ -383,15 +383,15 @@ If this variable is not bound or bound and t it will eval."
       (if (not org-rec)
           (elnode-send-json httpcon (list :error "no irc registered for org"))
           ;; Else provision the server
-          (let ((irc-server-desc (aget org-rec "irc-server"))
-                (irc-server-pair (split-string irc-server-desc ":"))
-                (irc-server (car irc-server-pair))
-                (irc-port (string-to-number (cadr irc-server-pair)))
-                (session (gethash
-                          (concat username "@" irc-server)
-                          shoes-off--sessions))
-                (do-start (elnode-http-param httpcon "start"))
-                (do-stop (elnode-http-param httpcon "stop")))
+          (let* ((irc-server-desc (aget org-rec "irc-server"))
+                 (irc-server-pair (split-string irc-server-desc ":"))
+                 (irc-server (car irc-server-pair))
+                 (irc-port (string-to-number (cadr irc-server-pair)))
+                 (session (gethash
+                           (concat username "@" irc-server)
+                           shoes-off--sessions))
+                 (do-start (elnode-http-param httpcon "start"))
+                 (do-stop (elnode-http-param httpcon "stop")))
             (cond
               ((and session do-stop)
                ;; Can't stop sessions right now
@@ -802,25 +802,27 @@ user."
 Makes the validation hash, stores it in the db, queues the email
 and directs you to validate."
   (with-elnode-auth httpcon 'talkapp-auth
-    (let* ((user (talkapp/get-user httpcon))
-           (user-data (talkapp/keyify user))
-           (email (aget user-data "email"))
-           (username (aget user-data "username"))
-           ;; FIXME - this uses elnode's secret key - it would be better to
-           ;; use an app specific one
-           (email-hash (sha1 (format "%s:%s" elnode-secret-key email))))
-      ;; Store the hash with the username and email address
-      (db-put email-hash
-              `((username . ,username)(email . ,email))
-              talkapp/email-valid-db)
-      ;; FIXME - We need to send an email!
-      (message "talkapp reg %s with verify link %s"
-               username
-               (format "http://localhost:8101/validate/%s" email-hash))
-      ;; Send the file back
-      (elnode-send-file
-       httpcon (concat talkapp-dir "registered.html")
-       :replacements user-data))))
+    (let ((user (talkapp/get-user httpcon)))
+      (if (aget user "valid")
+          (elnode-send-redirect httpcon "/user/")
+          (let* ((user-data (talkapp/keyify user))
+                 (email (aget user-data "email"))
+                 (username (aget user-data "username"))
+                 ;; FIXME - this uses elnode's secret key - it would be better to
+                 ;; use an app specific one
+                 (email-hash (sha1 (format "%s:%s" elnode-secret-key email))))
+            ;; Store the hash with the username and email address
+            (db-put email-hash
+                    `((username . ,username)(email . ,email))
+                    talkapp/email-valid-db)
+            ;; FIXME - We need to send an email!
+            (message "talkapp reg %s with verify link %s"
+                     username
+                     (format "http://localhost:8101/validate/%s" email-hash))
+            ;; Send the file back
+            (elnode-send-file
+             httpcon (concat talkapp-dir "registered.html")
+             :replacements user-data))))))
 
 (defun talkapp-register-handler (httpcon)
   "Take a registration and create a user."
@@ -868,7 +870,7 @@ and directs you to validate."
   (let ((webserver (elnode-webserver-handler-maker talkapp-dir)))
     (elnode-hostpath-dispatcher
      httpcon
-     `(("^[^/]*//user/$" . talkapp-user-router)
+     `(("^[^/]*//user/.*$" . talkapp-user-router)
        ("^[^/]*//-/\\(.*\\)$" . ,webserver)
        ("^[^/]*//.*$" . talkapp-front-router)))))
 
@@ -892,7 +894,7 @@ and directs you to validate."
  :auth-db talkapp/valid-token-db
  :cookie-name talkapp-session-cookie-name
  :redirect (elnode-auth-make-login-wrapper
-            'talkapp-user-router))
+            'talkapp-user-router :target "/user/login/"))
 
 ;;;###autoload
 (defun talkapp-start ()
