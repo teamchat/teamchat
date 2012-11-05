@@ -34,7 +34,7 @@ var talkapp =
          // Setup some functions
          var service = function () {
              // FIXME needs to share code with the init call to /session/
-             $.ajax({ url: "/session/?start=1",
+             $.ajax({ url: "/user/session/?start=1",
                       dataType: "json",
                       success: function (data, status) {
                           if (debug) { console.log("we started the service with: " + data); }
@@ -54,7 +54,7 @@ var talkapp =
          };
 
          var config = function () {
-             $.ajax({ url: "/config/",
+             $.ajax({ url: "/user/config/",
                       dataType: "text",
                       success: function (data, status) {
                           if (debug) { console.log("we configured with: " + data); }
@@ -105,7 +105,7 @@ var talkapp =
                  function (evt) {
                      var time = Date.now();
                      $.ajax(
-                         { url: "/vidcall/",
+                         { url: "/user/vidcall/",
                            data: { to: to_email, time: time },
                            dataType: "text",
                            success: function (data, status) {
@@ -221,7 +221,7 @@ var talkapp =
 
          var chat_poll = function () {
              $.ajax(
-                 { url: '/poll/',
+                 { url: '/user/poll/',
                    dataType: "jsonp",
                    timeout: 350 * 1000,
                    success: function (data, status) {
@@ -267,7 +267,7 @@ var talkapp =
          var status_disconnected = $("#status_disconnected");
          if (status_connected.length > 0 || status_disconnected.length > 0) {
              console.log("found status dom");
-             $.ajax({ url: "/session/",
+             $.ajax({ url: "/user/session/",
                       dataType: "json",
                       success: function (data, status) {
                           if (data["session"] == true) {

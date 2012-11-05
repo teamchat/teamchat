@@ -17,7 +17,7 @@
 </div>
 <div id="carousel" class="row">
     <div id="chat-panel" class="span8">
-        <form class="form-inline" method="POST" action="/send/" target="_sendtarget">
+        <form class="form-inline" method="POST" action="/user/send/" target="_sendtarget">
             <input class="input-xxlarge" 
                    type="text" autocomplete="off" name="msg" value="" 
                    placeholder="type your chat message here"/>
@@ -53,7 +53,7 @@
     </div>
     <div id="paste-text-panel" class="span8 hidden">
         <h4>paste panel - upload program text or notes</h4>
-        <form method="POST" action="/paste/">
+        <form method="POST" action="/user/paste/">
             <textarea rows="10" cols="80" name="text" 
                       placeholder="paste your code">
                 </textarea><br/>

@@ -46,6 +46,15 @@ provides a web interface to it as well."
   :group 'talkapp
   :type 'string)
 
+(defcustom talkapp-irc-provision nil
+  "Control whether IRC account provisioning is done.
+
+This is useful for testing, turn it off and you have just an
+application that can run in a normal Emacs with no other
+environmental requirements."
+  :group 'talkapp
+  :type 'boolean)
+
 (defconst talkapp/db-change-db
   (db-make
    `(db-hash
@@ -291,10 +300,10 @@ name."
 We should expect USERNAME-SPEC to just be a username."
   (let* ((record (db-query talkapp/user-db `(= "username" ,username-spec)))
          (details (aget record username-spec)))
-    (destructuring-bind (&key username password email key token)
+    (destructuring-bind (&key username password email token)
         (kvplist->filter-keys
          (kvalist->plist details)
-         :username :password :email :key :token)
+         :username :password :email :token)
       (when (equal password (aget details "password"))
         (talkapp/irc-details username password email)))))
 
@@ -346,18 +355,21 @@ If this variable is not bound or bound and t it will eval."
 (defun talkapp-irc-config-handler (httpcon)
   "Run the ircd provisioning script."
   (with-elnode-auth httpcon 'talkapp-session
-    (let ((username (talkapp-cookie->user-name httpcon)))
-      (if (file-exists-p
-           (expand-file-name (concat "~/ircdkeys/" username)))
-          ;; If the key exists then don't do it again
-          (elnode-send-status httpcon 204)
-          ;; else make the key
-          (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
-          (if (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
-              (elnode-child-process
-               httpcon
-               "bash" "/home/emacs/ircdmakeuser" username)
-              (elnode-send-json httpcon (list :error t)))))))
+    (if talkapp-irc-provision
+        (let ((username (talkapp-cookie->user-name httpcon)))
+          (if (file-exists-p
+               (expand-file-name (concat "~/ircdkeys/" username)))
+              ;; If the key exists then don't do it again
+              (elnode-send-status httpcon 204)
+              ;; else make the key
+              (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
+              (if (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
+                  (elnode-child-process
+                   httpcon
+                   "bash" "/home/emacs/ircdmakeuser" username)
+                  (elnode-send-json httpcon (list :error t)))))
+        ;; Else send a 200 with some fakery
+        (elnode-send-json httpcon (list :fake t)))))
 
 ;; Start the shoes-off session for this user
 
@@ -367,31 +379,37 @@ If this variable is not bound or bound and t it will eval."
     (let* ((username (talkapp-cookie->user-name httpcon))
            (user-rec (db-get username talkapp/user-db))
            (org (aget user-rec "org"))
-           (org-rec (db-get org talkapp/org-db))
-           (irc-server-desc (aget org-rec "irc-server"))
-           (irc-server-pair (split-string irc-server-desc ":"))
-           (irc-server (car irc-server-pair))
-           (irc-port (string-to-number (cadr irc-server-pair)))
-           ;; FIXME hard coded server for now
-           (session (gethash
-                     (concat username "@" irc-server)
-                     shoes-off--sessions))
-           (do-start (elnode-http-param httpcon "start"))
-           (do-stop (elnode-http-param httpcon "stop")))
-      (cond
-        ((and session do-stop)
-         ;; Can't stop sessions right now
-         (elnode-send-json httpcon (list :error "wont stop")))
-        ((and session do-start)
-         ;; Can't start sessions that are already started
-         (elnode-send-json httpcon (list :error "already started")))
-        ((and (not session) do-start)
-         ;; Start the session
-         (shoes-off-start-session username)
-         (elnode-send-json httpcon (list :session t)))
-        (t
-         ;; Just return the status
-         (elnode-send-json httpcon (list :session (and session t))))))))
+           (org-rec (db-get org talkapp/org-db)))
+      (if (not org-rec)
+          (elnode-send-json httpcon (list :error "no irc registered for org"))
+          ;; Else provision the server
+          (let ((irc-server-desc (aget org-rec "irc-server"))
+                (irc-server-pair (split-string irc-server-desc ":"))
+                (irc-server (car irc-server-pair))
+                (irc-port (string-to-number (cadr irc-server-pair)))
+                (session (gethash
+                          (concat username "@" irc-server)
+                          shoes-off--sessions))
+                (do-start (elnode-http-param httpcon "start"))
+                (do-stop (elnode-http-param httpcon "stop")))
+            (cond
+              ((and session do-stop)
+               ;; Can't stop sessions right now
+               (elnode-send-json httpcon (list :error "wont stop")))
+              ((and session do-start)
+               ;; Can't start sessions that are already started
+               (elnode-send-json httpcon (list :error "already started")))
+              ((and (not session) do-start)
+               ;; Start the session
+               (if talkapp-irc-provision
+                   (progn
+                     (shoes-off-start-session username)
+                     (elnode-send-json httpcon (list :session t)))
+                   ;; Else just respond with fakery
+                   (elnode-send-json httpcon (list :session nil))))
+              (t
+               ;; Just return the status
+               (elnode-send-json httpcon (list :session (and session t))))))))))
 
 ;; Chat webapp
 
@@ -506,9 +524,16 @@ If this variable is not bound or bound and t it will eval."
    username))
 
 (defun talkapp/list-to-html (username)
-  "Return the list of chat as rows for initial chat display."
+  "Return the list of chat as rows for initial chat display.
+
+TESTING is possible with this by turning off `talkapp-irc-provision'."
   (let* ((channel (talkapp/get-channel username))
-         (chat-list (talkapp/chat-list channel)))
+         (chat-list
+          (flet ((chat-list-fn (username)
+                   (if talkapp-irc-provision
+                       (talkapp/chat-list channel)
+                       (talkapp/fake-chat-list username))))
+            (chat-list-fn username))))
     (if chat-list
         (loop for entry in chat-list
            if (equal 3 (length entry))
@@ -669,15 +694,15 @@ Either `closed' or `failed' is the same for this purpose."
          (username (talkapp-cookie->user-name httpcon))
          (record (db-get username talkapp/user-db))
          (email (aget record "email")))
-    (list
-     (cons
-      "messages"
-      (talkapp/list-to-html username))
-     (cons
-      "people"
-      (talkapp/people-list username))
-     (cons "my-email" email)
-     (cons "video-server" talkapp-video-server))))
+      (list
+       (cons
+        "messages"
+        (talkapp/list-to-html username))
+       (cons
+        "people"
+        (talkapp/people-list username))
+       (cons "my-email" email)
+       (cons "video-server" talkapp-video-server))))
 
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
@@ -724,7 +749,7 @@ user."
   (esxml-form-save
    regform data
    :db-data (lambda (data)
-              (destructuring-bind (&key username password key email)
+              (destructuring-bind (&key username password email)
                   (kvalist->plist data)
                 ;; Add in the org
                 (let ((org (talkapp/get-my-org email http-host)))
@@ -763,11 +788,13 @@ user."
      :db-check (= "email" $)
      :check-failure
      ((:email "not a valid email address?")
-      (:db-check "a user with that email exists")))
-    (key :html :textarea
-         :regex "[A-Za-z0-9-]+"
-         :check-failure "just the main part of the key"))
+      (:db-check "a user with that email exists"))))
   "Registration form.")
+
+;; The definition for the key which needs to go somewhere
+;; (key :html :textarea
+;;      :regex "[A-Za-z0-9-]+"
+;;      :check-failure "just the main part of the key"))
 
 (defun talkapp-registered-handler (httpcon)
   "The registered page.
@@ -815,24 +842,35 @@ and directs you to validate."
     ;; FIXME - we should really detect first auth and send registered?
     (elnode-send-file httpcon (concat talkapp-dir "main.html"))))
 
+(define-elnode-handler talkapp-user-router (httpcon)
+  (elnode-hostpath-dispatcher
+   httpcon
+   '(("^[^/]*//user/config/" . talkapp-irc-config-handler)
+     ("^[^/]*//user/session/" . talkapp-shoes-off-session)
+     ("^[^/]*//user/chat/" . talkapp-chat-handler)
+     ("^[^/]*//user/send/" . talkapp-chat-add-handler)
+     ("^[^/]*//user/vidcall/" . talkapp-video-call-handler)
+     ("^[^/]*//user/poll/" . talkapp-comet-handler)
+     ("^[^/]*//user/$" . talkapp-user-handler))))
+
+(define-elnode-handler talkapp-front-router (httpcon)
+  (elnode-hostpath-dispatcher
+   httpcon
+   '(("^[^/]*//register/" . talkapp-register-handler)
+     ("^[^/]*//registered/" . talkapp-registered-handler)
+     ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
+     ("^[^/]*//user/.*" . talkapp-user-router)
+     ("^[^/]*//.*" . talkapp-main-handler))))
+
 ;;;###autoload
-(define-elnode-handler talkapp-router (httpcon)
+(defun talkapp-router (httpcon)
   "Main router."
   (let ((webserver (elnode-webserver-handler-maker talkapp-dir)))
     (elnode-hostpath-dispatcher
      httpcon
-     `(("^[^/]*//config/" . talkapp-irc-config-handler)
-       ("^[^/]*//session/" . talkapp-shoes-off-session)
-       ("^[^/]*//chat/" . talkapp-chat-handler)
-       ("^[^/]*//send/" . talkapp-chat-add-handler)
-       ("^[^/]*//vidcall/" . talkapp-video-call-handler)
-       ("^[^/]*//poll/" . talkapp-comet-handler)
-       ("^[^/]*//register/" . talkapp-register-handler)
-       ("^[^/]*//registered/" . talkapp-registered-handler)
-       ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
-       ("^[^/]*//user/$" . talkapp-user-handler)
+     `(("^[^/]*//user/$" . talkapp-user-router)
        ("^[^/]*//-/\\(.*\\)$" . ,webserver)
-       ("^[^/]*//$" . talkapp-main-handler)))))
+       ("^[^/]*//.*$" . talkapp-front-router)))))
 
 ;; First level auth scheme
 ;;
@@ -844,7 +882,7 @@ and directs you to validate."
  :auth-db talkapp/auth-token-db
  :cookie-name talkapp-cookie-name
  :redirect (elnode-auth-make-login-wrapper
-            'talkapp-router))
+            'talkapp-front-router))
 
 ;; Second level auth scheme
 ;;
@@ -854,7 +892,7 @@ and directs you to validate."
  :auth-db talkapp/valid-token-db
  :cookie-name talkapp-session-cookie-name
  :redirect (elnode-auth-make-login-wrapper
-            'talkapp-router))
+            'talkapp-user-router))
 
 ;;;###autoload
 (defun talkapp-start ()

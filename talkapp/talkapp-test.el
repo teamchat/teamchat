@@ -56,7 +56,7 @@
 ;; FIXME - need values in DB
 ;;
 ;; for this one to work properly those two usernames need to be in the db
-(defun talkapp/chat-list (channel)
+(defun talkapp/fake-chat-list (channel)
   "Replacement for `talkapp/chat-list' that makes dummy chat."
   '(("2012-10-24 08:23:01:000001" "nic5" "this is a test")
     ("2012-10-24 08:23:02:000001" "caroline" "a conversation could occur")
