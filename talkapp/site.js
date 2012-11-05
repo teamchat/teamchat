@@ -145,9 +145,11 @@ var talkapp =
                         var a_id = email2id(key, "call-");
                         abbr.html(
                             "<img src='" + grav_url + "'/>"
-                                + "<a id='" + a_id + "'"
+                            + ((key != me) ?
+                               ("<a id='" + a_id + "'"
                                 + " href='javascript:;' "
-                                + " class='btn btn-small btn-primary'>call</a>"
+                                + " class='btn btn-small btn-primary'>\""
+                                + "call</a>") : "")
                         );
                         on_call(key, a_id);
                     }
