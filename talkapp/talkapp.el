@@ -552,7 +552,10 @@ TESTING is possible with this by turning off `talkapp-irc-provision'."
 
 (defun talkapp/comet-since-list (entered channel)
   "Comet form of `talkapp/since-list'."
-  (let ((lst (talkapp/list-since entered channel)))
+  (let ((lst (if talkapp-irc-provision
+                 (talkapp/list-since entered channel)
+                 ;; Else use the fake one
+                 (talkapp/fake-list-since entered channel))))
     (when lst
       (list :message (talkapp/since-list->htmlable lst)))))
 

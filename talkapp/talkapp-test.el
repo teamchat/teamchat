@@ -67,7 +67,7 @@
 
 (defvar talkapp-comet-handler-doit t)
 
-(defun talkapp/list-since (entered channel)
+(defun talkapp/fake-list-since (entered channel)
   (when talkapp-comet-handler-doit
     (setq talkapp-comet-handler-doit nil)
     '(("2012-10-24 08:23:06:0000001" "bob" "that would be fun!"))))
