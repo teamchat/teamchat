@@ -229,7 +229,6 @@ var talkapp =
                    success: function (data, status) {
                        // data key can be "message" or "user" or
                        // something else like "video"
-                       console.log(data);
                        $.each(data,
                               function (key, arr) {
                                   if (debug) { console.log("key=" + key + " arr=" + arr); }
