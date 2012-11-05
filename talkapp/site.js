@@ -65,7 +65,7 @@ var talkapp =
 
          // Convert text urls into A link HTML
          var url_it = function (text) {
-             var exp=/(http:\/\/[^ <>]+)/ig;
+             var exp=/(http[s]*:\/\/[^ <>]+)/ig;
              return text.replace(
                  exp,
                  function (match) {
