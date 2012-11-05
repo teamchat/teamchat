@@ -8,7 +8,7 @@
      "example-org"
      :match-host "example.teamchat.net"
      :domain-name "example.org"
-     :irc-server "example-irc.teamchat.net"
+     :irc-server "example-irc.teamchat.net:6667"
      :primary-channel "#example")
     ;; FIXME - these users both have the same tokens
     (let ((h1 (elnode--auth-make-hash "nic" "test"))
