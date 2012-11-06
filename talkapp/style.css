@@ -114,6 +114,8 @@ fieldset input[type=submit] {
     margin-top: 2em;
     padding: .5em;
     border-top: solid thin;
+    width: 500px;
+    line-height: 100px;
 }
 
 #gravatars abbr {
