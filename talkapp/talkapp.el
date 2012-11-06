@@ -25,7 +25,7 @@
 ;;; Code:
 
 (elnode-app talkapp-dir
-    anaphora esxml esxml-form db kv uuid
+    anaphora esxml esxml-form db kv uuid creole
     shoes-off rcirc-ssh network-stream)
 
 (defgroup talkapp nil
@@ -838,14 +838,53 @@ and directs you to validate."
 (defun talkapp-main-handler (httpcon)
   "The handler for the main page."
   (if-elnode-auth httpcon 'talkapp-session
-    (elnode-send-file
-     httpcon
-     (concat talkapp-dir "user.html")
-     :replacements 'talkapp/get-user-http)
+    (elnode-send-redirect httpcon "/user/")
     ;; Else user is not authenticated so send the main file
-    ;;
-    ;; FIXME - we should really detect first auth and send registered?
-    (elnode-send-file httpcon (concat talkapp-dir "main.html"))))
+    (if-elnode-auth httpcon 'talkapp-auth
+      (elnode-send-redirect httpcon "/registered/")
+      (elnode-send-file httpcon (concat talkapp-dir "main.html")))))
+
+(defconst talkapp/body-header "<div id='chat-header'>
+    <div class='container'>
+        <div class='logo'>
+            <h4>teamchat.net</h4>
+            <p>all your communication needs</p>
+        </div>
+        <h1>TeamChat</h1>
+    </div>
+</div>
+<div class='container'>")
+
+(defconst talkapp/body-footer "</div>
+<footer class='footer'>
+    <div class='container'>
+        <p class='pull-right'><a href='#'>Back to top</a></p>
+        <p>Designed and built by <a href='http://nic.ferrier.me.uk/'>Nic Ferrier</a> using Emacs and <a href='http://elnode.org'>Elnode</a></p>
+        <ul class='footer-links'>
+            <li><a href='/site/terms/'>Terms and conditions</a></li>
+            <li><a href='/site/terms/'>FAQ</a></li>
+        </ul>
+    </div>
+</footer>
+<script src='/-/jquery.js'    language='Javascript'></script>
+<script src='/-/bootstrap.js' language='Javascript'></script>
+<script src='/-/site.js' language='Javascript'></script>")
+
+(defun talkapp-make-wiki (name)
+  "Use creole to pass text formatted pages."
+  (let ((filename (concat talkapp-dir name)))
+    (lambda (httpcon)
+      (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
+      (with-stdout-to-elnode httpcon
+          (creole-wiki filename
+           :destination t
+           :docroot talkapp-dir
+           :docroot-alias "/-/"
+           :css (list
+                 (concat talkapp-dir "bootstrap.css")
+                 (concat talkapp-dir "style.css"))
+           :body-header talkapp/body-header
+           :body-footer talkapp/body-footer)))))
 
 (define-elnode-handler talkapp-user-router (httpcon)
   (elnode-hostpath-dispatcher
@@ -867,13 +906,6 @@ and directs you to validate."
      ("^[^/]*//user/.*" . talkapp-user-router)
      ("^[^/]*//.*" . talkapp-main-handler))))
 
-(defun talkapp-make-wiki (name)
-  (let ((filename (concat talkapp-dir name)))
-    (lambda (httpcon)
-      (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
-      (with-stdout-to-elnode httpcon
-          (creole-wiki filename :destination t)))))
-
 ;;;###autoload
 (defun talkapp-router (httpcon)
   "Main router."
@@ -883,6 +915,7 @@ and directs you to validate."
      `(("^[^/]*//user/.*$" . talkapp-user-router)
        ("^[^/]*//-/\\(.*\\)$" . ,webserver)
        ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
+       ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
        ("^[^/]*//.*$" . talkapp-front-router)))))
 
 ;; First level auth scheme

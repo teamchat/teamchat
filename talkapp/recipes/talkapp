@@ -11,6 +11,7 @@
          "db-setup.el"
          "main.html" "registered.html" "register.html" 
          "user.html" "chat.html"
+         "terms.creole" "FAQ.creole"
          "2012-11-05-220508.ogg"
          "style.css"
          "site.js" "video.js"

@@ -27,7 +27,7 @@ for the Content posted on the Service and you nonetheless may be
 exposed to such materials. You agree to use the Service at your own
 risk.
 
-== Account Terms ==
+== Using the Service ==
 
 1. You must be 13 years or older to use this Service.
 
@@ -45,7 +45,8 @@ risk.
 
 8. You may not use the Service for any illegal or unauthorized purpose. You must not, in the use of the Service, violate any laws in your jurisdiction (including but not limited to copyright or trademark laws).
 
-== Payment, Refunds, Upgrading and Downgrading Terms ==
+
+== Payment, Refunds, Upgrading and Downgrading the Service ==
 
 1. All paid plans must enter a valid credit card. Free accounts are not required to provide a credit card number.
 
@@ -59,7 +60,7 @@ risk.
 
 6. Downgrading your Service may cause the loss of Content, features, or capacity of your Account. TeamChat does not accept any liability for such loss.
 
-== Cancellation and Termination ==
+== Cancellation of the Service ==
 
 1. You are solely responsible for properly canceling your account. An email or phone request to cancel your account is not considered cancellation. You can cancel your account at any time by clicking on the Account link in the global navigation bar at the top of the screen. The Account screen provides a simple no questions asked cancellation link.
 
@@ -69,7 +70,7 @@ risk.
 
 4. TeamChat, in its sole discretion, has the right to suspend or terminate your account and refuse any and all current or future use of the Service, or any other TeamChat service, for any reason at any time. Such termination of the Service will result in the deactivation or deletion of your Account or your access to your Account, and the forfeiture and relinquishment of all Content in your Account.  TeamChat reserves the right to refuse service to anyone for any reason at any time.
 
-== Modifications to the Service and Prices ==
+== Modifications to the Service ==
 
 1. TeamChat reserves the right at any time and from time to time to modify or discontinue, temporarily or permanently, the Service (or any part thereof) with or without notice.
 
@@ -78,7 +79,7 @@ risk.
 3. TeamChat shall not be liable to you or to any third party for any modification, price change, suspension or discontinuance of the Service.
 
 
-== Copyright and Content Ownership ==
+== Copyright ==
 
 1. We claim no intellectual property rights over the material you provide to the Service. Your profile and materials uploaded remain yours.  
 

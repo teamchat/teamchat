@@ -1,0 +1,49 @@
+= Frequently Asked Questions =
+== about TeamChat.net ==
+
+=== what is it? ===
+
+teamchat.net is a team chat application. There is group chat for
+everyone to join in, 1 to 1 chat and selected group chat as well as
+video chat.
+
+=== why do I need that? ===
+
+If you're working in a team, for example writing software with
+colleagues, using a central chat service is really helpful. It means
+everyone in the team can find each other, there is always a place that
+people can chat, there is a place that people expect to find people.
+
+=== why do I really need that? ===
+
+Delivering software fast and to budget requires lots of
+co-operation. Look at most succesful Internet companies and they are
+doing team chatter.
+
+=== is it secure? ===
+
+In a word, yes. One of the advantages of teamchat.net is that you can
+use very secure protocols to connect to talk services either on HTTP
+or IRC.
+
+=== what is IRC? ===
+
+Internet Relay Chat is an Internet standard for chatting. It has been
+used for many years but had poor authentication.
+
+=== how have you made IRC secure? ===
+
+We require SSH authentication to secure access to IRC services. SSH is
+very secure.
+
+=== but my IRC client doesn't support SSH connections! Can I still use the teamchat.net? ===
+
+Yes, you can. Firstly you can use the web interface. But that's not
+what you want to hear: you can still use the IRC interface by using
+SSH port forwarding. If you are using a OSX or Linux you can do this:
+
+{{{
+ssh -NL 6667:localhost:6667 your-username@your-team-chat.teamchat.net
+}}}
+
+If you are using Windows you can use the [[http://putty.com|Putty program]] to make the same thing happen
