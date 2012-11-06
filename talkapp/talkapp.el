@@ -900,14 +900,16 @@ and directs you to validate."
            :body-header talkapp/body-header
            :body-footer talkapp/body-footer)))))
 
+(defconst talkapp-access-log-name "talkapp"
+  "The name of the access log.")
+
 ;;;###autoload
 (define-elnode-handler talkapp-router (httpcon)
   "Main router."
   (let ((webserver (elnode-webserver-handler-maker talkapp-dir)))
     (elnode-hostpath-dispatcher
      httpcon
-     `(
-       ("^[^/]*//user/config/" . talkapp-irc-config-handler)
+     `(("^[^/]*//user/config/" . talkapp-irc-config-handler)
        ("^[^/]*//user/session/" . talkapp-shoes-off-session)
        ("^[^/]*//user/chat/" . talkapp-chat-handler)
        ("^[^/]*//user/send/" . talkapp-chat-add-handler)
@@ -921,7 +923,8 @@ and directs you to validate."
        ("^[^/]*//-/\\(.*\\)$" . ,webserver)
        ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
        ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
-       ("^[^/]*//.*$" . talkapp-main-handler)))))
+       ("^[^/]*//.*$" . talkapp-main-handler))
+     :log-name talkapp-access-log-name)))
 
 (elnode-auth-define-scheme
  'talkapp-auth
@@ -930,10 +933,23 @@ and directs you to validate."
  :redirect (elnode-auth-make-login-wrapper
             'talkapp-router))
 
+(defun talkapp-access-log-formatter (httpcon)
+  "Make an access log line."
+  (format
+   "%s %60s"
+   (elnode-log-access-format-func httpcon)
+   (let ((cookie (elnode-http-cookie httpcon talkapp-cookie-name)))
+     (or (cdr cookie) ""))))
+
 ;;;###autoload
 (defun talkapp-start ()
   (interactive)
   (talkapp/rcirc-config)
+  (setq elnode-log-access-alist
+        (acons
+         talkapp-access-log-name
+         'talkapp-access-log-formatter
+         elnode-log-access-alist))
   ;; Not sure if I should put these in or not.
   (setq elnode-error-log-to-messages nil)
   (setq revert-without-query (quote ("~/\\.emacs.d/elpa/.*")))
