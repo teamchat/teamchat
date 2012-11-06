@@ -41,6 +41,11 @@ provides a web interface to it as well."
   :group 'talkapp
   :type 'directory)
 
+(defcustom talkapp-start-port 8100
+  "The port to start talkapp on."
+  :group 'talkapp
+  :type 'integer)
+
 (defcustom talkapp-video-server "localhost"
   "The server name of the media server."
   :group 'talkapp
@@ -945,10 +950,12 @@ and directs you to validate."
   (interactive)
   (talkapp/rcirc-config)
   ;; Not sure if I should put these in or not.
-  (elnode-error-log-to-messages nil)
-  (revert-without-query (quote ("~/\\.emacs.d/elpa/.*")))
+  (setq elnode-error-log-to-messages nil)
+  (setq revert-without-query (quote ("~/\\.emacs.d/elpa/.*")))
   ;; Start the server
-  (elnode-start 'talkapp-router :port 8100 :host "0.0.0.0")
+  (elnode-start 'talkapp-router
+                :port talkapp-start-port
+                :host "0.0.0.0")
   (add-hook 'elnode-defer-failure-hook 'talkapp/comet-fail-hook)
   (elnode-deferred-queue-start))
 
