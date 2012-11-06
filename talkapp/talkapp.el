@@ -867,6 +867,13 @@ and directs you to validate."
      ("^[^/]*//user/.*" . talkapp-user-router)
      ("^[^/]*//.*" . talkapp-main-handler))))
 
+(defun talkapp-make-wiki (name)
+  (let ((filename (concat talkapp-dir name)))
+    (lambda (httpcon)
+      (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
+      (with-stdout-to-elnode httpcon
+          (creole-wiki filename :destination t)))))
+
 ;;;###autoload
 (defun talkapp-router (httpcon)
   "Main router."
@@ -875,6 +882,7 @@ and directs you to validate."
      httpcon
      `(("^[^/]*//user/.*$" . talkapp-user-router)
        ("^[^/]*//-/\\(.*\\)$" . ,webserver)
+       ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
        ("^[^/]*//.*$" . talkapp-front-router)))))
 
 ;; First level auth scheme
