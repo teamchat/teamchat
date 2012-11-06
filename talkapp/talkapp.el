@@ -215,9 +215,6 @@ Try EMAIL first (by pulling out the domain) and then HTTP-HOST."
 
 ;; Auth cookie constants
 
-(defconst talkapp-session-cookie-name "talkapp-session"
-  "The name of the cookie we use for email-valid auth.")
-
 (defconst talkapp-cookie-name "talkapp-user"
   "The name of the cookie we use for auth.")
 
@@ -334,7 +331,6 @@ If this variable is not bound or bound and t it will eval."
     (car
      (elnode-auth-cookie-decode
       (or
-       (elnode-http-cookie httpc talkapp-session-cookie-name t)
        (elnode-http-cookie httpc talkapp-cookie-name t))))))
 
 (defun talkapp/get-user (&optional httpcon)
@@ -359,7 +355,7 @@ If this variable is not bound or bound and t it will eval."
 
 (defun talkapp-irc-config-handler (httpcon)
   "Run the ircd provisioning script."
-  (with-elnode-auth httpcon 'talkapp-session
+  (with-elnode-auth httpcon 'talkapp-auth
     (if talkapp-irc-provision
         (let ((username (talkapp-cookie->user-name httpcon)))
           (if (file-exists-p
@@ -380,7 +376,7 @@ If this variable is not bound or bound and t it will eval."
 
 (defun talkapp-shoes-off-session (httpcon)
   "Manage sessions from the webapp."
-  (with-elnode-auth httpcon 'talkapp-session
+  (with-elnode-auth httpcon 'talkapp-auth
     (let* ((username (talkapp-cookie->user-name httpcon))
            (user-rec (db-get username talkapp/user-db))
            (org (aget user-rec "org"))
@@ -641,7 +637,7 @@ is the person making this COMET request."
 
 A change could be new chat messages, a new user online or offline
 or a video call or some other action."
-  (with-elnode-auth httpcon 'talkapp-session
+  (with-elnode-auth httpcon 'talkapp-auth
     (let* ((username (talkapp-cookie->user-name httpcon))
            (email (aget (db-get username talkapp/user-db) "email"))
            (channel (talkapp/get-channel username))
@@ -673,7 +669,7 @@ Either `closed' or `failed' is the same for this purpose."
 
 (defun talkapp-video-call-handler (httpcon)
   "Do a video call."
-  (with-elnode-auth httpcon 'talkapp-session
+  (with-elnode-auth httpcon 'talkapp-auth
     (let* ((call-to (elnode-http-param httpcon "to")) ; email you're calling
            (time (elnode-http-param httpcon "time")) ; to unique the call
            (username (talkapp-cookie->user-name httpcon))
@@ -686,7 +682,7 @@ Either `closed' or `failed' is the same for this purpose."
 
 (defun talkapp-chat-add-handler (httpcon)
   "Send some chat to somewhere."
-  (with-elnode-auth httpcon 'talkapp-session
+  (with-elnode-auth httpcon 'talkapp-auth
     (let* ((msg (elnode-http-param httpcon "msg"))
            (username (talkapp-cookie->user-name httpcon))
            (channel (talkapp/get-channel username)))
@@ -715,7 +711,7 @@ Either `closed' or `failed' is the same for this purpose."
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
   ;; FIXME - redirecct when chat not connected?
-  (with-elnode-auth httpcon 'talkapp-session
+  (with-elnode-auth httpcon 'talkapp-auth
     (elnode-send-file
      httpcon (concat talkapp-dir "chat.html")
      :replacements 'talkapp/chat-templater)))
@@ -723,9 +719,25 @@ Either `closed' or `failed' is the same for this purpose."
 
 ;; Registration stuff
 
+(defun talkapp-auth-func (username)
+  (let ((user (db-get username talkapp/user-db)))
+    (when user
+      (or
+       ;; Either we're valid and we match a user page
+       (and
+        (string-match
+         "/user/.*"
+         (or
+          (elnode-http-param elnode-auth-httpcon "redirect")
+          (elnode-http-pathinfo elnode-auth-httpcon)))
+        (aget user "valid")
+        (aget user "token")) ; have to end with a token get
+       ;; or we're registered
+       (aget user "token")))))
+
 (defun talkapp-user-handler (httpcon)
   "Present the main user page."
-  (with-elnode-auth httpcon 'talkapp-session
+  (with-elnode-auth httpcon 'talkapp-auth
     (let ((user-data (talkapp/get-user-http httpcon)))
       (elnode-send-file
        httpcon (concat talkapp-dir "user.html")
@@ -745,8 +757,8 @@ Either `closed' or `failed' is the same for this purpose."
        httpcon
        username (aget user "password")
        user-page
-       :cookie-name talkapp-session-cookie-name
-       :auth-db talkapp/valid-token-db))))
+       :cookie-name talkapp-cookie-name
+       :auth-test 'talkapp-auth-func))))
 
 (defun talkapp/make-user (regform data &optional http-host)
   "Make a user.
@@ -779,7 +791,7 @@ user."
      username password
      "/registered/"
      :cookie-name talkapp-cookie-name
-     :auth-db talkapp/auth-token-db)))
+     :auth-test 'talkapp-auth-func)))
 
 (defconst talkapp-regform
   (esxml-form
@@ -842,12 +854,9 @@ and directs you to validate."
 
 (defun talkapp-main-handler (httpcon)
   "The handler for the main page."
-  (if-elnode-auth httpcon 'talkapp-session
-    (elnode-send-redirect httpcon "/user/")
-    ;; Else user is not authenticated so send the main file
-    (if-elnode-auth httpcon 'talkapp-auth
-      (elnode-send-redirect httpcon "/registered/")
-      (elnode-send-file httpcon (concat talkapp-dir "main.html")))))
+  (if-elnode-auth httpcon 'talkapp-auth
+    (elnode-send-redirect httpcon "/registered/")
+    (elnode-send-file httpcon (concat talkapp-dir "main.html"))))
 
 (defconst talkapp/body-header "<div id='chat-header'>
     <div class='container'>
@@ -891,59 +900,35 @@ and directs you to validate."
            :body-header talkapp/body-header
            :body-footer talkapp/body-footer)))))
 
-(define-elnode-handler talkapp-user-router (httpcon)
-  (elnode-hostpath-dispatcher
-   httpcon
-   '(("^[^/]*//user/config/" . talkapp-irc-config-handler)
-     ("^[^/]*//user/session/" . talkapp-shoes-off-session)
-     ("^[^/]*//user/chat/" . talkapp-chat-handler)
-     ("^[^/]*//user/send/" . talkapp-chat-add-handler)
-     ("^[^/]*//user/vidcall/" . talkapp-video-call-handler)
-     ("^[^/]*//user/poll/" . talkapp-comet-handler)
-     ("^[^/]*//user/$" . talkapp-user-handler))))
-
-(define-elnode-handler talkapp-front-router (httpcon)
-  (elnode-hostpath-dispatcher
-   httpcon
-   '(("^[^/]*//register/" . talkapp-register-handler)
-     ("^[^/]*//registered/" . talkapp-registered-handler)
-     ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
-     ("^[^/]*//user/.*" . talkapp-user-router)
-     ("^[^/]*//.*" . talkapp-main-handler))))
-
 ;;;###autoload
-(defun talkapp-router (httpcon)
+(define-elnode-handler talkapp-router (httpcon)
   "Main router."
   (let ((webserver (elnode-webserver-handler-maker talkapp-dir)))
     (elnode-hostpath-dispatcher
      httpcon
-     `(("^[^/]*//user/.*$" . talkapp-user-router)
+     `(
+       ("^[^/]*//user/config/" . talkapp-irc-config-handler)
+       ("^[^/]*//user/session/" . talkapp-shoes-off-session)
+       ("^[^/]*//user/chat/" . talkapp-chat-handler)
+       ("^[^/]*//user/send/" . talkapp-chat-add-handler)
+       ("^[^/]*//user/vidcall/" . talkapp-video-call-handler)
+       ("^[^/]*//user/poll/" . talkapp-comet-handler)
+       ("^[^/]*//user/$" . talkapp-user-handler)
+       ;; Reg stuff
+       ("^[^/]*//register/" . talkapp-register-handler)
+       ("^[^/]*//registered/" . talkapp-registered-handler)
+       ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
        ("^[^/]*//-/\\(.*\\)$" . ,webserver)
        ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
        ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
-       ("^[^/]*//.*$" . talkapp-front-router)))))
+       ("^[^/]*//.*$" . talkapp-main-handler)))))
 
-;; First level auth scheme
-;;
-;; Used after registration to see the email-validation thing.  I guess
-;; service notices and such like could be this as well. Also "please
-;; turn off any email sending"
 (elnode-auth-define-scheme
  'talkapp-auth
- :auth-db talkapp/auth-token-db
+ :auth-test (lambda (username) (talkapp-auth-func username))
  :cookie-name talkapp-cookie-name
  :redirect (elnode-auth-make-login-wrapper
-            'talkapp-front-router))
-
-;; Second level auth scheme
-;;
-;; Used after email validation.
-(elnode-auth-define-scheme
- 'talkapp-session
- :auth-db talkapp/valid-token-db
- :cookie-name talkapp-session-cookie-name
- :redirect (elnode-auth-make-login-wrapper
-            'talkapp-user-router :target "/user/login/"))
+            'talkapp-router))
 
 ;;;###autoload
 (defun talkapp-start ()
