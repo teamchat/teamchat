@@ -2,19 +2,10 @@
 <html>
 <head>
 <title>Chat!</title>
-<link rel="stylesheet" href="/-/bootstrap.css" type="text/css"/>
-<link rel="stylesheet" href="/-/style.css" type="text/css"/>
+<!##E head E##!>
 </head>
 <body>
-<div id="chat-header">
-    <div class="container">
-        <div class="logo">
-            <h4>teamchat.net</h4>
-            <p>all your communication needs</p>
-        </div>
-        <h1>chat!</h1>
-    </div>
-</div>
+<!##E chat-header E##!>
 <div id="carousel" class="row">
     <div id="chat-panel" class="span8">
         <form class="form-inline" method="POST" action="/user/send/" target="_sendtarget">
@@ -68,16 +59,11 @@
         </form>
     </div>
 </div>
-<footer class="footer">
-    <div class="container">
-        <p class="pull-right"><a href="#">Back to top</a></p>
-        <p>Designed and built by <a href="http://nic.ferrier.me.uk/">Nic Ferrier</a> using Emacs and <a href="http://elnode.org">Elnode</a></p>
-        <ul class="footer-links">
-            <!-- links go here -->
-        </ul>
-    </div>
-</footer>
-</body>
+<script>
+// <!--
+var talkapp_do_chat = 1;
+// -->
+</script>
 <iframe 
     style="float:right;" 
     width="1" 
@@ -85,17 +71,6 @@
     name="_sendtarget" 
     src="">
 </iframe>
-<script>
-// <!--                                                                                                                                               
-var talkapp_do_chat = 1;                                                                                                                              
-// -->
-</script>
-<script src="/-/jquery.js"    language="Javascript"></script>
-<script src="/-/cookie.js"    language="Javascript"></script>
-<script src="/-/swfobject.js" language="Javascript"></script>
-<script src="/-/carousel.js"  language="Javascript"></script>
-<script src="/-/bootstrap.js" language="Javascript"></script>
-<script src="/-/md5.js"       language="Javascript"></script>
-<script src="/-/video.js"     language="Javascript"></script>
-<script src="/-/site.js"      language="Javascript"></script>
+<!##E footer E##!>
+</body>
 </html>

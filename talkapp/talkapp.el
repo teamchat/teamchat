@@ -25,6 +25,7 @@
 ;;; Code:
 
 (elnode-app talkapp-dir
+    talkapp-templates
     anaphora esxml esxml-form db kv uuid creole
     shoes-off rcirc-ssh network-stream)
 
@@ -122,6 +123,13 @@ Contains the following fields:
 
 We key it by the validation key (a hash of email and secret key)
 and store the username and the email.")
+
+(defconst talkapp/template-list
+  (list
+   (cons "head" talkapp-template/head-css)
+   (cons "body-header" talkapp-template/body-header)
+   (cons "footer" talkapp-template/body-footer))
+  "List of template variables.")
 
 
 ;; Database utility function
@@ -599,17 +607,17 @@ is the person making this COMET request."
 
 (defun talkapp/comet-interrupt (entered channel my-email)
   "Produce a list of interrupts."
- (let ((msg-list (talkapp/comet-since-list entered channel))
-       (user-list (talkapp/comet-user-state))
-       (video (talkapp/comet-video-call my-email))
-       to-send)
-   (when msg-list
-     (setq to-send msg-list))
-   (when user-list
-     (setq to-send (append user-list to-send)))
-   (when video
-     (setq to-send (append video to-send)))
-   to-send))
+  (let ((msg-list (talkapp/comet-since-list entered channel))
+        (user-list (talkapp/comet-user-state))
+        (video (talkapp/comet-video-call my-email))
+        to-send)
+    (when msg-list
+      (setq to-send msg-list))
+    (when user-list
+      (setq to-send (append user-list to-send)))
+    (when video
+      (setq to-send (append video to-send)))
+    to-send))
 
 (defun talkapp-comet-handler (httpcon)
   "Defer until there is some change.
@@ -677,15 +685,18 @@ Either `closed' or `failed' is the same for this purpose."
          (username (talkapp-cookie->user-name httpcon))
          (record (db-get username talkapp/user-db))
          (email (aget record "email")))
-      (list
-       (cons
-        "messages"
-        (talkapp/list-to-html username))
-       (cons
-        "people"
-        (talkapp/people-list username))
-       (cons "my-email" email)
-       (cons "video-server" talkapp-video-server))))
+    (append
+     (list
+      (cons
+       "messages"
+       (talkapp/list-to-html username))
+      (cons
+       "people"
+       (talkapp/people-list username))
+      (cons "my-email" email)
+      (cons "video-server" talkapp-video-server)
+      (cons "chat-header" talkapp-template/chat-header))
+     talkapp/template-list))))))
 
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
@@ -720,7 +731,7 @@ Either `closed' or `failed' is the same for this purpose."
     (let ((user-data (talkapp/get-user-http httpcon)))
       (elnode-send-file
        httpcon (concat talkapp-dir "user.html")
-       :replacements user-data))))
+       :replacements (append user-data talkapp/template-list)))))
 
 (defun talkapp-validate-handler (httpcon)
   "Validates the user and logs them in."
@@ -815,9 +826,7 @@ user."
       (insert
        (format "\n\nhttp://%s/validate/%s/\n\n" host email-hash))
       (insert "Thanks!\nThe teamchat.net team")
-      (message-send)
-      )))
-
+      (message-send))))
 
 (defun talkapp-registered-handler (httpcon)
   "The registered page.
@@ -831,8 +840,8 @@ and directs you to validate."
           (let* ((user-data (talkapp/keyify user))
                  (email (aget user-data "email"))
                  (username (aget user-data "username"))
-                 ;; FIXME - this uses elnode's secret key - it would be better to
-                 ;; use an app specific one
+                 ;; FIXME - this uses elnode's secret key - it would
+                 ;; be better to use an app specific one
                  (email-hash (sha1 (format "%s:%s" elnode-secret-key email))))
             ;; Store the hash with the username and email address
             (db-put email-hash
@@ -842,8 +851,9 @@ and directs you to validate."
             (talkapp/send-email user email-hash)
             ;; Send the file back
             (elnode-send-file
-             httpcon (concat talkapp-dir "registered.html")
-             :replacements user-data))))))
+             httpcon
+             (concat talkapp-dir "registered.html")
+             :replacements (append user-data talkapp/template-list)))))))
 
 (defun talkapp-register-handler (httpcon)
   "Take a registration and create a user."
@@ -851,39 +861,17 @@ and directs you to validate."
     (esxml-form-handle
      talkapp-regform httpcon (concat talkapp-dir "register.html")
      (lambda (data)
-       (talkapp/save-reg httpcon talkapp-regform data)))))
+       (talkapp/save-reg httpcon talkapp-regform data))
+     talkapp/template-list)))
 
 (defun talkapp-main-handler (httpcon)
   "The handler for the main page."
   (if-elnode-auth httpcon 'talkapp-auth
     (elnode-send-redirect httpcon "/registered/")
-    (elnode-send-file httpcon (concat talkapp-dir "main.html"))))
-
-(defconst talkapp/body-header "<div id='chat-header'>
-    <div class='container'>
-        <div class='logo'>
-            <h4>teamchat.net</h4>
-            <p>all your communication needs</p>
-        </div>
-        <h1>TeamChat</h1>
-    </div>
-</div>
-<div class='container'>")
-
-(defconst talkapp/body-footer "</div>
-<footer class='footer'>
-    <div class='container'>
-        <p class='pull-right'><a href='#'>Back to top</a></p>
-        <p>Designed and built by <a href='http://nic.ferrier.me.uk/'>Nic Ferrier</a> using Emacs and <a href='http://elnode.org'>Elnode</a></p>
-        <ul class='footer-links'>
-            <li><a href='/site/terms/'>Terms and conditions</a></li>
-            <li><a href='/site/terms/'>FAQ</a></li>
-        </ul>
-    </div>
-</footer>
-<script src='/-/jquery.js'    language='Javascript'></script>
-<script src='/-/bootstrap.js' language='Javascript'></script>
-<script src='/-/site.js' language='Javascript'></script>")
+    (elnode-send-file
+     httpcon
+     (concat talkapp-dir "main.html")
+     :replacements talkapp/template-list)))
 
 (defun talkapp-make-wiki (name)
   "Use creole to pass text formatted pages."
@@ -898,8 +886,8 @@ and directs you to validate."
            :css (list
                  (concat talkapp-dir "bootstrap.css")
                  (concat talkapp-dir "style.css"))
-           :body-header talkapp/body-header
-           :body-footer talkapp/body-footer)))))
+           :body-header talkapp-template/body-header
+           :body-footer talkapp-template/body-footer)))))
 
 (defconst talkapp-access-log-name "talkapp"
   "The name of the access log.")
