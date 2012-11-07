@@ -110,27 +110,6 @@ Contains the following fields:
         "auth-db"))))
   "The database where we store authentication details.")
 
-(defun talkapp/db-filter-get (key value)
-  (aget value "token"))
-
-(defconst talkapp/auth-token-db
-  (db-make
-   `(db-filter
-     :source ,talkapp/user-db
-     :filter talkapp/db-filter-get))
-  "Token view of the user db.")
-
-(defun talkapp/token-valid-get (key value)
-  (when (aget value "valid")
-    (aget value "token")))
-
-(defconst talkapp/valid-token-db
-  (db-make
-   `(db-filter
-     :source ,talkapp/user-db
-     :filter talkapp/token-valid-get))
-  "Token/valid view of the user db.")
-
 (defconst talkapp/email-valid-db
   (db-make
    `(db-hash
