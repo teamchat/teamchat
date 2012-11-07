@@ -54,22 +54,35 @@
       (kvalist-sort
        (kvalist->filter-keys
         (db-get "testuser1" talkapp/user-db)
-        "username" "org" "password" "email" "key") 'kvcmp)))))
+        "username" "org" "password" "email") 'kvcmp)))))
 
-(defun talkapp/test-make-user-and-org ()
+(defun* talkapp/test-make-user-and-org (&key
+                                        username
+                                        domain)
   "Make a user and an org using the standard interface."
-  (talkapp/org-new
-   "test-org"
-   :match-host "testorg.teamchat.net"
-   :domain-name "test.org"
-   :irc-server "testorg-irc.teamchat.net:6901"
-   :primary-channel "#testorg")
-  (talkapp/make-user
-   talkapp-regform
-   '(("username" . "testuser2")
-     ("password" . "secret")
-     ("email" . "test2@test.org")
-     ("key" . "AFFSGSHhajsdkakdn"))))
+  (let* ((user (or username "testuser2"))
+         (dom (or domain "test.org"))
+         (org-name (replace-regexp-in-string
+                    "\\([^.]+\\)\\(\\.\\)\\(.*\\)"
+                    "\\1-\\3" dom))
+         (host-part (replace-regexp-in-string
+                    "\\([^.]+\\)\\(\\.\\)\\(.*\\)"
+                    "\\1\\3" dom))
+         (host-name (concat host-part ".teamchat.net"))
+         (irc-server (concat host-part "-irc.teamchat.net:6901"))
+         (primary-channel (concat "#" host-part)))
+    (talkapp/org-new
+     org-name
+     :match-host host-name
+     :domain-name dom
+     :irc-server irc-server
+     :primary-channel primary-channel)
+    (talkapp/make-user
+     talkapp-regform
+     `(("username" . ,user)
+       ("password" . "secret")
+       ("email" . ,(concat user "@" dom))
+       ("key" . "AFFSGSHhajsdkakdn")))))
 
 (ert-deftest talkapp/make-user-with-org ()
   "Test making a user."
@@ -136,7 +149,7 @@
          (equal
           connected
           '("testorg-irc.teamchat.net" 6901 "testuser2" "testuser2"
-            "test2@test.org" ("#testorg") "secret" nil)))))))
+            "testuser2@test.org" ("#testorg") "secret" nil)))))))
 
 (ert-deftest talkapp/shoes-off-auth ()
   (talkapp/mock-db
@@ -151,7 +164,7 @@
                :port 6901
                :user-name "testuser2"
                :password "secret"
-               :full-name "test2@test.org"
+               :full-name "testuser2@test.org"
                :channels ("#testorg"))))
       (talkapp/shoes-off-auth "testuser2" "secret")))))
 
@@ -202,12 +215,12 @@
     (talkapp/test-make-user-and-org)
     ;; Fake the online users
     (let ((talkapp/online-cache (make-hash-table :test 'equal)))
-      (puthash "test2@test.org" :fakehttpcon talkapp/online-cache)
+      (puthash "testuser2@test.org" :fakehttpcon talkapp/online-cache)
       (puthash "test1@example.com" :fakehttpcon talkapp/online-cache)
       ;; Now test
       (should
        (equal
-        "<div><abbr title=\"test2@test.org\"/></div>"
+        "<div id=\"emails\"><abbr title=\"testuser2@test.org\"/></div>"
         (talkapp/people-list "testuser2"))))))
 
 ;; end
