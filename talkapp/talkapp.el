@@ -795,6 +795,30 @@ user."
 ;;      :regex "[A-Za-z0-9-]+"
 ;;      :check-failure "just the main part of the key"))
 
+
+(defun talkapp/send-email (user-record email-hash)
+  "Send an email to the registrant."
+  (let* ((username (aget user-record "username"))
+         (email (aget user-record "email"))
+         (org (aget  user-record "org"))
+         (org-rec (db-get org talkapp/org-db))
+         (host (aget org-rec "host")))
+    ;; Hacked for now
+    (let ((sendmail-program "sendmail")
+          (smptmail-smtp-server "localhost")
+          (smtpmail-smtp-service "smtp"))
+      (compose-mail
+       (format "%s <%s>" username email) ; email
+       (format "validate your teamchat.net account!")) ; subject
+      (insert "thanks for registering on teamchat!")
+      (insert "to validate your email please click on the following link.")
+      (insert
+       (format "\n\nhttp://%s/validate/%s/\n\n" host email-hash))
+      (insert "Thanks!\nThe teamchat.net team")
+      (message-send)
+      )))
+
+
 (defun talkapp-registered-handler (httpcon)
   "The registered page.
 
@@ -815,9 +839,7 @@ and directs you to validate."
                     `((username . ,username)(email . ,email))
                     talkapp/email-valid-db)
             ;; FIXME - We need to send an email!
-            (message "talkapp reg %s with verify link %s"
-                     username
-                     (format "http://localhost:8101/validate/%s" email-hash))
+            (talkapp/send-email user email-hash)
             ;; Send the file back
             (elnode-send-file
              httpcon (concat talkapp-dir "registered.html")

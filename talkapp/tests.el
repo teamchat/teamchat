@@ -223,4 +223,39 @@
         "<div id=\"emails\"><abbr title=\"testuser2@test.org\"/></div>"
         (talkapp/people-list "testuser2"))))))
 
+(ert-deftest talkapp-email ()
+  (flet ((message-send (&optional arg)
+           (save-excursion
+             (goto-char (point-min))
+             (list
+              (progn
+                (re-search-forward
+                 "To: \\(.+\\) <\\(.*\\)>"
+                 (line-end-position)
+                 t)
+                (list
+                 (match-string-no-properties 1)
+                 (match-string-no-properties 2)))
+              (progn
+                (forward-line 1)
+                (re-search-forward
+                 "^http://.*"
+                 nil
+                 t)
+                (match-string-no-properties 0))))))
+    (talkapp/mock-db
+     (talkapp/test-make-user-and-org)
+     (let* ((user-rec (db-get "testuser2" talkapp/user-db))
+            (email (aget user-rec "email"))
+            (email-hash (sha1 (format "%s:%s" elnode-secret-key email))))
+       (should
+        (equal
+         (list
+          '("testuser2" "testuser2@test.org")
+          (concat
+           "http://testorg.teamchat.net/validate/"
+           email-hash
+           "/"))
+         (talkapp/send-email user-rec email-hash)))))))
+
 ;; end
