@@ -50,8 +50,7 @@
        (copy-list '(("username" . "testuser1")
                     ("org" . "UNKNOWN-ORG")
                     ("password" . "secret")
-                    ("email" . "test1@example.com")
-                    ("key" . "AFFSGSHhajsdkakdn"))) 'kvcmp)
+                    ("email" . "test1@example.com"))) 'kvcmp)
       (kvalist-sort
        (kvalist->filter-keys
         (db-get "testuser1" talkapp/user-db)
@@ -82,12 +81,11 @@
        (copy-list '(("username" . "testuser2")
                     ("org" . "test-org")
                     ("password" . "secret")
-                    ("email" . "test2@test.org")
-                    ("key" . "AFFSGSHhajsdkakdn"))) 'kvcmp)
+                    ("email" . "testuser2@test.org"))) 'kvcmp)
       (kvalist-sort
        (kvalist->filter-keys
         (db-get "testuser2" talkapp/user-db)
-        "username" "org" "password" "email" "key") 'kvcmp)))))
+        "username" "org" "password" "email") 'kvcmp)))))
 
 (ert-deftest talkapp/get-channel ()
   (talkapp/mock-db
