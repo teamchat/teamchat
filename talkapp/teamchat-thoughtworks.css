@@ -3,6 +3,13 @@ body {
     color: #C1E14D;
 }
 
+#chat-header,
+#user-header,
+#registered-header {
+    background-color: #424244;
+    color: white;
+}
+
 .hero-unit {
     background-color: #424244;
     color: white;
