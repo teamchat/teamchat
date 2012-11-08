@@ -7,6 +7,10 @@ a:visited {
     color: DarkSlateGrey;
 }
 
+h1,h2,h3.h4 {
+    color: DarkSlateGrey;
+}
+
 body {
     font-family: sans-serif;
 }
@@ -20,6 +24,7 @@ body {
     margin-top: 5em;
     padding-top: 2em;
     background-color: #eeeeee;
+    border: dotted thin LightSlateGrey;
     padding-bottom: 10em;
     height: 100px;
     bottom: 0;
