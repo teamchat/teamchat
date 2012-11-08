@@ -25,9 +25,10 @@
                    :domain-name "hn.teamchat.net"
                    :irc-server "irc.teamchat.net:6901"
                    :primary-channel "#hn")
-  (db-put "20120131130158357629000"
-          '(("timestamp" . "20120629160609914467000"))
-          talkapp/db-change-db))
+  (db-put
+   "20120131130158357629000"
+   '(("timestamp" . "20120629160609914467000"))
+   talkapp/db-change-db))
 
 ;; Add css to thoughtworks instance
 (unless (db-get "20120008130011024002000" talkapp/db-change-db)
@@ -37,8 +38,43 @@
     "css" "teamchat-thoughtworks.css"
     (db-get "thoughtworks" talkapp/org-db))
    talkapp/org-db)
-  (db-put "20120008130011024002000"
-          '(("timestamp" . "20120008130011024002000"))))
+  (db-put
+   "20120008130011024002000"
+   '(("timestamp" . "20120008130011024002000"))
+   talkapp/db-change-db))
+
+;; Add css to the HN instance
+(unless (db-get "20121008141022056366000" talkapp/db-change-db)
+  (db-put
+   "hn"
+   (acons
+    "css" "teamchat-hn.css"
+    (db-get "hn" talkapp/org-db))
+   talkapp/org-db)
+  (db-put
+   "20121008141022056366000"
+   '(("timestamp" . "20121008141022056366000"))
+   talkapp/db-change-db))
+
+;; Add the hacky team for the people at TW who helped me build teamchat
+(unless (db-get "20121008141022056366000" talkapp/db-change-db)
+  (db-put
+   "hn"
+   (acons
+    "css" "teamchat-hn.css"
+    (db-get "hn" talkapp/org-db))
+   talkapp/org-db)
+  (db-put
+   "20121008141022056366000"
+   '(("timestamp" . "20121008141022056366000"))
+   talkapp/db-change-db))
+
+(db-change talkapp/db-change-db "20124208144204733526000"
+  (talkapp/org-new "teamtw"
+                   :match-host "twirc.ferrier.me.uk"
+                   :domain-name "teamtw.teamchat.net"
+                   :irc-server "irc.jbx.cc:6667"
+                   :primary-channel "#thoughtworks"))
 
 
 ;; db-setup.el ends here
