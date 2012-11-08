@@ -18,4 +18,5 @@
          "jquery.js" "carousel.js" "cookie.js" "md5.js" "swfobject.js"
          "vidclient.swf"
          "bootstrap.js" 
-         "bootstrap.css" "bootstrap-responsive.css"))
+         "bootstrap.css" "bootstrap-responsive.css"
+         "favicon.ico"))

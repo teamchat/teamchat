@@ -805,7 +805,6 @@ user."
 ;;      :regex "[A-Za-z0-9-]+"
 ;;      :check-failure "just the main part of the key"))
 
-
 (defun talkapp/send-email (user-record email-hash)
   "Send an email to the registrant."
   (let* ((username (aget user-record "username"))
@@ -897,7 +896,8 @@ and directs you to validate."
 ;;;###autoload
 (define-elnode-handler talkapp-router (httpcon)
   "Main router."
-  (let ((webserver (elnode-webserver-handler-maker talkapp-dir)))
+  (let ((webserver (elnode-webserver-handler-maker talkapp-dir))
+        (favicon (elnode-make-send-file (concat talkapp-dir "favicon.ico"))))
     (elnode-hostpath-dispatcher
      httpcon
      `(("^[^/]*//user/config/" . talkapp-irc-config-handler)
@@ -912,6 +912,7 @@ and directs you to validate."
        ("^[^/]*//registered/" . talkapp-registered-handler)
        ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
        ("^[^/]*//-/\\(.*\\)$" . ,webserver)
+       ("^[^/]*//favicon.ico$" . ,favicon)
        ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
        ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
        ("^[^/]*//.*$" . talkapp-main-handler))
