@@ -76,5 +76,13 @@
                    :irc-server "irc.jbx.cc:6667"
                    :primary-channel "#thoughtworks"))
 
+(db-change talkapp/db-change-db "20121808151847747506000"
+  (loop
+     for (user . record)
+     in (db-query talkapp/user-db '(= "org" "thoughtworks"))
+     do (db-put
+         user
+         (setf (cdr (assoc "org" record)) "teamtw")
+         talkapp/user-db)))
 
 ;; db-setup.el ends here
