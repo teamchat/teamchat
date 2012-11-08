@@ -25,8 +25,7 @@
 ;;; Code:
 
 (elnode-app talkapp-dir
-    talkapp-templates
-    anaphora esxml esxml-form db kv uuid creole
+    talkapp-templates anaphora esxml esxml-form db kv uuid creole
     shoes-off rcirc-ssh network-stream)
 
 (defgroup talkapp nil
@@ -696,7 +695,7 @@ Either `closed' or `failed' is the same for this purpose."
       (cons "my-email" email)
       (cons "video-server" talkapp-video-server)
       (cons "chat-header" talkapp-template/chat-header))
-     talkapp/template-list))))))
+     talkapp/template-list)))
 
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
