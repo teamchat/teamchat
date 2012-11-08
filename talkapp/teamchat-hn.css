@@ -1,0 +1,15 @@
+#chat-header,
+#user-header,
+#registered-header {
+    background-color: #FF6600;
+    color: white;
+}
+
+.hero-unit {
+    background-color: #FF6600;
+    color: black;
+}
+
+.footer {
+    border-top: solid thin #FF6600;
+}
