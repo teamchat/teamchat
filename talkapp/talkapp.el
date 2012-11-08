@@ -813,19 +813,22 @@ user."
          (org (aget  user-record "org"))
          (org-rec (db-get org talkapp/org-db))
          (host (aget org-rec "host")))
-    ;; Hacked for now
-    (let ((sendmail-program "sendmail")
+    (let ((sendmail-program "/usr/lib/sendmail")
           (smptmail-smtp-server "localhost")
-          (smtpmail-smtp-service "smtp"))
+          (smtpmail-smtp-service "smtp")
+          (mail-host-address "teamchat.com")
+          (mail-user-address "registration")
+          (message-send-mail-function 'message-send-mail-with-sendmail))
       (compose-mail
        (format "%s <%s>" username email) ; email
        (format "validate your teamchat.net account!")) ; subject
-      (insert "thanks for registering on teamchat!")
-      (insert "to validate your email please click on the following link.")
+      (insert "thanks for registering on teamchat!\n")
+      (insert "to validate your email please click on the following link.\n")
       (insert
-       (format "\n\nhttp://%s/validate/%s/\n\n" host email-hash))
+       (format "\nhttp://%s/validate/%s/\n\n" host email-hash))
       (insert "Thanks!\nThe teamchat.net team")
-      (message-send))))
+      (message-send)
+      (kill-buffer))))
 
 (defun talkapp-registered-handler (httpcon)
   "The registered page.
