@@ -150,11 +150,12 @@ Mixes in org specific CSS if it can be found via HTTPCON or
         (append
          talkapp/template-list
          (list
-          (cons
-           "host-head"
-           (format
-            "<link rel='stylesheet' type='text/css' href='/-/%s'/>"
-            (assoc-default "css" org 'equal nil)))
+          (when (aget org "css")
+            (cons
+             "host-head"
+             (format
+              "<link rel='stylesheet' type='text/css' href='/-/%s'/>"
+              (assoc-default "css" org 'equal nil))))
           (cons "org-name" (concat (aget org "name") " "))))
         talkapp/template-list)))
 
