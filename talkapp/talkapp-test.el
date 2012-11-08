@@ -10,6 +10,19 @@
      :domain-name "example.org"
      :irc-server "example-irc.teamchat.net:6667"
      :primary-channel "#example")
+    (talkapp/org-new
+     "nicferrierco"
+     :match-host "nferrier.teamchat.net"
+     :domain-name "nferrier.teamchat.net"
+     :irc-server "nferrier-irc.teamchat.net:6668"
+     :primary-channel "#nferrier")
+    (talkapp/org-new
+     "nicferrier-hn"
+     :match-host "hn-nferrier.teamchat.net"
+     :css ""
+     :domain-name "hn-nferrier.teamchat.net"
+     :irc-server "irc.teamchat.net:6651"
+     :primary-channel "#hn-nferrier")
     ;; FIXME - these users both have the same tokens
     (let ((h1 (elnode--auth-make-hash "nic" "test"))
           (h2 (elnode--auth-make-hash "caroline" "test"))
