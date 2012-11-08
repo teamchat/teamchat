@@ -131,6 +131,34 @@ and store the username and the email.")
   "List of template variables.")
 
 
+;; Template function
+
+(defvar talkapp/template-httpcon nil
+  "Dynamically bindable HTTP connection for template function.")
+
+(defun talkapp/template-std (&optional httpcon)
+  "Return the standard template.
+
+Mixes in org specific CSS if it can be found via HTTPCON or
+`talkapp/template-httpcon'."
+  (let ((org
+         (awhen (or httpcon talkapp/template-httpcon)
+           (let*
+               ((host (elnode-http-host it :just-host t)))
+             (cdar (db-query talkapp/org-db `(= "host" ,host)))))))
+    (if org
+        (append
+         talkapp/template-list
+         (list
+          (cons
+           "host-head"
+           (format
+            "<link rel='stylesheet' type='text/css' href='/-/%s'/>"
+            (assoc-default "css" org 'equal nil)))
+          (cons "org-name" (concat (aget org "name") " "))))
+        talkapp/template-list)))
+
+
 ;; Database utility function
 
 (defun talkapp-list-ssh-keys (&optional make-buf)
@@ -695,7 +723,7 @@ Either `closed' or `failed' is the same for this purpose."
       (cons "my-email" email)
       (cons "video-server" talkapp-video-server)
       (cons "chat-header" talkapp-template/chat-header))
-     talkapp/template-list)))
+     (talkapp/template-std httpcon))))
 
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
@@ -730,7 +758,7 @@ Either `closed' or `failed' is the same for this purpose."
     (let ((user-data (talkapp/get-user-http httpcon)))
       (elnode-send-file
        httpcon (concat talkapp-dir "user.html")
-       :replacements (append user-data talkapp/template-list)))))
+       :replacements (append user-data (talkapp/template-std httpcon))))))
 
 (defun talkapp-validate-handler (httpcon)
   "Validates the user and logs them in."
@@ -854,7 +882,8 @@ and directs you to validate."
             (elnode-send-file
              httpcon
              (concat talkapp-dir "registered.html")
-             :replacements (append user-data talkapp/template-list)))))))
+             :replacements (append user-data
+                                   (talkapp/template-std httpcon))))))))
 
 (defun talkapp-register-handler (httpcon)
   "Take a registration and create a user."
@@ -863,7 +892,7 @@ and directs you to validate."
      talkapp-regform httpcon (concat talkapp-dir "register.html")
      (lambda (data)
        (talkapp/save-reg httpcon talkapp-regform data))
-     talkapp/template-list)))
+     (talkapp/template-std httpcon))))
 
 (defun talkapp-main-handler (httpcon)
   "The handler for the main page."
@@ -872,7 +901,7 @@ and directs you to validate."
     (elnode-send-file
      httpcon
      (concat talkapp-dir "main.html")
-     :replacements talkapp/template-list)))
+     :replacements (talkapp/template-std httpcon))))
 
 (defun talkapp-make-wiki (name)
   "Use creole to pass text formatted pages."

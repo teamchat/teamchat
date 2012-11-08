@@ -29,4 +29,16 @@
           '(("timestamp" . "20120629160609914467000"))
           talkapp/db-change-db))
 
+;; Add css to thoughtworks instance
+(unless (db-get "20120008130011024002000" talkapp/db-change-db)
+  (db-put
+   "thoughtworks"
+   (acons
+    "css" "teamchat-thoughtworks.css"
+    (db-get "thoughtworks" talkapp/org-db))
+   talkapp/org-db)
+  (db-put "20120008130011024002000"
+          '(("timestamp" . "20120008130011024002000"))))
+
+
 ;; db-setup.el ends here

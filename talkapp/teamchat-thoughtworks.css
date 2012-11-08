@@ -1,0 +1,26 @@
+body {
+    background-color: black;
+    color: #C1E14D;
+}
+
+.hero-unit {
+    background-color: #424244;
+    color: white;
+}
+
+fieldset {
+    background-color: #4b5451;
+}
+
+.footer {
+    background-color: #4b5451;
+    color: white;
+}
+
+.footer * a:visited {
+    color: SlateBlue;
+}
+
+.footer * a:link {
+    color: LightBlue;
+}
