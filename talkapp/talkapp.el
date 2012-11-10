@@ -262,8 +262,11 @@ present it's not possible to connect someone."
 
 ;; Rcirc stuff
 
-(defvar talkapp/rcirc-connect-with-ssh t
-  "Connect with ssh or not.")
+;; this should really be picked up from the org?
+(defcustom talkapp/rcirc-connect-with-ssh t
+  "Connect with ssh or not."
+  :group 'talkapp
+  :type 'boolean)
 
 (defun talkapp-rcirc-connect (server
                               &optional port nick user-name
@@ -312,7 +315,7 @@ name."
       (talkapp/irc-details username password email))))
 
 (defun talkapp/shoes-off-auth (username-spec password)
-  "DB based implementation of `shoes-off--auth-check'.
+  "DB based implementation of `shoes-off/auth-check'.
 
 We should expect USERNAME-SPEC to just be a username."
   (let* ((record (db-query talkapp/user-db `(= "username" ,username-spec)))
@@ -329,9 +332,9 @@ We should expect USERNAME-SPEC to just be a username."
 
 If this variable is not bound or bound and t it will eval."
   (when (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
-    (setq shoes-off--get-config-plugin 'talkapp/get-shoes-off-config)
-    (setq shoes-off--auth-plugin 'talkapp/shoes-off-auth)
-    (setq shoes-off--rcirc-connect-plugin 'talkapp-rcirc-connect)
+    (setq shoes-off/get-config-plugin 'talkapp/get-shoes-off-config)
+    (setq shoes-off/auth-plugin 'talkapp/shoes-off-auth)
+    (setq shoes-off/rcirc-connect-plugin 'talkapp-rcirc-connect)
     ;; Ensures the time format support us pulling back accurately
     (setq rcirc-time-format "%Y-%m-%d %H:%M:%S:%N ")))
 
@@ -405,7 +408,7 @@ If this variable is not bound or bound and t it will eval."
                  (irc-port (string-to-number (cadr irc-server-pair)))
                  (session (gethash
                            (concat username "@" irc-server)
-                           shoes-off--sessions))
+                           shoes-off/sessions))
                  (do-start (elnode-http-param httpcon "start"))
                  (do-stop (elnode-http-param httpcon "stop")))
             (cond
