@@ -29,6 +29,14 @@
     (delete-directory remote t)
     (elpakit remote shoes-off-elpakit)))
 
+(defun talkapp-do-elpakit-to-livenet ()
+  (interactive)
+  (let ((remote
+         "/ssh:teamchat@po1.ferrier:teamchat.net/shoesoff-elpa/"))
+    (delete-directory remote t)
+    (elpakit remote shoes-off-elpakit)))
+
+
 ;; Inside your emacs
 (defun talkapp-do-elpakit-eval ()
   (interactive)
