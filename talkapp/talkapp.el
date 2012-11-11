@@ -219,6 +219,7 @@ Try EMAIL first (by pulling out the domain) and then HTTP-HOST."
      "name")))
 
 (defun talkapp/get-org (username &optional field)
+  "Return the org or the specific FIELD of the org."
   (let* ((record (db-get username talkapp/user-db))
          (org (aget record "org"))
          (org-record (db-get org talkapp/org-db)))
