@@ -280,19 +280,19 @@ name."
                (name buffer host service &rest parameters)
              ;; Override to ensure buffers are namespaced
              (let ((proc-name (concat name "~" user-name)))
-               (funcall ons-func proc-name buffer host service parameters)))
-           (rcirc-ssh--get-key (server port nick user-name)
-             ;; Override ssh key finding to find the key for the user
-             (expand-file-name (format "~/ircdkeys/%s" user-name))))
+               (funcall ons-func proc-name buffer host service parameters))))
       (if talkapp/rcirc-connect-with-ssh
-          (rcirc-ssh-connect server
-                             port
-                             nick
-                             user-name
-                             full-name
-                             startup-channels
-                             password
-                             encryption)
+          (flet ((rcirc-ssh--get-key (server port nick user-name)
+                   ;; Override ssh key finding to find the key for the user
+                   (expand-file-name (format "~/ircdkeys/%s" user-name))))
+            (rcirc-ssh-connect server
+                               port
+                               nick
+                               user-name
+                               full-name
+                               startup-channels
+                               password
+                               encryption))
           ;; else do without ssh
           (rcirc-connect server
                          port
