@@ -85,11 +85,11 @@
          (setf (cdr (assoc "org" record)) "teamtw")
          talkapp/user-db)))
 
-(db-change talkapp/db-change-db "20124208144204733526000"
+(db-change talkapp/db-change-db "20123809113842419913000"
   (talkapp/org-new "team"
                    :match-host "team.teamchat.net"
                    :domain-name "teamchat.net"
-                   :irc-server "irc.teamchat.net:6601"
+                   :irc-server "irc.teamchat.net:7001"
                    :primary-channel "#team"))
 
 ;; db-setup.el ends here
