@@ -32,7 +32,7 @@
     <div class='container'>
         <p class='pull-right'><a href='#'>Back to top</a></p>
         <p>Designed and built by <a href='http://nic.ferrier.me.uk/'>Nic Ferrier</a> using Emacs and <a href='http://elnode.org'>Elnode</a></p>
-        <ul class='footer-links'>
+        <ul class='inline-list'>
             <li><a href='/site/terms/'>Terms and conditions</a></li>
             <li><a href='/site/FAQ/'>FAQ</a></li>
         </ul>
