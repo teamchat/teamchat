@@ -909,10 +909,10 @@ user."
           (mail-host-address "teamchat.com")
           (mail-user-address "registration")
           (message-send-mail-function 'message-send-mail-with-sendmail))
-      (compose-mail
       (message
        "sending reg mail to %s via %s including reg %s"
        username email email-hash)
+      (compose-mail
        (format "%s <%s>" username email) ; email
        (format "validate your teamchat.net account!")) ; subject
       (insert "thanks for registering on teamchat!\n")
@@ -1012,8 +1012,8 @@ and directs you to validate."
        ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
        ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
        ("^[^/]*//.*$" . talkapp-main-handler))
-
      :log-name talkapp-access-log-name)))
+
 (elnode-auth-define-scheme
  'talkapp-auth
  :auth-test (lambda (username) (talkapp-auth-func username))
