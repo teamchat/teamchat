@@ -301,7 +301,7 @@ name."
                          user-name
                          full-name
                          startup-channels
-                         password
+                         "" ; We don't use passwords internally
                          encryption)))))
 
 ;; Shoes-off stuff
