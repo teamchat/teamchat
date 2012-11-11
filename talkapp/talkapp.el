@@ -792,6 +792,7 @@ If there are people selected then make the channel private."
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
   ;; FIXME - redirecct when chat not connected?
+      (cons "my-nick" username)
   (with-elnode-auth httpcon 'talkapp-auth
     (elnode-send-file
      httpcon (concat talkapp-dir "chat.html")

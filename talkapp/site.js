@@ -4,6 +4,7 @@ var talkapp =
          var debug = document.location.search.indexOf("debug") >= 0;
          var video_server = $("#videoserver").text();
          var me = $("#myemail").text();
+         var my_nick = $("#mynick").text();
          var blurred = false;
          if (debug) { console.log("video-server: " + video_server); }
 
@@ -126,7 +127,6 @@ var talkapp =
                  }
              );
          };
-
 
          var do_cough = function () {
              var audioElement = document.createElement('audio');
@@ -266,7 +266,7 @@ var talkapp =
                             msg_template(
                                 key, username, message
                             ).insertBefore("table tr:first-child");
-                            if (blurred) {
+                            if (blurred && username != my_nick) {
                                 do_cough();
                             }
                         }
