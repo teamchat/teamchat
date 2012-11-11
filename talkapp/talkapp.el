@@ -304,6 +304,17 @@ name."
                          "" ; We don't use passwords internally
                          encryption)))))
 
+(defun talkapp/rcirc-send (channel-buffer data)
+  "Send DATA to CHANNEL-BUFFER."
+  (if talkapp-irc-provision
+      (with-current-buffer (get-buffer channel)
+        (goto-char (point-max))
+        (insert data)
+        (rcirc-send-input))
+      ;; Else
+      (message "talkapp irc send %s to %s" data channel-buffer)))
+
+
 ;; Shoes-off stuff
 
 (defun talkapp/get-shoes-off-config (username)
@@ -714,16 +725,6 @@ Either `closed' or `failed' is the same for this purpose."
       ;; Not sure about tbis for response - do I need the other email?
       (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
       (elnode-http-return httpcon "enjoy the call"))))
-
-(defun talkapp/rcirc-send (channel-buffer data)
-  "Send DATA to CHANNEL-BUFFER."
-  (if talkapp-irc-provision
-      (with-current-buffer (get-buffer channel)
-        (goto-char (point-max))
-        (insert data)
-        (rcirc-send-input))
-      ;; Else
-      (message "talkapp irc send %s to %s" data channel-buffer)))
 
 (defun talkapp/get-nick (email)
   "Get the user's NICK from the EMAIL."
