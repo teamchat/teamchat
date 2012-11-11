@@ -533,14 +533,30 @@ If this variable is not bound or bound and t it will eval."
     talkapp/default-chat-history-minutes
     channel)))
 
-(defun talkapp/get-channel (username)
+(defun talkapp/get-irc-server (username)
+  "Find the irc-server for USERNAME."
+  (let* ((org (talkapp/get-org username))
+         (ircd (aget org "irc-server"))
+         (irc-server (progn
+                       (string-match "^\\([^:]+\\):[0-9]+" ircd)
+                       (match-string 1 ircd))))
+    irc-server))
+
+(defun talkapp/get-channel (username &optional channel-name)
+  "Given a USERNAME return the channel name.
+
+CHANNEL-NAME may be specified, otherwise it is the user's primary
+channel taken from the organisation record."
+  (let* ((org (talkapp/get-org username))
+         (channel (or channel-name (aget org "primary-channel")))
+         (irc-server (talkapp/get-irc-server username)))
+    (format "%s@%s~%s" channel irc-server username)))
+
+(defun talkapp/get-ctrl-channel (username)
   "Given a USERNAME return the channel name."
-  ;; FIXME!!! the localhost bit is only when we are connecting via
-  ;; ssh/irc. So it should be adapted via db settings for the user.
-  (format
-   "%s@localhost~%s"
-   (talkapp/get-org username "primary-channel")
-   username))
+  (let* ((org (talkapp/get-org username))
+         (irc-server (talkapp/get-irc-server username)))
+    (format "*%s~%s*" irc-server username)))
 
 (defun talkapp/list-to-html (username)
   "Return the list of chat as rows for initial chat display.
@@ -698,16 +714,58 @@ Either `closed' or `failed' is the same for this purpose."
       (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
       (elnode-http-return httpcon "enjoy the call"))))
 
+(defun talkapp/rcirc-send (channel-buffer data)
+  "Send DATA to CHANNEL-BUFFER."
+  (if talkapp-irc-provision
+      (with-current-buffer (get-buffer channel)
+        (goto-char (point-max))
+        (insert data)
+        (rcirc-send-input))
+      ;; Else
+      (message "talkapp irc send %s to %s" data channel-buffer)))
+
+(defun talkapp/get-nick (email)
+  "Get the user's NICK from the EMAIL."
+  (aget
+   (cdar (db-query talkapp/user-db `(= "email" ,email)))
+   "username"))
+
+(defun talkapp-channel-add-handler (httpcon)
+  "Add a new channel.
+
+If there are people selected then make the channel private."
+  (with-elnode-auth httpcon 'talkapp-auth
+    (elnode-method httpcon
+      (POST
+       (let* ((new-channel (elnode-http-param httpcon "channel"))
+              (new-chan (format "#%s" new-channel))
+              (username (talkapp-cookie->user-name httpcon))
+              (ctrl (talkapp/get-ctrl-channel username))
+              ;; This is a poor way to get the emails posted from the form.
+              (nicks (loop
+                        for param
+                        in (kvalist->values
+                            (elnode-http-params httpcon))
+                        if (string-match "[^@]+@+.*" param)
+                        collect (talkapp/get-nick param))))
+         (talkapp/rcirc-send ctrl (format "/join %s" new-chan))
+         (when nicks
+           (talkapp/rcirc-send ctrl (format "/mode %s +s" new-chan))
+           (talkapp/rcirc-send ctrl (format "/mode %s +i" new-chan))
+           ;; Now send invites
+           (loop for nick in nicks
+              do (talkapp/rcirc-send
+                  ctrl (format "/invite %s %s" nick new-chan))))
+         (elnode-send-html
+          httpcon "<html>thanks for that channel</html>"))))))
+
 (defun talkapp-chat-add-handler (httpcon)
   "Send some chat to somewhere."
   (with-elnode-auth httpcon 'talkapp-auth
     (let* ((msg (elnode-http-param httpcon "msg"))
            (username (talkapp-cookie->user-name httpcon))
            (channel (talkapp/get-channel username)))
-      (with-current-buffer (get-buffer channel)
-        (goto-char (point-max))
-        (insert msg)
-        (rcirc-send-input))
+      (talkapp/rcirc-send channel msg)
       (elnode-send-html httpcon "<html>thanks for that chat</html>"))))
 
 (defun talkapp/chat-templater ()
@@ -851,6 +909,9 @@ user."
           (mail-user-address "registration")
           (message-send-mail-function 'message-send-mail-with-sendmail))
       (compose-mail
+      (message
+       "sending reg mail to %s via %s including reg %s"
+       username email email-hash)
        (format "%s <%s>" username email) ; email
        (format "validate your teamchat.net account!")) ; subject
       (insert "thanks for registering on teamchat!\n")
@@ -937,6 +998,7 @@ and directs you to validate."
        ("^[^/]*//user/session/" . talkapp-shoes-off-session)
        ("^[^/]*//user/chat/" . talkapp-chat-handler)
        ("^[^/]*//user/send/" . talkapp-chat-add-handler)
+       ("^[^/]*//user/channel/" . talkapp-channel-add-handler)
        ("^[^/]*//user/vidcall/" . talkapp-video-call-handler)
        ("^[^/]*//user/poll/" . talkapp-comet-handler)
        ("^[^/]*//user/$" . talkapp-user-handler)
@@ -949,8 +1011,8 @@ and directs you to validate."
        ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
        ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
        ("^[^/]*//.*$" . talkapp-main-handler))
-     :log-name talkapp-access-log-name)))
 
+     :log-name talkapp-access-log-name)))
 (elnode-auth-define-scheme
  'talkapp-auth
  :auth-test (lambda (username) (talkapp-auth-func username))
@@ -961,10 +1023,11 @@ and directs you to validate."
 (defun talkapp-access-log-formatter (httpcon)
   "Make an access log line."
   (format
-   "%s %60s"
+   "%s %60s %s"
    (elnode-log-access-format-func httpcon)
    (let ((cookie (elnode-http-cookie httpcon talkapp-cookie-name)))
-     (or (cdr cookie) ""))))
+     (or (cdr cookie) ""))
+   (elnode-http-host httpcon :just-host t)))
 
 ;;;###autoload
 (defun talkapp-start ()
@@ -977,7 +1040,8 @@ and directs you to validate."
          elnode-log-access-alist))
   ;; Not sure if I should put these in or not.
   (setq elnode-error-log-to-messages nil)
-  (setq revert-without-query (quote ("~/\\.emacs.d/elpa/.*")))
+  (setq revert-without-query
+        (list (concat package-user-dir "/.*")))
   ;; Start the server
   (elnode-start 'talkapp-router
                 :port talkapp-start-port

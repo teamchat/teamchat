@@ -33,15 +33,28 @@
                    class="btn btn-primary btn-large">end call</a>
             </div>
         </div>
-        <div id="gravatars" class="media-inset hidden">
-            <!##E people E##!>
-            <p>
-                go to 
-                <a target="_new"
-                   href="http://www.gravatar.com">gravatar</a>
-                to setup your photo
-            </p>
-        </div>
+        <form class="form-inline"
+              method="POST" 
+              action="/user/channel/" 
+              target="_sendtarget">
+            <div id="gravatars" class="media-inset hidden">
+                <!##E people E##!>
+                <p>
+                    go to 
+                    <a target="_new"
+                       href="http://www.gravatar.com">gravatar</a>
+                    to setup your photo
+                </p>
+            </div>
+            <h4>channels</h4>
+            <div id="channels">
+                <input class="input-xxlarge"
+                       name="channel"
+                       type="text"
+                       placeholder="type the name of your new chat room"/>
+                <input type="submit" name="make" value="make" />
+            </div>
+        </form>
     </div>
     <div id="paste-panel" class="span8 hidden">
         <h4>paste panel - your program text</h4>

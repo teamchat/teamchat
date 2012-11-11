@@ -138,30 +138,74 @@ var talkapp =
          var emails = {};
 
          var gravatarize = function () {
-             $.each(emails,
-                    function (key, arr) {
-                        if (debug) { console.log("gravatarize email = " + key); }
-                        var grav_url
-                            = "http://www.gravatar.com/avatar/" + arr;
-                        var abbr = $("#emails abbr[title='" + key + "']");
-                        if (abbr.length < 1) {
-                            $("<abbr title='" + key + "'/>").appendTo(
-                                $("#emails")
-                            );
-                            abbr = $("#emails abbr[title='" + key + "']");
-                        }
-                        var a_id = email2id(key, "call-");
-                        abbr.html(
-                            "<img src='" + grav_url + "'/>"
-                            + ((key != me) ?
-                               ("<a id='" + a_id + "'"
-                                + " href='javascript:;' "
-                                + " class='btn btn-small btn-primary'>"
-                                + "call</a>") : "")
-                        );
-                        on_call(key, a_id);
-                    }
-                   );
+             $.each(
+                 emails,
+                 function (key, arr) {
+                     if (debug) { console.log("gravatarize email = " + key); }
+                     var grav_url
+                         = "http://www.gravatar.com/avatar/" + arr;
+                     var abbr = $("#emails abbr[title='" + key + "']");
+                     if (abbr.length < 1) {
+                         $("<abbr title='" + key + "'/>").appendTo(
+                             $("#emails")
+                         );
+                         abbr = $("#emails abbr[title='" + key + "']");
+                     }
+                     var email_id = email2id(key);
+                     var a_id = "call-" + email_id;
+                     abbr.html(
+                         "<img src='" + grav_url + "'/>"
+                             + ((key != me) ?
+                                ("<a id='" + a_id + "'"
+                                 + " href='javascript:;' "
+                                 + " class='btn btn-small btn-primary'>"
+                                 + "call</a>"
+                                 + "<input class='hidden'"
+                                 + " style='display: none'"
+                                 + " type='checkbox' "
+                                 + " name='" + email_id + "' "
+                                 + " value='" + key + "'/>") : "")
+                     );
+                     if (key != me) {
+                         on_call(key, a_id);
+                         var abbr_img = $("img", abbr);
+                         var saved_placeholder;
+                         $(abbr_img).on(
+                             {
+                                 mouseenter:
+                                 function (evt) {
+                                     abbr.addClass("nick-select-hover");
+                                     saved_placeholder = 
+                                         $("#channels input").attr("placeholder");
+                                     $("#channels input").attr(
+                                         "placeholder", "create a private chatroom"
+                                     );
+                                 },
+                                 mouseout: 
+                                 function (evt) {
+                                     abbr.removeClass("nick-select-hover");
+                                     if (!abbr.hasClass("nick-selected")) {
+                                         $("#channels input").attr(
+                                             "placeholder", saved_placeholder
+                                         );
+                                     }
+                                 },
+                                 click:
+                                 function (evt) {
+                                     abbr.toggleClass("nick-selected");
+                                     // This doesn't toggle which it should.
+                                     $("#channels input").attr(
+                                         "placeholder", "create a private chatroom"
+                                     );
+                                     // Toggle the state of the associated radio
+                                     var state = $("input[name=" + email_id + "]").prop("checked");
+                                     $("input[name=" + email_id + "]").prop("checked", !state);
+                                 }
+                             }
+                         );
+                     }
+                 }
+             );
              if ($(emails).length > 0) {
                  $("#gravatars").removeClass("hidden");
              }

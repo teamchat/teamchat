@@ -130,11 +130,38 @@ fieldset input[type=submit] {
     padding: .5em;
     border-top: solid thin;
     width: 500px;
-    line-height: 100px;
 }
 
 #gravatars abbr {
+    display: block;
+    float: left;
     border-bottom: none;
+    height: 80px;
+    width: 80px;
+    margin-left: 5px;
+    padding: 10px;
+}
+
+#gravatars abbr a {
+    position: relative;
+    top: -20px;
+    left: -5px;
+}
+
+.nick-select-hover {
+    background-color: Khaki;
+    border: solid thin DarkKhaki;
+}
+
+.nick-selected {
+    background-color: DarkKhaki;
+    border: solid thin Khaki;
+}
+
+#gravatars p {
+    clear: both;
+    margin-top: 0;
+    padding-top: 0;
 }
 
 #videocall {
@@ -151,15 +178,6 @@ fieldset input[type=submit] {
     height: 300px;
 }
 
-#emails abbr {
-    margin-left: 5px;
-}
-
-#emails abbr a {
-    position: relative;
-    left: -80px;
-    top: 30px;
-}
 
 #paste-panel pre {
     height: 500px;
