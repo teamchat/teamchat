@@ -1,8 +1,8 @@
 = About TeamChat =
 
-TeamChat is a new application for helping your team work together faster.
-
 {{/-/screenshot-caroline-and-nic-video-chat-2012-11-12.png?size=600|the makers discussing launch}}
+
+TeamChat is a new application for helping your team work together faster.
 
 TeamChat provides IRC and Web based chat and Web based video calls to
 help your team stay in touch and have in depth conversations when you

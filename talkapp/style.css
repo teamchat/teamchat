@@ -2,7 +2,6 @@ a:link {
     color: LightSlateGrey;
 }
 
-
 a:visited {
     color: DarkSlateGrey;
 }
@@ -43,6 +42,14 @@ body {
 .footer .inline-list {
     border-top: solid thin;
     padding-top: 0.5em;
+}
+
+#imgs {
+    border-top: solid thin LightSlateGrey;
+    border-bottom: solid thin LightSlateGrey;
+    margin-top: 10px;
+    padding-top: 10px;
+    padding-bottom: 15px;
 }
 
 fieldset {

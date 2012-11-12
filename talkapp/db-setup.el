@@ -92,4 +92,11 @@
                    :irc-server "irc.teamchat.net:7001"
                    :primary-channel "#team"))
 
+(db-change talkapp/db-change-db "20124212154246851083000"
+  (talkapp/org-new "launch"
+                   :match-host "www.teamchat.net"
+                   :domain-name "www.teamchat.net"
+                   :irc-server "irc.teamchat.net:7002"
+                   :primary-channel "#teamchatnet"))
+
 ;; db-setup.el ends here
