@@ -1,46 +1,61 @@
 = Frequently Asked Questions =
 == about TeamChat.net ==
 
-=== what is it? ===
+=== What is it? ===
 
-teamchat.net is a team chat application. There is group chat for
+teamchat.net is a chat application for teams. There is group chat for
 everyone to join in, 1 to 1 chat and selected group chat as well as
 video chat.
 
-=== why do I need that? ===
-
-// NEEDS WORK //
+=== Why do I need that? ===
 
 If you're working in a team, for example writing software with
 colleagues, using a central chat service is really helpful. It means
 everyone in the team can find each other, there is always a place that
-people can chat, there is a place that people expect to find people.
+people can chat, there is a place that people expect to find
+people. There is a single place to find out what's going on.
 
-=== why do I really need that? ===
 
-// NEEDS WORK //
-
-Delivering software fast and to budget requires lots of
-co-operation. Look at most succesful Internet companies and they are
-doing team chatter.
-
-=== is it secure? ===
+=== Is it secure? ===
 
 In a word, yes. One of the advantages of teamchat.net is that you can
 use very secure protocols to connect to talk services either on HTTP
 or IRC.
 
-=== what is IRC? ===
+=== Do you keep logs of conversations? ===
+
+That is under your control. If you buy the service you control what
+logging is down and have full access to the logs made by the
+service. If you don't want the logs they automatically expire after a
+short time.
+
+=== Are you a business? ===
+
+Not yet. But we hope to be.
+
+=== How do you make money? ===
+
+We don't. Ye. But we plan 2 models:
+
+* buying access to our service over the Internet
+* buying a copy of our software to install inside your firewall
+
+=== Is your software easy to install? ===
+
+Yes. It's just a [[http://vagrantup.com|virtual machine image]]. You
+just download it, turn it on, set a few variables and it runs.
+
+=== What is IRC? ===
 
 Internet Relay Chat is an Internet standard for chatting. It has been
 used for many years but had poor authentication.
 
-=== how have you made IRC secure? ===
+=== How have you made IRC secure? ===
 
-We require SSH authentication to secure access to IRC services. SSH is
-very secure.
+We require SSH authentication to access IRC services. SSH is very
+secure.
 
-=== but my IRC client doesn't support SSH connections! ===
+=== But my IRC client doesn't support SSH connections! ===
 === can I still use the teamchat.net? ===
 
 Yes, you can. Firstly you can use the web interface. But that's not
@@ -51,4 +66,12 @@ SSH port forwarding. If you are using a OSX or Linux you can do this:
 ssh -NL 6667:localhost:6667 your-username@your-team-chat.teamchat.net
 }}}
 
-If you are using Windows you can use the [[http://putty.com|Putty program]] to make the same thing happen
+If you are using Windows you can use the [[http://putty.com|Putty program]] 
+to make the same thing happen
+
+
+=== How configurable is the service? ===
+
+You can skin the look with the addition of a simple CSS file. For the
+virtual machine version some other variables do need changing (such as
+upstream mail host). These are changed in a single config file right now.

@@ -40,9 +40,23 @@ body {
     bottom: 0;
 }
 
+.footer .inline-list {
+    border-top: solid thin;
+    padding-top: 0.5em;
+}
+
 fieldset {
     border: thin none;
     background-color: Azure;
+}
+
+div.wiki {
+}
+
+div.wiki * img.creole {
+    float: right;
+    margin: 30px -100px 30px 50px;
+    border: solid thin LightSlateGrey;
 }
 
 /* Override some bootstrap styles */

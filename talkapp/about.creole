@@ -1,1 +1,29 @@
 = About TeamChat =
+
+TeamChat is a new application for helping your team work together faster.
+
+{{/-/screenshot-caroline-and-nic-video-chat-2012-11-12.png?size=600|the makers discussing launch}}
+
+TeamChat provides IRC and Web based chat and Web based video calls to
+help your team stay in touch and have in depth conversations when you
+need them.
+
+TeamChat uses asynchronous IO technology to combine a web based IRC
+client and an IRC bouncer (a proxy for IRC) into one service.
+
+We integrate extensible IRC robots to provide extra services so you
+can query information on the Internet, or inside your team (polling
+Jenkins builds for example).
+
+There is one main chat for your team, where everyone is invited. But
+you and the other members of your team can make new channels or chat
+rooms with membership for all, or for just a few, or just one other.
+
+If there is a really tricky topic to go over, perhaps code review or
+working through an operational problem, you can video chat with
+someone.
+
+The Web access is secured in the normal way but the IRC has a somewhat
+special authentication system. We use SSH to enforce an authenticated
+connection to IRC. The system is the same as github use to connect
+people to their git repositories.

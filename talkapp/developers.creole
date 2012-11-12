@@ -6,3 +6,29 @@ We can give an idea of what it will look like however.
 
 There are 2 APIs, the in IRC api and the HTTP API.
 
+== The IRC API ==
+
+The IRC API allows chat to be added to the channel through a
+registered IRC robot.
+
+IRC robots can be ssh authenticated. So it is possible to send IRC
+chat through an ssh authentication for the robot.
+
+Here's how:
+
+{{{
+ssh your-robot-name@irc.teamchat.com sendchat channel-name "hello!"
+}}}
+
+
+== The HTTP API ==
+
+The HTTP API requires basic authentication and is therefore weaker.
+
+Calls to the HTTP API also pass through the robot.
+
+They are constructed like this:
+
+{{{
+http://your.teamchat.net/api/v1/message?channel=channel-name&message=hello
+}}}
