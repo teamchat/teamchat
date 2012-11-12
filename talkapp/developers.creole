@@ -1,0 +1,8 @@
+= TeamChat for Developers =
+
+As TeamChat is not yet in the wild we are not releasing the API yet.
+
+We can give an idea of what it will look like however.
+
+There are 2 APIs, the in IRC api and the HTTP API.
+

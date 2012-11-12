@@ -1042,6 +1042,9 @@ and directs you to validate."
          'talkapp-access-log-formatter
          elnode-log-access-alist))
   ;; Not sure if I should put these in or not.
+       ("^[^/]*//site/about" . ,(talkapp-make-wiki "about.creole"))
+       ("^[^/]*//site/developers" . ,(talkapp-make-wiki "developers.creole"))
+       ("^[^/]*//site/contact" . ,(talkapp-make-wiki "contact.creole"))
   (setq elnode-error-log-to-messages nil)
   (setq revert-without-query
         (list (concat package-user-dir "/.*")))
