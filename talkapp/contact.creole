@@ -1,2 +1,4 @@
 = Contact Us =
 
+For any enquiry please send an email to 
+<a href="mailto:support@teamchat.net">support@teamchat.net</a>
