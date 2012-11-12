@@ -10,6 +10,7 @@
  :files ("talkapp.el" 
          "talkapp-templates.el"
          "db-setup.el"
+         "robots.txt"
          "main.html" 
          "registered.html" 
          "register.html" 

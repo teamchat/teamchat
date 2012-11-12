@@ -1044,6 +1044,7 @@ and directs you to validate."
        ("^[^/]*//favicon.ico$" . ,favicon)
        ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
        ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
+        (robots-txt (elnode-make-send-file (concat talkapp-dir "robots.txt")))
        ("^[^/]*//site/about" . ,(talkapp-make-wiki "about.creole"))
        ("^[^/]*//site/developers" . ,(talkapp-make-wiki "developers.creole"))
        ("^[^/]*//site/contact" . ,(talkapp-make-wiki "contact.creole"))
@@ -1062,6 +1063,7 @@ and directs you to validate."
   (format
    "%s %60s %s"
    (elnode-log-access-format-func httpcon)
+       ("^[^/]*//robots.txt$" . ,robots-txt)
    (let ((cookie (elnode-http-cookie httpcon talkapp-cookie-name)))
      (or (cdr cookie) ""))
    (elnode-http-host httpcon :just-host t)))
