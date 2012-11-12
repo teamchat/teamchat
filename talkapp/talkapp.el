@@ -977,15 +977,17 @@ and directs you to validate."
     (lambda (httpcon)
       (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
       (with-stdout-to-elnode httpcon
-          (creole-wiki filename
-           :destination t
-           :docroot talkapp-dir
-           :docroot-alias "/-/"
-           :css (list
-                 (concat talkapp-dir "bootstrap.css")
-                 (concat talkapp-dir "style.css"))
-           :body-header talkapp-template/body-header
-           :body-footer talkapp-template/body-footer)))))
+          (let ((creole-image-class "creole"))
+            (creole-wiki
+             filename
+             :destination t
+             :docroot talkapp-dir
+             :docroot-alias "/-/"
+             :css (list
+                   (concat talkapp-dir "bootstrap.css")
+                   (concat talkapp-dir "style.css"))
+             :body-header talkapp-template/body-header-wiki
+             :body-footer talkapp-template/body-footer))))))
 
 (defconst talkapp-access-log-name "talkapp"
   "The name of the access log.")

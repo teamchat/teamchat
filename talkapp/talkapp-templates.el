@@ -27,6 +27,18 @@
 </div>
 <div class='container'>")
 
+(defconst talkapp-template/body-header-wiki "<div id='chat-header'>
+    <div class='container'>
+        <div class='logo'>
+            <h4>teamchat.net</h4>
+            <p>all your communication needs</p>
+        </div>
+        <h1>TeamChat</h1>
+    </div>
+</div>
+<div class='container wiki'>")
+
+
 (defconst talkapp-template/body-footer "</div>
 <footer class='footer'>
     <div class='container'>
