@@ -31,7 +31,13 @@
 <footer class='footer'>
     <div class='container'>
         <p class='pull-right'><a href='#'>Back to top</a></p>
-        <p>Designed and built by <a href='http://nic.ferrier.me.uk/'>Nic Ferrier</a> using Emacs and <a href='http://elnode.org'>Elnode</a></p>
+        <p>Copyright (C) 2012 TeamChat</p>
+        <ul class='inline-list'>
+            <li><a href='/site/about/'>About</a></li>
+            <li><a href='/site/developers/'>Developers</a></li>
+            <li><a href='/site/contact/'>Contact</a></li>
+        </ul>
+
         <ul class='inline-list'>
             <li><a href='/site/terms/'>Terms and conditions</a></li>
             <li><a href='/site/FAQ/'>FAQ</a></li>
