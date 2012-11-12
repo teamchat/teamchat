@@ -11,6 +11,7 @@ need them.
 TeamChat uses asynchronous IO technology to combine a web based IRC
 client and an IRC bouncer (a proxy for IRC) into one service.
 
+{{/-/screenshot-tw-skin.png?size=600|a skin}}
 We integrate extensible IRC robots to provide extra services so you
 can query information on the Internet, or inside your team (polling
 Jenkins builds for example).
@@ -27,3 +28,9 @@ The Web access is secured in the normal way but the IRC has a somewhat
 special authentication system. We use SSH to enforce an authenticated
 connection to IRC. The system is the same as github use to connect
 people to their git repositories.
+
+TeamChat can be run inside a virtual machine as well as on the
+Internet, so it's easy to build your own TeamChat inside your company
+firewall if that's what you want. With a single CSS file you can also
+skin the TeamChat application in whatever way you want. Everything
+else just carries on working the same way.
