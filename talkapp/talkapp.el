@@ -307,7 +307,7 @@ name."
 (defun talkapp/rcirc-send (channel-buffer data)
   "Send DATA to CHANNEL-BUFFER."
   (if talkapp-irc-provision
-      (with-current-buffer (get-buffer channel)
+      (with-current-buffer (get-buffer channel-buffer)
         (goto-char (point-max))
         (insert data)
         (rcirc-send-input))
@@ -540,7 +540,7 @@ If this variable is not bound or bound and t it will eval."
         ,username))
       (td
        ((class . "message"))
-       ,message))))
+       ,(replace-regexp-in-string "\\\\" "/" message)))))
 
 (defconst talkapp/default-chat-history-minutes 60)
 
@@ -790,9 +790,9 @@ If there are people selected then make the channel private."
     (let* ((msg (elnode-http-param httpcon "msg"))
            (username (talkapp-cookie->user-name httpcon))
            (channel
-            (or
-             (elnode-http-param httpcon "channel-name")
-             (talkapp/get-channel username))))
+            (if (equal channel-name "")
+                (talkapp/get-channel username)
+                channel-name)))
       (talkapp/rcirc-send channel msg)
       (elnode-send-html httpcon "<html>thanks for that chat</html>"))))
 
@@ -808,6 +808,8 @@ If there are people selected then make the channel private."
       (cons
        "messages"
        (talkapp/list-to-html username))
+           (channel-name (elnode-http-param httpcon "channel-name"))
+           (channel-name (elnode-http-param httpcon "channel-name"))
       (cons
        "people"
        (talkapp/people-list username))
