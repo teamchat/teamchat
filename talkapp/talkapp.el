@@ -944,7 +944,7 @@ user."
       (message
        "sending reg mail to %s via %s including reg %s"
        username email email-hash)
-      (if (equals "org" "launch")
+      (if (equal org "launch")
           (progn
             (compose-mail
              (format "%s <%s>" username email) ; email

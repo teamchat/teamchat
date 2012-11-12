@@ -25,7 +25,7 @@ or IRC.
 === Do you keep logs of conversations? ===
 
 That is under your control. If you buy the service you control what
-logging is down and have full access to the logs made by the
+logging is done and have full access to the logs made by the
 service. If you don't want the logs they automatically expire after a
 short time.
 

@@ -33,6 +33,10 @@ table.chat {
     color: #C1E14D;
 }
 
+.footer {
+    background-color: #4b5451;
+}
+
 .footer * a:visited {
     color: SlateBlue;
 }
