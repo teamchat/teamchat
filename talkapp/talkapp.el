@@ -317,6 +317,25 @@ name."
 
 ;; Shoes-off stuff
 
+(defun talkapp-shoes-off-sync ()
+  "Synchronize the sesions with the irc process state."
+  (interactive)
+  (clrhash shoes-off/sessions)
+  (loop for (proc name)
+     in (loop for p in (process-list) ; list of process
+           collect (list p (process-name p)))
+     ;; Filter to the irc ones
+     if (string-match "^\\(irc\\..*\\)~\\(.*\\)$" name)
+     do
+       (let ((server (match-string-no-properties 1 name))
+             (username (match-string-no-properties 2 name)))
+         (puthash
+          (format "%s@%s" username server)
+          proc
+          shoes-off/sessions))))
+
+
+
 (defun talkapp/get-shoes-off-config (username)
   "Return a db record in the form that can be used by shoes-off."
   (awhen (db-get username talkapp/user-db)
