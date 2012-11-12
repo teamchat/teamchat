@@ -22,11 +22,11 @@ var talkapp =
                          play: false,
                      },
                      prev: {
-                         key: "left",
+                         key: "up",
                          items: 1,
                      },
                      next: {
-                         key: "right",
+                         key: "down",
                          items: 1,
                      }
                  }
@@ -256,7 +256,13 @@ var talkapp =
                       + "</tr>");
          };
 
-         var do_messages = function (data) {
+         var do_messages = function (data, channel) {
+             if (!channel) {
+                 channel = "";
+             }
+             else {
+                 channel = channel + " ";
+             }
              $.each(data,
                     function (key, arr) {
                         var looked_up = $("#" + key);
@@ -265,7 +271,7 @@ var talkapp =
                             var message = arr[1];
                             msg_template(
                                 key, username, message
-                            ).insertBefore("table tr:first-child");
+                            ).insertBefore(channel + "table tr:first-child");
                             if (blurred && username != my_nick) {
                                 do_cough();
                             }
@@ -317,6 +323,69 @@ var talkapp =
                  }
              );
          };
+
+         var channel_open = function (channel) {
+             console.log("channel open " + channel);
+             $("#carousel").trigger(
+                 "insertItem",
+                 "<div id='"
+                     + channel 
+                     + "' class='span8 channel'>"
+                     + "<h4>" + channel + "</h4>"
+                     + "<table class='chat'><tr/></table>"
+                     + "</div>"
+             );
+             $("#chat-panel form").clone().insertAfter(
+                 "#" + channel + " h4"
+             );
+             $("#" + channel + " h4 + form input[name=channel-name]").attr("value",channel);
+             $("#carousel").trigger("next");
+             $.ajax(
+                 { url: "/user/channel-messages/",
+                   data: { "channel-name": channel },
+                   dataType: "jsonp",
+                   success: function (data, status) {
+                       do_messages(data, "#" + channel);
+                   }
+                 }
+             );
+         };
+
+         var channels = function () {
+             $.ajax(
+                 { url: '/user/channel/',
+                   dataType: "jsonp",
+                   success: function (data, status) {
+                       $("#list-channels").addClass("hidden");
+                       $.each(
+                           data,
+                           function (key, arr) {
+                               $("<li>" 
+                                 + "<a class='channel-link' "
+                                 + " href='javascript:;'>"
+                                 + arr 
+                                 + "</a></li>"
+                                ).appendTo("#channel-list");
+                           }
+                       );
+                       $(".channel-link").on(
+                           "click",
+                           function (evt) {
+                               channel_open(evt.target.text.substring(1));
+                           }
+                       );
+                   }
+                 }
+             );
+         };
+
+         // Add the channels list
+         $("#list-channels").on(
+             "click", 
+             function (evt) {
+                 channels();
+             }
+         );
 
          // initialize the value of the status
          var status_connected = $("#status_connected");
@@ -389,12 +458,13 @@ var talkapp =
              $(window).on("focus", function (evt) { blurred = false; });
              // also turn on the carousel
              if (true) {
-                 //$(document).ready(carousel_boot);
+                 $(document).ready(carousel_boot);
              }
          }
 
          // Return public API in an object
          return {
+             channels: channels
          };
      })();
 

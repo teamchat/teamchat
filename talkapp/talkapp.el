@@ -380,6 +380,12 @@ If this variable is not bound or bound and t it will eval."
   (talkapp/keyify
    (talkapp/get-user httpcon)))
 
+(defun talkapp/get-nick (email)
+  "Get the user's NICK from the EMAIL."
+  (aget
+   (cdar (db-query talkapp/user-db `(= "email" ,email)))
+   "username"))
+
 
 ;; Provision the ircd with this user
 
@@ -713,6 +719,7 @@ Either `closed' or `failed' is the same for this purpose."
               (append (list (cons email :offline))
                       talkapp/user-state-changes))))))
 
+
 (defun talkapp-video-call-handler (httpcon)
   "Do a video call."
   (with-elnode-auth httpcon 'talkapp-auth
@@ -726,18 +733,33 @@ Either `closed' or `failed' is the same for this purpose."
       (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
       (elnode-http-return httpcon "enjoy the call"))))
 
-(defun talkapp/get-nick (email)
-  "Get the user's NICK from the EMAIL."
-  (aget
-   (cdar (db-query talkapp/user-db `(= "email" ,email)))
-   "username"))
 
-(defun talkapp-channel-add-handler (httpcon)
+(defun talkapp-channel-messages (httpcon)
+  "List the messages of the channel in JSON."
+  (with-elnode-auth httpcon 'talkapp-auth
+    (let* ((username (talkapp-cookie->user-name httpcon))
+           (email (aget (db-get username talkapp/user-db) "email"))
+           (channel (elnode-http-param httpcon "channel-name"))
+           (messages (if talkapp-irc-provision
+                         (talkapp/chat-list channel)
+                         (talkapp/fake-chat-list username))))
+      ;; FIXME - we should mark the user online
+      (elnode-send-json httpcon messages :jsonp t))))
+
+
+(defun talkapp-channel-handler (httpcon)
   "Add a new channel.
 
 If there are people selected then make the channel private."
   (with-elnode-auth httpcon 'talkapp-auth
     (elnode-method httpcon
+      (GET
+       (let* ((username (talkapp-cookie->user-name httpcon))
+              (ctrl (talkapp/get-ctrl-channel username))
+              (channels (if talkapp-irc-provision
+                            (shoes-off-get-channels ctrl)
+                            (list "#channel1" "#channel2"))))
+         (elnode-send-json httpcon channels :jsonp t)))
       (POST
        (let* ((new-channel (elnode-http-param httpcon "channel"))
               (new-chan (format "#%s" new-channel))
@@ -761,14 +783,19 @@ If there are people selected then make the channel private."
          (elnode-send-html
           httpcon "<html>thanks for that channel</html>"))))))
 
+
 (defun talkapp-chat-add-handler (httpcon)
   "Send some chat to somewhere."
   (with-elnode-auth httpcon 'talkapp-auth
     (let* ((msg (elnode-http-param httpcon "msg"))
            (username (talkapp-cookie->user-name httpcon))
-           (channel (talkapp/get-channel username)))
+           (channel
+            (or
+             (elnode-http-param httpcon "channel-name")
+             (talkapp/get-channel username))))
       (talkapp/rcirc-send channel msg)
       (elnode-send-html httpcon "<html>thanks for that chat</html>"))))
+
 
 (defun talkapp/chat-templater ()
   "Return the chat page template variables."
@@ -785,14 +812,15 @@ If there are people selected then make the channel private."
        "people"
        (talkapp/people-list username))
       (cons "my-email" email)
+      (cons "my-nick" username)
       (cons "video-server" talkapp-video-server)
       (cons "chat-header" talkapp-template/chat-header))
      (talkapp/template-std httpcon))))
 
+
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."
   ;; FIXME - redirecct when chat not connected?
-      (cons "my-nick" username)
   (with-elnode-auth httpcon 'talkapp-auth
     (elnode-send-file
      httpcon (concat talkapp-dir "chat.html")
@@ -1003,7 +1031,8 @@ and directs you to validate."
        ("^[^/]*//user/session/" . talkapp-shoes-off-session)
        ("^[^/]*//user/chat/" . talkapp-chat-handler)
        ("^[^/]*//user/send/" . talkapp-chat-add-handler)
-       ("^[^/]*//user/channel/" . talkapp-channel-add-handler)
+       ("^[^/]*//user/channel-messages/" . talkapp-channel-messages)
+       ("^[^/]*//user/channel/" . talkapp-channel-handler)
        ("^[^/]*//user/vidcall/" . talkapp-video-call-handler)
        ("^[^/]*//user/poll/" . talkapp-comet-handler)
        ("^[^/]*//user/$" . talkapp-user-handler)
@@ -1015,6 +1044,9 @@ and directs you to validate."
        ("^[^/]*//favicon.ico$" . ,favicon)
        ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
        ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
+       ("^[^/]*//site/about" . ,(talkapp-make-wiki "about.creole"))
+       ("^[^/]*//site/developers" . ,(talkapp-make-wiki "developers.creole"))
+       ("^[^/]*//site/contact" . ,(talkapp-make-wiki "contact.creole"))
        ("^[^/]*//.*$" . talkapp-main-handler))
      :log-name talkapp-access-log-name)))
 
@@ -1044,9 +1076,6 @@ and directs you to validate."
          'talkapp-access-log-formatter
          elnode-log-access-alist))
   ;; Not sure if I should put these in or not.
-       ("^[^/]*//site/about" . ,(talkapp-make-wiki "about.creole"))
-       ("^[^/]*//site/developers" . ,(talkapp-make-wiki "developers.creole"))
-       ("^[^/]*//site/contact" . ,(talkapp-make-wiki "contact.creole"))
   (setq elnode-error-log-to-messages nil)
   (setq revert-without-query
         (list (concat package-user-dir "/.*")))

@@ -178,6 +178,15 @@ fieldset input[type=submit] {
     padding-top: 0;
 }
 
+#list-channels {
+    margin-left: 20px;
+    margin-top: -5px;
+}
+
+#channel-list {
+    margin-top: 2em;
+}
+
 #videocall {
     border: solid thin LemonChiffon;
 }
@@ -204,13 +213,13 @@ fieldset input[type=submit] {
 
 /* chat-panel styles */
 
-table#chat {
+table.chat {
     background-color: LemonChiffon;
     width: 100%;
     margin: 0;
 }
 
-table#chat tr td {
+table.chat tr td {
     border-bottom: solid thin;
 }
 

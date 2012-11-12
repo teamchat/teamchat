@@ -9,16 +9,18 @@
 <!##E chat-header E##!>
 <div id="carousel" class="row">
     <div id="chat-panel" class="span8">
+        <h4>your team chat</h4>
         <form class="form-inline" 
               method="POST" 
               action="/user/send/" 
               target="_sendtarget">
+            <input type="hidden" name="channel-name" value=""/>
             <input class="input-xxlarge" 
                    type="text" autocomplete="off" name="msg" value="" 
                    placeholder="type your chat message here"/>
-            <input type="submit" name="send" value="send" />
+            <input class="btn" type="submit" name="send" value="send" />
         </form>
-        <table id="chat">
+        <table class="chat">
             <!##E messages E##!>
         </table>
     </div>
@@ -50,30 +52,21 @@
                     to setup your photo
                 </p>
             </div>
-            <h4>channels</h4>
+            <h4>
+                channels
+                <button id="list-channels"
+                        class="btn" 
+                        type="button">channels</button>
+            </h4>
             <div id="channels">
                 <input class="input-xxlarge"
                        name="channel"
                        type="text"
                        placeholder="type the name of your new chat room"/>
-                <input type="submit" name="make" value="make" />
+                <input class="btn" type="submit" name="make" value="make" />
             </div>
-        </form>
-    </div>
-    <div id="paste-panel" class="span8 hidden">
-        <h4>paste panel - your program text</h4>
-        <pre>
-        </pre>
-    </div>
-    <div id="paste-text-panel" class="span8 hidden">
-        <h4>paste panel - upload program text or notes</h4>
-        <form method="POST" action="/user/paste/">
-            <textarea rows="10" cols="80" name="text" 
-                      placeholder="paste your code">
-                </textarea><br/>
-                <input type="text" name="type" value="" 
-                       placeholder="what type of file is it?"/>
-                <input type="submit" name="paste" value="paste"/>
+            <ul id="channel-list">
+            </ul>
         </form>
     </div>
 </div>
