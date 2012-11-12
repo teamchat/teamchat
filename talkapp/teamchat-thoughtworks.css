@@ -15,13 +15,22 @@ body {
     color: white;
 }
 
+div.logo + h1 {
+    color: #C1E14D;
+}
+
 fieldset {
     background-color: #4b5451;
 }
 
-.footer {
+input.input-xxlarge {
     background-color: #4b5451;
-    color: white;
+    color: #C1E14D;
+}
+
+table.chat {
+    background-color: #4b5451;
+    color: #C1E14D;
 }
 
 .footer * a:visited {
