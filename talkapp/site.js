@@ -134,6 +134,13 @@ var talkapp =
              audioElement.play();
          };
 
+         var do_incomming = function () {
+             var audioElement = document.createElement('audio');
+             audioElement.setAttribute('src', '/-/video-incomming-sound.ogg');
+             audioElement.play();
+         };
+
+
          // The list of emails in the page - email: md5(lower(email))
          var emails = {};
 
@@ -227,8 +234,18 @@ var talkapp =
              var from = data[0];
              var to = data[1];
              var time = data[2];
-             // Unique the from and to with the time
-             video.display(video_server, from + time, to + time);
+
+             $("#videoaccept button").on(
+                 "click", 
+                 function (evt) {
+                     // Hide the accept panel
+                     $("#videoaccept").addClass("hidden");
+                     // Unique the from and to with the time
+                     video.display(video_server, from + time, to + time);
+                 }
+             );
+             do_incomming();
+             $("#videoaccept").removeClass("hidden");
          };
 
          var do_users = function (data) {

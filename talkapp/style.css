@@ -194,6 +194,12 @@ fieldset input[type=submit] {
     margin-top: 2em;
 }
 
+#videoaccept {
+    width: 70%;
+    margin: 3em auto;
+    text-align: center;
+}
+
 #videocall {
     border: solid thin LemonChiffon;
 }

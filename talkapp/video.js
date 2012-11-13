@@ -70,7 +70,7 @@ var video =
              var miclist = swfobject.getObjectById("video").get_microphones().split(",");
              swfobject.getObjectById("video").set_microphone(miclist[0]);
 
-             // then connect, which cases a callback
+             // then connect, which causes a callback
              try {
                  swfobject.getObjectById("video").connect(
                      video_server, 
