@@ -1028,23 +1028,35 @@ and directs you to validate."
      (concat talkapp-dir "main.html")
      :replacements (talkapp/template-std httpcon))))
 
-(defun talkapp-make-wiki (name)
-  "Use creole to pass text formatted pages."
-  (let ((filename (concat talkapp-dir name)))
-    (lambda (httpcon)
-      (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
-      (with-stdout-to-elnode httpcon
-          (let ((creole-image-class "creole"))
-            (creole-wiki
-             filename
-             :destination t
-             :docroot talkapp-dir
-             :docroot-alias "/-/"
-             :css (list
-                   (concat talkapp-dir "bootstrap.css")
-                   (concat talkapp-dir "style.css"))
-             :body-header talkapp-template/body-header-wiki
-             :body-footer talkapp-template/body-footer))))))
+(defun talkapp-wiki-server (httpcon)
+  "Wiki server used for /site/ pages."
+  (let ((targetfile (elnode-http-mapping httpcon 1)))
+    ;; Rip any final slash off
+    (if (string-match ".*/$" targetfile)
+        (setq targetfile (substring
+                          targetfile
+                          0 (- (length targetfile) 1))))
+    ;; Mangle the mapping match to deal with creole files only
+    (flet ((elnode-http-mapping (httpcon which)
+             (concat targetfile ".creole")))
+      ;; Do a docroot serve
+      (elnode-docroot-for talkapp-dir
+          with page
+          on httpcon
+          do
+          (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
+          (with-stdout-to-elnode httpcon
+              (let ((creole-image-class "creole"))
+                (creole-wiki
+                 page
+                 :destination t
+                 :docroot talkapp-dir
+                 :docroot-alias "/-/"
+                 :css (list
+                       (concat talkapp-dir "bootstrap.css")
+                       (concat talkapp-dir "style.css"))
+                 :body-header talkapp-template/body-header-wiki
+                 :body-footer talkapp-template/body-footer)))))))
 
 (defconst talkapp-access-log-name "talkapp"
   "The name of the access log.")
@@ -1071,12 +1083,8 @@ and directs you to validate."
        ("^[^/]*//validate/\\(.*\\)/" . talkapp-validate-handler)
        ("^[^/]*//-/\\(.*\\)$" . ,webserver)
        ("^[^/]*//favicon.ico$" . ,favicon)
-       ("^[^/]*//site/terms" . ,(talkapp-make-wiki "terms.creole"))
-       ("^[^/]*//site/FAQ" . ,(talkapp-make-wiki "FAQ.creole"))
-        (robots-txt (elnode-make-send-file (concat talkapp-dir "robots.txt")))
-       ("^[^/]*//site/about" . ,(talkapp-make-wiki "about.creole"))
-       ("^[^/]*//site/developers" . ,(talkapp-make-wiki "developers.creole"))
-       ("^[^/]*//site/contact" . ,(talkapp-make-wiki "contact.creole"))
+       ("^[^/]*//robots.txt$" . ,robots-txt)
+       ("^[^/]*//site/\\(.*\\)" . talkapp-wiki-server)
        ("^[^/]*//.*$" . talkapp-main-handler))
      :log-name talkapp-access-log-name)))
 
