@@ -123,6 +123,16 @@ Contains the following fields:
 We key it by the validation key (a hash of email and secret key)
 and store the username and the email.")
 
+(defconst talkapp/keys-db
+  (db-make
+   `(db-hash
+     :filename
+     ,(expand-file-name
+       (concat
+        (file-name-as-directory talkapp-db-dir)
+        "keys-db"))))
+  "The database where we store ssh keys.")
+
 (defconst talkapp/template-list
   (list
    (cons "head" talkapp-template/head-css)
@@ -848,6 +858,55 @@ If there are people selected then make the channel private."
      :replacements 'talkapp/chat-templater)))
 
 
+;; Not happy with this... want the username to be the key but not part
+;; of the form
+(defconst talkapp-keysform
+  (esxml-form
+    (:db talkapp/keys-db :db-key "name")
+    (name :db-check (= "name" $)
+          :check-failure
+          ((:db-check "try adding your username to unique the key name")))
+    (key :html :textarea
+         :regex "[A-Za-z0-9-]+"
+         :check-failure "just the main part of the key"))
+  "Make a key form")
+
+(defun talkapp-keys-handler (httpcon)
+  "Return the user's keys."
+  (with-elnode-auth httpcon 'talkapp-auth
+    (let ((username (talkapp-cookie->user-name httpcon)))
+      (elnode-method httpcon
+        (GET
+         (elnode-send-json
+          httpcon
+          (db-get username talkapp/keys-db):jsonp t))
+        (POST
+         (let* ((key-name (elnode-http-param httpcon "keyname"))
+                (key-text (elnode-http-param httpcon "keytext"))
+                (key-list (db-get username talkapp/keys-db))
+                (new-keys  (acons key-name key-text key-list)))
+           (db-put username new-keys talkapp/keys-db)
+           (elnode-send-json httpcon new-keys :jsonp t)))))))
+
+;; (let ((esxml-field-style :bootstrap))
+;;   (esxml-form-handle
+;;    talkapp-regform httpcon (concat talkapp-dir "register.html")
+;;    (lambda (data)
+;;      (talkapp/save-reg httpcon talkapp-regform data))
+;;    (talkapp/template-std httpcon))))
+
+(defun talkapp-user-handler (httpcon)
+  "Present the main user page."
+  (with-elnode-auth httpcon 'talkapp-auth
+    (let ((user-data (talkapp/get-user-http httpcon)))
+      (elnode-send-file
+       httpcon (concat talkapp-dir "user.html")
+       :replacements
+       (append
+        user-data
+        (talkapp/template-std httpcon))))))
+
+
 ;; Registration stuff
 
 (defun talkapp-auth-func (username)
@@ -865,14 +924,6 @@ If there are people selected then make the channel private."
         (aget user "token")) ; have to end with a token get
        ;; or we're registered
        (aget user "token")))))
-
-(defun talkapp-user-handler (httpcon)
-  "Present the main user page."
-  (with-elnode-auth httpcon 'talkapp-auth
-    (let ((user-data (talkapp/get-user-http httpcon)))
-      (elnode-send-file
-       httpcon (concat talkapp-dir "user.html")
-       :replacements (append user-data (talkapp/template-std httpcon))))))
 
 (defun talkapp-validate-handler (httpcon)
   "Validates the user and logs them in."
@@ -941,11 +992,6 @@ user."
      ((:email "not a valid email address?")
       (:db-check "a user with that email exists"))))
   "Registration form.")
-
-;; The definition for the key which needs to go somewhere
-;; (key :html :textarea
-;;      :regex "[A-Za-z0-9-]+"
-;;      :check-failure "just the main part of the key"))
 
 (defun talkapp/send-email (user-record email-hash)
   "Send an email to the registrant."
@@ -1076,6 +1122,7 @@ and directs you to validate."
        ("^[^/]*//user/channel/" . talkapp-channel-handler)
        ("^[^/]*//user/vidcall/" . talkapp-video-call-handler)
        ("^[^/]*//user/poll/" . talkapp-comet-handler)
+       ("^[^/]*//user/keys/" . talkapp-keys-handler)
        ("^[^/]*//user/$" . talkapp-user-handler)
        ;; Reg stuff
        ("^[^/]*//register/" . talkapp-register-handler)

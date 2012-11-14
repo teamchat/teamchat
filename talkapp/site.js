@@ -404,6 +404,48 @@ var talkapp =
              }
          );
 
+         // If we have an end-call button bind it
+         var end_call = $("#end-call");
+         if (end_call.length > 0) {
+             end_call.on(
+                 "click",
+                 function (evt) {
+                     $("#videocall").addClass("hidden");
+                 }
+             );
+         }
+
+         // Bind the send form stuff, if it's on the page
+         var send_form_target = $("[name=_sendtarget]");
+         if (send_form_target.length > 0) {
+             send_form_target.load(
+                 function (evt) {
+                     $("[name=msg]")[0].value = "";
+                     $("[name=msg]").focus();
+                 });
+         }
+
+         // If we should start the chat poller
+         if (typeof talkapp_do_chat != "undefined") {
+             // Make the chat poller run
+             setTimeout(chat_poll, 1000);
+             // also urlize the chat panel everything
+             urlize("#chat-panel");
+             // also collect gravatars
+             gravatarize();
+             // also turn on blur notifications
+             $(window).on("blur", function (evt) { blurred = true; });
+             $(window).on("focus", function (evt) { blurred = false; });
+             // also turn on the carousel
+             if (true) {
+                 $(document).ready(carousel_boot);
+             }
+         }
+
+
+
+         // /user/ page stuff
+
          // initialize the value of the status
          var status_connected = $("#status_connected");
          var status_disconnected = $("#status_disconnected");
@@ -435,48 +477,40 @@ var talkapp =
                  });
          }
 
-         // If we have an end-call button bind it
-         var end_call = $("#end-call");
-         if (end_call.length > 0) {
-             end_call.on(
-                 "click",
-                 function (evt) {
-                     $("#videocall").addClass("hidden");
-                 }
-             );
-         }
-
-
-         // Bind the send form stuff, if it's on the page
-         var send_form_target = $("[name=_sendtarget]");
-         if (send_form_target.length > 0) {
-             send_form_target.load(
-                 function (evt) {
-                     $("[name=msg]")[0].value = "";
-                     $("[name=msg]").focus();
-                 });
-         }
-
          // If we should configure the user then do it
          if (typeof talkapp_do_config != "undefined") {
              config();
          }
 
-         // If we should start the chat poller
-         if (typeof talkapp_do_chat != "undefined") {
-             // Make the chat poller run
-             setTimeout(chat_poll, 1000);
-             // also urlize the chat panel everything
-             urlize("#chat-panel");
-             // also collect gravatars
-             gravatarize();
-             // also turn on blur notifications
-             $(window).on("blur", function (evt) { blurred = true; });
-             $(window).on("focus", function (evt) { blurred = false; });
-             // also turn on the carousel
-             if (true) {
-                 $(document).ready(carousel_boot);
-             }
+         // Keys panel
+         var keys_show = $("#keys .reveal");
+         if (keys_show.length > 0) {
+             keys_show.on(
+                 "click",
+                 function (evt) {
+                     var keyrow = function (name, keytext) {
+                         keytext = keytext.substring(0,35) + "...";
+                         $(
+                             "<tr>"
+                                 + "<td>" + name + "</td>"
+                                 + "<td>" + keytext + "</td></tr>\n"
+                         ).appendTo("#keys .panel table");
+                     };
+                     $("#keys .reveal").addClass("hidden");
+                     $.ajax(
+                         { url: "/user/keys/",
+                           dataType: "jsonp",
+                           success:
+                           function (data, status) {
+                               if (data) {
+                                   $.each(data, keyrow);
+                               }
+                           }
+                         }
+                     );
+                     $("#keys .panel").removeClass("hidden");
+                 }
+             );
          }
 
          // Return public API in an object

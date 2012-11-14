@@ -93,6 +93,23 @@ fieldset input[type=submit] {
     margin-top: 3em;
 }
 
+#keys .panel table  {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    width: 95%;
+    background-color: #eeeeee;
+}
+
+#keys .panel table td {
+    padding: .5em;
+}
+
+
+
+textarea[name=keytext] {
+    width: 400px;
+}
+
 .hero-unit {
     background-color: Gold;
     color: DarkSlateGrey;

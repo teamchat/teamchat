@@ -14,6 +14,33 @@
             <li id="connect-to-chat" 
                 class="hidden"><a href="/user/chat/">go to your chat page</a></li>
         </ul>
+
+        <div id="keys">
+            <h4>your keys</h4>
+            <p>If you wish to use teamchat.net via irc you can add SSH keys here.</p>
+            <button class="reveal btn btn.large">show keys</button>
+            <div class="panel hidden">
+                <table>
+                </table>
+                <form method="POST" 
+                      action="/user/keys/" 
+                      target="_sendtarget">
+                    <legend>add a new key</legend>
+                    <input type="text" 
+                           class="input-large"
+                           name="keyname"
+                           placeholder="a name for your key"/><br/>
+                    <textarea name="keytext"></textarea><br/>
+                    <input class="btn" 
+                           type="submit" 
+                           name="add" value="add" />
+                </form>
+                <small>
+                    <a href="/site/ssh-keys-for-irc/">how to make ssh keys
+                    for irc</a>
+                </small>
+            </div>
+        </div>
     </div>
     <div class="span4"  id="status-panel">
         <h4>chat status</h4>
@@ -34,6 +61,13 @@
     var talkapp_do_config = true;
     //-->
 </script>
+<iframe 
+    style="float:right;" 
+    width="1" 
+    height="1" 
+    name="_sendtarget" 
+    src="">
+</iframe>
 <!##E footer E##!>
 </body>
 </html>

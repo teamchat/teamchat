@@ -15,8 +15,8 @@ have an SSH key. If so, you can safely use that for teamchat as well.
 An SSH key is actually two different pieces of information kept in two
 separate files on your computer.
 
-1. a private key which you should keep and not give to anyone else
-2. a public key which you can happily hand out to any service to which you want to connect
+# a private key which you should keep and not give to anyone else
+# a public key which you can happily hand out to any service to which you want to connect
 
 If you don't already have a key you can make one for most operating
 systems with free tools. It does depend on what operating system you
