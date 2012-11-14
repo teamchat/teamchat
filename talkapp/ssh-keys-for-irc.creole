@@ -1,1 +1,86 @@
 = How to use SSH to connect to teamchat IRC =
+
+teamchat uses SSH to authenticate you to the builtin IRC server. You
+don't //need// to use IRC, you can do everything in teamchat with the
+Web front end. But some people prefer IRC. The IRC interface is also a
+convenient way to send data to the teamchat service, see the
+information for [[/site/developers/|developers]] for help on that.
+
+== Making keys ==
+
+To use IRC with SSH you first need to make an SSH key. If you use
+github or some other service for developers you may find you already
+have an SSH key. If so, you can safely use that for teamchat as well.
+
+An SSH key is actually two different pieces of information kept in two
+separate files on your computer.
+
+1. a private key which you should keep and not give to anyone else
+2. a public key which you can happily hand out to any service to which you want to connect
+
+If you don't already have a key you can make one for most operating
+systems with free tools. It does depend on what operating system you
+are using though.
+
+=== Apple's OSX ===
+
+Open the Terminal application from the Finder and type in the
+following command:
+
+{{{
+ssh-keygen
+}}}
+
+this should prompt you for a {{{passphrase}}} which is a special
+password attached to the key (and which you can leave blank if you
+wish, though this is considered less secure) and then make a key.
+
+This will save 2 files in your home directory and you can find the
+text of the public key by typing this into the Terminal application:
+
+{{{
+cat ~/.ssh/id_rsa.pub
+}}}
+
+It should be something like this:
+
+{{{
+ssh-rsa AAAAB3NzaC1kc3MAAACBANuM1SkfYrzGXYyg8bIqGvGMr6otpJQ3UE
+q6LdZDr0lQDLjV6YaAA+s2E/Vks9fCTwBzJ1y6wzEh5dVR2XCaxtMHcJTdBFBZ
+NVnEUjx1mkuxaQb3LBWBlXrA/8ZfSC/eLaqwv7hVSbsZTm7AsO+fcp1O07Yesn
+Ouuq8x+k9gn1PzzKK43nzn8JOtRMN0vpImmoCwAAAIEAlmKKcQNchCwDKvN/mU
+HaXplvm0vmv/Fkk4ZD0aIvii+wzRSSOFyuJ/oUVN98kXf2W9kgQDir6wnAhuU8
+PSZwKKyDwv3r0JVWm1XZkbUvoGYCXYEzufWy/D4thO2H0SUuoZ9RGdtSiEFyTS
+ZH4bzUq2tGVibZuCPquDPl5AzRVIE= yourusername@yourcomputername
+}}}
+
+though it may be longer or shorter than that.
+
+This is the public key and you can copy that from the Terminal app and
+then paste it into teamchat's key upload, see the next section.
+
+=== Microsoft Windows ===
+
+Hey. Use Putty. I guess we need pictures.
+
+
+=== GNU/Linux ===
+
+Use ssh-keygen.
+
+
+== Uploading your key to teamchat ==
+
+On your user page on teamchat.net there is a section //your
+keys//. Pressing the button //show keys// lists your currently
+uploaded SSH keys (you can have more than one, perhaps you have
+different computers you want to connect from?) and shows the upload
+key form.
+
+Enter a name for the key, for example //my work key// into the name
+box and then paste the text of your public key into the key-text
+textarea. Then press the //add// button and you should be done.
+
+== Connecting to IRC with SSH ==
+
+To connect to IRC with the SSH 
