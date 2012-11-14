@@ -818,6 +818,7 @@ If there are people selected then make the channel private."
   (with-elnode-auth httpcon 'talkapp-auth
     (let* ((msg (elnode-http-param httpcon "msg"))
            (username (talkapp-cookie->user-name httpcon))
+           (channel-name (elnode-http-param httpcon "channel-name"))
            (channel
             (if (equal channel-name "")
                 (talkapp/get-channel username)
@@ -837,8 +838,6 @@ If there are people selected then make the channel private."
       (cons
        "messages"
        (talkapp/list-to-html username))
-           (channel-name (elnode-http-param httpcon "channel-name"))
-           (channel-name (elnode-http-param httpcon "channel-name"))
       (cons
        "people"
        (talkapp/people-list username))
