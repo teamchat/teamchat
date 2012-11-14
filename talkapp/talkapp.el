@@ -1110,6 +1110,7 @@ and directs you to validate."
 (define-elnode-handler talkapp-router (httpcon)
   "Main router."
   (let ((webserver (elnode-webserver-handler-maker talkapp-dir))
+        (robots-txt (elnode-make-send-file (concat talkapp-dir "robots.txt")))
         (favicon (elnode-make-send-file (concat talkapp-dir "favicon.ico"))))
     (elnode-hostpath-dispatcher
      httpcon
@@ -1146,7 +1147,6 @@ and directs you to validate."
   (format
    "%s %60s %s"
    (elnode-log-access-format-func httpcon)
-       ("^[^/]*//robots.txt$" . ,robots-txt)
    (let ((cookie (elnode-http-cookie httpcon talkapp-cookie-name)))
      (or (cdr cookie) ""))
    (elnode-http-host httpcon :just-host t)))
