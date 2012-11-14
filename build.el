@@ -12,14 +12,14 @@
     "~/work/esxml"
     "~/work/elnode-auth"
     "~/work/emacs-kv"
-    "~/work/shoes-off-aas/talkapp"))
+    "~/work/teamchat/talkapp"))
 
 (defconst talkapp-do-rcirc nil)
 
 ;; The local elpa dir
 (defun talkapp-do-elpakit-to-local ()
   (interactive)
-  (elpakit "~/work/shoes-off-aas/shoesoff-elpa" shoes-off-elpakit))
+  (elpakit "~/work/teamchat/shoesoff-elpa" shoes-off-elpakit))
 
 ;; the remote elpa
 (defun talkapp-do-elpakit-to-live ()
