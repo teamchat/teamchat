@@ -357,8 +357,6 @@ name."
           proc
           shoes-off/sessions))))
 
-
-
 (defun talkapp/get-shoes-off-config (username)
   "Return a db record in the form that can be used by shoes-off."
   (awhen (db-get username talkapp/user-db)
