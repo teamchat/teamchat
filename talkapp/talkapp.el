@@ -205,7 +205,8 @@ Mixes in org specific CSS if it can be found via HTTPCON or
                          match-host
                          domain-name
                          irc-server
-                         primary-channel)
+                         primary-channel
+                         css)
   "Make a new organisation record in the `talkapp/org-db'.
 
 PRIMARY-CHANNEL should include the #."
@@ -215,7 +216,8 @@ PRIMARY-CHANNEL should include the #."
                   ("host" . ,match-host)
                   ("domain" . ,domain-name)
                   ("irc-server" . ,irc-server)
-                  ("primary-channel" . ,primary-channel))))
+                  ("primary-channel" . ,primary-channel)
+                  ("css" . ,css))))
     (db-put org-name record talkapp/org-db)))
 
 (defun talkapp/get-my-org (email &optional http-host)
