@@ -60,6 +60,12 @@ environmental requirements."
   :group 'talkapp
   :type 'boolean)
 
+(defcustom talkapp-keys-program-home
+  "/home/teamchat/teamchat.net/ssh-irc"
+  "The location of the program for doing irc connections."
+  :group 'talkapp
+  :type  'string)
+
 (defconst talkapp/db-change-db
   (db-make
    `(db-hash
@@ -247,6 +253,12 @@ Try EMAIL first (by pulling out the domain) and then HTTP-HOST."
 
 ;; IRC setup stuff
 
+(defun talkapp/irc-server->pair (server)
+  (let ((ircd-lst (split-string server ":")))
+    (list
+     (car ircd-lst)
+     (string-to-number (cadr ircd-lst)))))
+
 (defun talkapp/irc-details (username password email)
   "Get the IRC details for the user specified.
 
@@ -256,20 +268,19 @@ present it's not possible to connect someone."
          (org (aget user-rec "org"))
          (org-rec (db-get org talkapp/org-db))
          (irc-server-desc (aget org-rec "irc-server"))
-         (irc-server-pair (split-string irc-server-desc ":"))
-         (irc-server (car irc-server-pair))
-         (irc-port (string-to-number (cadr irc-server-pair)))
          (channel (aget org-rec "primary-channel")))
-    (list :username username
-          :password password
-          :server-alist
-          `((,irc-server
-             :nick ,username
-             :port ,irc-port
-             :user-name ,username
-             :password "secret"
-             :full-name ,email
-             :channels ,(list channel))))))
+    (destructuring-bind (irc-server irc-port)
+        (talkapp/irc-server->pair irc-server-desc)
+      (list :username username
+            :password password
+            :server-alist
+            `((,irc-server
+               :nick ,username
+               :port ,irc-port
+               :user-name ,username
+               :password "secret"
+               :full-name ,email
+               :channels ,(list channel)))))))
 
 ;; Rcirc stuff
 
@@ -870,6 +881,34 @@ If there are people selected then make the channel private."
          :check-failure "just the main part of the key"))
   "Make a key form")
 
+
+(defun talkapp/keys-ssh-update (username)
+  (let* ((user-rec (db-get username talkapp/user-db))
+         (org-rec (db-get (aget user-rec "org") talkapp/org-db))
+         (key-rec (db-get username talkapp/keys-db))
+         (password (aget user-rec "password")))
+    (when org-rec
+      ;; FIXME we need to write this for every key
+      (destructuring-bind (server port)
+          (talkapp/irc-server->pair (aget org-rec "irc-server"))
+        (loop for (name . key-text) in key-rec
+           concat
+             (format
+              "command=\"%s %s %s %d %s\" %s"
+              talkapp-keys-program-home
+              username
+              server
+              port
+              password
+              key-text))))))
+
+(defun talkapp/key-add (username name text)
+  "Add a new key to the db for USERNAME."
+  (let* ((key-list (db-get username talkapp/keys-db))
+         (new-keys  (acons name text key-list)))
+    (db-put username new-keys talkapp/keys-db)
+    new-keys))
+
 (defun talkapp-keys-handler (httpcon)
   "Return the user's keys."
   (with-elnode-auth httpcon 'talkapp-auth
@@ -881,10 +920,8 @@ If there are people selected then make the channel private."
           (db-get username talkapp/keys-db):jsonp t))
         (POST
          (let* ((key-name (elnode-http-param httpcon "keyname"))
-                (key-text (elnode-http-param httpcon "keytext"))
-                (key-list (db-get username talkapp/keys-db))
-                (new-keys  (acons key-name key-text key-list)))
-           (db-put username new-keys talkapp/keys-db)
+                (key-text (elnode-http-param httpcon "keytext")))
+           (talkapp/key-add key-name key-text)
            (elnode-send-json httpcon new-keys :jsonp t)))))))
 
 ;; (let ((esxml-field-style :bootstrap))

@@ -2,8 +2,10 @@
 
 (defun talkapp/user-db-init ()
   (interactive)
-  (let ((test-hash (make-hash-table :test 'equal)))
+  (let ((test-hash (make-hash-table :test 'equal))
+        (keys-test-hash (make-hash-table :test 'equal)))
     (plist-put talkapp/user-db :db test-hash)
+    (plist-put talkapp/keys-db :db keys-test-hash)
     (talkapp/org-new
      "example-org"
      :match-host "example.teamchat.net"
@@ -60,6 +62,11 @@
                  ("org" . "example-org")
                  ("email" . "bob@example.org")
                  ("key" . "ssh-dss AAAAB3 test1")) test-hash)
+      ;; Some keys
+      (puthash "nic5"
+               '(("nics laptop" . "ssh-dss AAAAB3NzaC1kc3MAAACBANuM1SkfYrzGXYyg8bIqGvGMr6otpJQ3UEq6LdZDr0lQDLjV6YaAA+s2E/Vks9fCTwBzJ1y6wzEh5dVR2XCaxtMHcJTdBFBZNVnEUjx1mkuxaQb3LBWBlXrA/8ZfSC/eLaqwv7hVSbsZTm7AsO+fcp1O07YesnTOHer1EpmM4vuNAAAAFQD3s+lUUQzd8OMPyxM1b+xplGpMfwAAAIA5y/RpW5+xb3nsQha6YiJ8HSws7Vl92KV/oR0RUWwty4UgRhFr/6gQIZKX38Vp4JRbzflvFfCpA+7Bsupgsdd1GWI5NY199c8MnbXhKmnaKQHX2PSaEUdp5mePqYF7vj3lq1u3Ouuq8x+k9gn1PzzKK43nzn8JOtRMN0vpImmoCwAAAIEAlmKKcQNchCwDKvN/mUHaXplvm0vmv/Fkk4ZD0aIvii+wzRSSOFyuJ/oUVN98kXf2W9kgQDir6wnAhuU8PSZwKKyDwv3r0JVWm1XZkbUvoGYCXYEzufWy/D4thO2H0SUuoZ9RGdtSiEFyTSZH4bzUq2tGVibZuCPquDPl5AzRVIE= nferrier@tw-ubuntu")
+                 ("nicskey" . "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJYjytqKomWFfwofbL7rX2Klit8HGPLdi8H5GiIvfc7ogcClrrHVbgLKgdzJy/9Qh4iSohkqNyLpB1y0Z2wJqRF+r7AdZpIEDj9T7jUg5fZiOproRmaPaxAJQzlat+ciTAQFfv0E0dZfaILb+sx3KnVvDmtZ08auXB494KNrJMMaJooa9ZG/Gf9eoQL7aSj0ugU8930wD2TPcjZuVhSZ0TLmbUugY3fxOJYzlhT/N4XoNnsIWSvxv2X0IbBJUsNTDl2DuxfLcX2Gsb2gxgswadSoFQJ6ieEKuiHgjwZnpfpyDTOnyGligyB9v4rdsU0XwQfKbcSG79ik19K5YTQ1Wz nferrier@nferrier"))
+               keys-test-hash)
       ;; Setup the online cache as well
       (clrhash talkapp/online-cache)
       (puthash "cjtapsell@tapsellferrier.co.uk"

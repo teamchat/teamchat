@@ -1,5 +1,11 @@
 ;; tests for the talk/irc integration app
 
+(ert-deftest talkapp/irc-server->pair ()
+  (should
+   (equal
+    (talkapp/irc-server->pair "irc.teamchat.net:6901")
+    (list "irc.teamchat.net" 6901))))
+
 (defmacro talkapp/mock-db (&rest body)
   "Mock the swarm databases and eval BODY."
   (declare (debug (&rest form))
@@ -25,6 +31,10 @@
              (db-make
               `(db-hash
                 :filename ,(format "/tmp/talk-email-db-%s" (uuid-string)))))
+            (talkapp/keys-db
+             (db-make
+              `(db-hash
+                :filename ,(format "/tmp/talk-keys-db-%s" (uuid-string)))))
             (talkapp/org-db
              (db-make
               `(db-hash
@@ -126,6 +136,19 @@
                   :channels (list "#testorg"))))
      (talkapp/irc-details
       "testuser2" "secret" "test2@test.org")))))
+
+(ert-deftest talkapp/keys-ssh-update ()
+  (talkapp/mock-db
+    (talkapp/test-make-user-and-org)
+    (talkapp/key-add "testuser2" "test-key" "AAANDNBDb3223bdanbbdnad== nic")
+    (should
+     (equal
+      (let ((talkapp-keys-program-home "/bin/ssh-irc"))
+        (talkapp/keys-ssh-update "testuser2"))
+      (concat
+       "command=\"/bin/ssh-irc "
+       "testuser2 testorg-irc.teamchat.net 6901 secret\" "
+       "AAANDNBDb3223bdanbbdnad== nic")))))
 
 (ert-deftest talkapp-start-session-config ()
   "Test the shoes-off config abstraction."
