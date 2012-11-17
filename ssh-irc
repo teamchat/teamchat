@@ -1,0 +1,45 @@
+#!/bin/bash
+
+USERNAME=$1
+SERVER=$2
+PORT=$3
+PASSWORD=$4
+
+mkdir -p /tmp/ssh-irc/pid
+echo $1 >> /tmp/ssh-irc/pid/$PPID
+
+COMMAND=$SSH_ORIGINAL_COMMAND
+
+case $COMMAND in 
+    # just connect to irc
+    "irc")
+        ;;
+
+    # boot irssi
+    "irssi")
+        irssi -c $SERVER -p $PORT -n $USERNAME -w $PASSWORD
+        ;;
+
+    # send a chat chats
+    "sendchat")
+        echo "sendchat is not done yet. it's coming soon"
+        ;;
+
+    # download chats
+    "backup")
+        echo "backup is not done yet. it's coming soon"
+        ;;
+
+    # download logs
+    "logs")
+        echo "logs is not done yet. it's coming soon"
+        ;;
+ 
+    *)
+        echo "unknown command"
+        ;;
+
+esac
+
+# End
+
