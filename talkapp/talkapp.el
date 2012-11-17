@@ -926,7 +926,7 @@ FN is called with the talkapp key id (which is
            (insert key-line "\n")))))
     (save-buffer)))
 
-(defun talkapp-keys-sync (&ptional username)
+(defun talkapp-keys-sync (&optional username)
   "Flush the keys database to the keys file."
   (interactive)
   (if username
@@ -956,7 +956,7 @@ FN is called with the talkapp key id (which is
         (POST
          (let* ((key-name (elnode-http-param httpcon "keyname"))
                 (key-text (elnode-http-param httpcon "keytext")))
-           (talkapp/key-add key-name key-text)
+           (talkapp/key-add username key-name key-text)
            (talkapp-keys-sync username)
            (elnode-send-json httpcon new-keys :jsonp t)))))))
 
