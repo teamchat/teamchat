@@ -926,13 +926,16 @@ FN is called with the talkapp key id (which is
            (insert key-line "\n")))))
     (save-buffer)))
 
-(defun talkapp-keys-sync ()
+(defun talkapp-keys-sync (&ptional username)
   "Flush the keys database to the keys file."
   (interactive)
-  (db-map
-   (lambda (username value)
-     (talkapp/keys-ssh-file username))
-   talkapp/keys-db))
+  (if username
+      (talkapp/keys-ssh-file username)
+      ;; Else do all of them
+      (db-map
+       (lambda (username value)
+         (talkapp/keys-ssh-file username))
+       talkapp/keys-db)))
 
 (defun talkapp/key-add (username name text)
   "Add a new key to the db for USERNAME."
@@ -954,6 +957,7 @@ FN is called with the talkapp key id (which is
          (let* ((key-name (elnode-http-param httpcon "keyname"))
                 (key-text (elnode-http-param httpcon "keytext")))
            (talkapp/key-add key-name key-text)
+           (talkapp-keys-sync username)
            (elnode-send-json httpcon new-keys :jsonp t)))))))
 
 ;; (let ((esxml-field-style :bootstrap))
