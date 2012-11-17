@@ -66,6 +66,12 @@ environmental requirements."
   :group 'talkapp
   :type  'string)
 
+(defcustom talkapp-keys-file-name "~/.ssh/auth-keys"
+  "The filename of the authorized keys."
+  :group 'talkapp
+  :type  'string)
+
+
 (defconst talkapp/db-change-db
   (db-make
    `(db-hash
@@ -867,7 +873,6 @@ If there are people selected then make the channel private."
      httpcon (concat talkapp-dir "chat.html")
      :replacements 'talkapp/chat-templater)))
 
-
 ;; Not happy with this... want the username to be the key but not part
 ;; of the form
 (defconst talkapp-keysform
@@ -881,8 +886,11 @@ If there are people selected then make the channel private."
          :check-failure "just the main part of the key"))
   "Make a key form")
 
+(defun talkapp/keys-ssh-auth (username fn)
+  "Turn USERNAME keys into auth-keys lines into FN.
 
-(defun talkapp/keys-ssh-update (username)
+FN is called with the talkapp key id (which is
+\"username:key-name\") and the key-line."
   (let* ((user-rec (db-get username talkapp/user-db))
          (org-rec (db-get (aget user-rec "org") talkapp/org-db))
          (key-rec (db-get username talkapp/keys-db))
@@ -892,15 +900,39 @@ If there are people selected then make the channel private."
       (destructuring-bind (server port)
           (talkapp/irc-server->pair (aget org-rec "irc-server"))
         (loop for (name . key-text) in key-rec
-           concat
-             (format
-              "command=\"%s %s %s %d %s\" %s"
-              talkapp-keys-program-home
-              username
-              server
-              port
-              password
-              key-text))))))
+           do
+             (let ((key-id (concat username ":" name)))
+               (funcall fn key-id
+                        (format
+                         "command=\"%s %s %s %d %s\" %s %s"
+                         talkapp-keys-program-home
+                         username
+                         server
+                         port
+                         password
+                         key-text
+                         key-id))))))))
+
+(defun talkapp/keys-ssh-file (username)
+  "Ensure USERNAME keys are written to the auth-file."
+  (with-current-buffer (find-file-noselect talkapp-keys-file-name)
+    (save-excursion
+      (talkapp/keys-ssh-auth
+       username
+       (lambda (key-id key-line)
+         (goto-char (point-min))
+         (unless (re-search-forward (concat key-id "$") nil t)
+           (goto-char (point-max))
+           (insert key-line "\n")))))
+    (save-buffer)))
+
+(defun talkapp-keys-sync ()
+  "Flush the keys database to the keys file."
+  (interactive)
+  (db-map
+   (lambda (username value)
+     (talkapp/keys-ssh-file username))
+   talkapp/keys-db))
 
 (defun talkapp/key-add (username name text)
   "Add a new key to the db for USERNAME."

@@ -137,18 +137,21 @@
      (talkapp/irc-details
       "testuser2" "secret" "test2@test.org")))))
 
-(ert-deftest talkapp/keys-ssh-update ()
+(ert-deftest talkapp/keys-ssh-auth ()
   (talkapp/mock-db
     (talkapp/test-make-user-and-org)
     (talkapp/key-add "testuser2" "test-key" "AAANDNBDb3223bdanbbdnad== nic")
     (should
      (equal
       (let ((talkapp-keys-program-home "/bin/ssh-irc"))
-        (talkapp/keys-ssh-update "testuser2"))
+        (talkapp/keys-ssh-auth
+         "testuser2"
+         ;; just return the key-line
+         (lambda (key-id key-line) key-line)))
       (concat
        "command=\"/bin/ssh-irc "
        "testuser2 testorg-irc.teamchat.net 6901 secret\" "
-       "AAANDNBDb3223bdanbbdnad== nic")))))
+       "AAANDNBDb3223bdanbbdnad== nic testuser2:test-key")))))
 
 (ert-deftest talkapp-start-session-config ()
   "Test the shoes-off config abstraction."
