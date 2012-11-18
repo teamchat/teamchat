@@ -902,16 +902,21 @@ FN is called with the talkapp key id (which is
         (loop for (name . key-text) in key-rec
            do
              (let ((key-id (concat username ":" name)))
-               (funcall fn key-id
-                        (format
-                         "command=\"%s %s %s %d %s\" %s %s"
-                         talkapp-keys-program-home
-                         username
-                         server
-                         port
-                         password
-                         key-text
-                         key-id))))))))
+               (funcall
+                fn key-id
+                (format
+                 "command=\"%s %s %s %d %s\",permitopen=\"%s:%s\" %s %s"
+                 talkapp-keys-program-home
+                 username
+                 ;; the command server and port
+                 server
+                 shoes-off-server-port
+                 password
+                 ;; the permit open server and port
+                 "localhost"
+                 shoes-off-server-port
+                 key-text
+                 key-id))))))))
 
 (defun talkapp/keys-ssh-file (username)
   "Ensure USERNAME keys are written to the auth-file."

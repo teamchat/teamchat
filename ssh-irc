@@ -5,19 +5,39 @@ SERVER=$2
 PORT=$3
 PASSWORD=$4
 
-mkdir -p /tmp/ssh-irc/pid
-echo $1 >> /tmp/ssh-irc/pid/$PPID
-
 COMMAND=$SSH_ORIGINAL_COMMAND
 
+
+# Setup some environment
+
+mkdir -p /tmp/ssh-irc/pid
+
+PIDFILE=/tmp/ssh-irc/pid/$PPID
+echo $1 >> $PIDFILE
+
+mkdir -p ~/irssi-configs
+
+
+function make_irssi 
+{
+cp $(dirname $0)/irssi-config-standard ~/irssi-configs/$USERNAME
+cat <<EOF >> ~/irssi-configs/$USERNAME
+settings = { core = {  user_name = "$USERNAME"; nick = "$USERNAME"; }; };
+EOF
+}
+
+# Now handle the commands
 case $COMMAND in 
     # just connect to irc
     "irc")
+	echo if you are doing port forwarding you can connect your irc client now.
         ;;
 
     # boot irssi
     "irssi")
-        irssi -c $SERVER -p $PORT -n $USERNAME -w $PASSWORD
+	[ ! -f ~/irssi-configs/$USERNAME ] && make_irssi $USERNAME
+        irssi --config=~/irssi-configs/$USERNAME -c $SERVER -p $PORT -n $USERNAME -w $PASSWORD
+	rm -f $PIDFILE
         ;;
 
     # send a chat chats
