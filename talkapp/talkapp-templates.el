@@ -49,10 +49,15 @@
             <li><a href='/site/developers/'>Developers</a></li>
             <li><a href='/site/contact/'>Contact</a></li>
         </ul>
-
         <ul class='inline-list'>
             <li><a href='/site/terms/'>Terms and conditions</a></li>
             <li><a href='/site/FAQ/'>FAQ</a></li>
+            <li><a target='_new'
+                   href='http://facebook.com/teamchatnet'>Facebook</a></li>
+            <li><a target='_new'
+                   href='http://twitter.com/teamchatnet'>Twitter</a></li>
+            <li><a target='_new'
+                   href='http://github.com/teamchat/teamchat'>Github</a></li>
         </ul>
     </div>
 </footer>

@@ -31,11 +31,15 @@
 
 (defun talkapp-do-elpakit-to-livenet ()
   (interactive)
+  ;; I have a special key and ssh config to make this work
+  ;;
+  ;;   Host www.teamchat.net
+  ;;   User teamchat
+  ;;   IdentityFile ~/.ssh/teamchatuser.pub
   (let ((remote
-         "/ssh:teamchat@po1.ferrier:teamchat.net/shoesoff-elpa/"))
+         "/ssh:www.teamchat.net:teamchat.net/shoesoff-elpa/"))
     (delete-directory remote t)
     (elpakit remote shoes-off-elpakit)))
-
 
 ;; Inside your emacs
 (defun talkapp-do-elpakit-eval ()
