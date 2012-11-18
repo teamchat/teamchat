@@ -1,3 +1,4 @@
+{{http://www.teamchat.net/-/logo.jpg}}
 teamchat is a new application to help teams communicate. teamchat
 combines an irc bouncer, a web application as well as irc robots and
 online video.
