@@ -1,0 +1,9 @@
+teamchat is a new application to help teams communicate. teamchat
+combines an irc bouncer, a web application as well as irc robots and
+online video.
+
+It is written completely in EmacsLisp.
+
+
+//While the software is Free Software we do not intend to support it
+outside of the service we are providing.//
