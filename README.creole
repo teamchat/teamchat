@@ -10,5 +10,5 @@ It is written completely in EmacsLisp.
 * {{{talkapp}}} contains the application as an elpakit.
 * {{{build.el}}} contains elpakit installation form
 
-//While the software is Free Software we do not intend to support it
-outside of the service we are providing.//
+//Teamchat is licenced under the terms of the GNU GPL a copy of which
+is included in this repository.//
