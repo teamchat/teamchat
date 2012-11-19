@@ -6,7 +6,8 @@
             (anaphora "0.0.6")
             (esxml "0.0.7")
             (rcirc-ssh "0.0.7")
-            (uuid "0.0.3"))
+            (uuid "0.0.3")
+            (kv "0.0.10"))
  :files ("talkapp.el" 
          "talkapp-templates.el"
          "db-setup.el"
