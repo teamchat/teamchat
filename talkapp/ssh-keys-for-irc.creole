@@ -83,4 +83,51 @@ textarea. Then press the //add// button and you should be done.
 
 == Connecting to IRC with SSH ==
 
-To connect to IRC with the SSH 
+To connect to IRC with the SSH you can follow one of two methods:
+
+=== SSHing straight in ===
+
+We have [[http://www.irssi.org/|{{{irssi}}}]] installed on the
+teamchat servers so you can connect directly with that in a shell:
+
+
+{{{
+ssh teamchat@irc.teamchat.net irssi
+}}}
+
+or if you use a speccial key it might look like this:
+
+{{{
+ssh -i ~/.ssh/myteamchatkey teamchat@irc.teamchat.net irssi
+}}}
+
+=== Using a tunnel ===
+
+If you want to use your own tunnel for connecting with ssh you can do
+that like this:
+
+
+{{{
+ssh -L 6907:irc.teamchat.net:6907 teamchat@irc.teamchat.net irc
+}}}
+
+You can also use your SSH config file to make much of that
+disappear. I use the following config:
+
+{{{
+Host irc.teamchat.net
+User teamchat
+LocalCommand irc
+}}}
+
+with the following command:
+
+{{{
+ssh -L 6907:irc.teamchat.net:6907 irc.teamchat.net
+}}}
+
+You can do a lot more with SSH config.
+
+If you are using Emacs and {{{rcirc}}} as your IRC client then you can
+use the [[http://github.com/nicferrier/rcirc-ssh|{{{rcirc-ssh}}}]]
+program to setup the SSH tunnel for your IRC session.
