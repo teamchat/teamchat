@@ -48,4 +48,6 @@
          "bootstrap.js" 
          "bootstrap.css" 
          "bootstrap-responsive.css"
+         "bootstrap-lightbox.css"
+         "bootstrap-lightbox.js"
          "favicon.ico"))

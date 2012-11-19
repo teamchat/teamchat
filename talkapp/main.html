@@ -2,9 +2,34 @@
 <head>
 <!##E head E##!>
 <!##E host-head E##!>
+<link rel="stylesheet" type="text/css" href="/-/bootstrap-lightbox.css"/>
 <title>teamchat.net - comprehensive communications for your team</title>
 </head>
 <body>
+<div id="demolightbox1" 
+     class="lightbox hide fade" 
+     tabindex="-1" role="dialog" aria-hidden="true">
+    <div class='lightbox-header'><button type="button" class="close" data-dismiss="lightbox" aria-hidden="true">&times;</button></div>
+    <div class='lightbox-content'>
+        <img src="/-/mainpage-big-1.png"/>
+    </div>
+</div>
+<div id="demolightbox2" 
+     class="lightbox hide fade" 
+     tabindex="-1" role="dialog" aria-hidden="true">
+    <div class='lightbox-header'><button type="button" class="close" data-dismiss="lightbox" aria-hidden="true">&times;</button></div>
+    <div class='lightbox-content'>
+        <img src="/-/mainpage-big-2.png"/>
+    </div>
+</div>
+<div id="demolightbox3" 
+     class="lightbox hide fade" 
+     tabindex="-1" role="dialog" aria-hidden="true">
+    <div class='lightbox-header'><button type="button" class="close" data-dismiss="lightbox" aria-hidden="true">&times;</button></div>
+    <div class='lightbox-content'>
+        <img src="/-/mainpage-big-3.png"/>
+    </div>
+</div>
 <div class="container">
     <div class="hero-unit">
         <div class="pull-right" id="login">
@@ -38,17 +63,18 @@
     </div>
     <div id="imgs" class="row">
         <div class="span4">
-            <a href="/-/mainpage-big-1.png"><img class="mainpage-img" src="/-/mainpage-1.jpg"/></a>
+            <a data-toggle="lightbox" href="#demolightbox1"><img class="mainpage-img" src="/-/mainpage-1.jpg"/></a>
         </div>
         <div class="span4">
-            <a href="/-/mainpage-big-2.png"><img class="mainpage-img" src="/-/mainpage-2.jpg"/></a>
+            <a data-toggle="lightbox" href="#demolightbox2"><img class="mainpage-img" src="/-/mainpage-2.jpg"/></a>
         </div>
         <div class="span4">
-            <a href="/-/mainpage-big-3.png"><img class="mainpage-img" src="/-/mainpage-3.jpg"/></a>
+            <a data-toggle="lightbox" href="#demolightbox3"><img class="mainpage-img" src="/-/mainpage-3.jpg"/></a>
         </div>
 
     </div>
 <!##E footer E##!>
+<script src="/-/bootstrap-lightbox.js" language="Javascript"></script>
 </body>
 <script type="text/javascript">
 
