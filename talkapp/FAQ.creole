@@ -35,7 +35,7 @@ Not yet. But we hope to be.
 
 === How do you make money? ===
 
-We don't. Ye. But we plan 2 models:
+We don't. Yet. But we plan 2 models:
 
 * buying access to our service over the Internet
 * buying a copy of our software to install inside your firewall
@@ -63,7 +63,7 @@ what you want to hear: you can still use the IRC interface by using
 SSH port forwarding. If you are using a OSX or Linux you can do this:
 
 {{{
-ssh -NL 6667:localhost:6667 your-username@your-team-chat.teamchat.net
+ssh -NL 6667:localhost:6667 teamchat@irc.teamchat.net irc
 }}}
 
 If you are using Windows you can use the [[http://putty.com|Putty program]] 
