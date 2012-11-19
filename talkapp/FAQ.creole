@@ -40,10 +40,20 @@ We don't. Yet. But we plan 2 models:
 * buying access to our service over the Internet
 * buying a copy of our software to install inside your firewall
 
+=== What will I do if you go out of business? ===
+
+The software is free software so you could support it yourself, or
+find others to do so.
+
 === Is your software easy to install? ===
 
 Yes. It's just a [[http://vagrantup.com|virtual machine image]]. You
 just download it, turn it on, set a few variables and it runs.
+
+=== Can I run my own? ===
+
+You can, if you want. But you can also pay us to make it work for you
+and make any customizations you need.
 
 === What is IRC? ===
 
