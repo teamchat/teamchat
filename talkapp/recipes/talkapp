@@ -10,6 +10,7 @@
             (kv "0.0.10"))
  :files ("talkapp.el" 
          "talkapp-templates.el"
+         "talkapp-utils.el"
          "db-setup.el"
          "robots.txt"
          "main.html" 
