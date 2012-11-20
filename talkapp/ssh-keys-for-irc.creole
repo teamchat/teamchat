@@ -61,12 +61,19 @@ then paste it into teamchat's key upload, see the next section.
 
 === Microsoft Windows ===
 
-Hey. Use Putty. I guess we need pictures.
+Use Putty. I guess we need pictures.
+
+Using Putty is beyond the scope of this tutorial right now.
+
+Here are some useful links:
+
+* [[http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html|Putty download]]
+* [[http://dafis.ucdavis.edu/install/sftp/PuttyGen.cfm|Generating keys with Putty]]
 
 
 === GNU/Linux ===
 
-Use ssh-keygen.
+Use ssh-keygen to generate your keys, as for Apple Mac OSX.
 
 
 == Uploading your key to teamchat ==
@@ -90,16 +97,18 @@ To connect to IRC with the SSH you can follow one of two methods:
 We have [[http://www.irssi.org/|{{{irssi}}}]] installed on the
 teamchat servers so you can connect directly with that in a shell:
 
-
 {{{
-ssh teamchat@irc.teamchat.net irssi
+ssh -t teamchat@irc.teamchat.net irssi
 }}}
 
-or if you use a speccial key it might look like this:
+or if you use a special key it might look like this:
 
 {{{
-ssh -i ~/.ssh/myteamchatkey teamchat@irc.teamchat.net irssi
+ssh -ti ~/.ssh/myteamchatkey teamchat@irc.teamchat.net irssi
 }}}
+
+The {{{-t}}} is necessary to create a terminal in which to view the
+remote irc client.
 
 === Using a tunnel ===
 
