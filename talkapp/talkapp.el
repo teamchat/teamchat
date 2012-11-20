@@ -561,8 +561,9 @@ If this variable is not bound or bound and t it will eval."
 (defun talkapp/list-since-mins-ago (minutes buffer-name)
   "Return all the chat since MINUTES ago."
   (let* ((time-to-find
-          (time-subtract (current-time)
-                         (seconds-to-time (* minutes 60)))))
+          (time-subtract
+           (current-time)
+           (seconds-to-time (* minutes 60))))) ; seconds
     (talkapp/list-since time-to-find  buffer-name)))
 
 (defun talkapp/date->id (date)
