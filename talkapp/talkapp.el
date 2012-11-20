@@ -101,7 +101,8 @@ timestamp in the kill-ring.")
      ,(expand-file-name
        (concat
         (file-name-as-directory talkapp-db-dir)
-        "org-db"))))
+        "org-db"))
+     :query-equal kvassoc=))
   "The organization list.
 
 Contains the following fields:
@@ -119,7 +120,8 @@ Contains the following fields:
      ,(expand-file-name
        (concat
         (file-name-as-directory talkapp-db-dir)
-        "auth-db"))))
+        "auth-db"))
+     :query-equal kvassoc=))
   "The database where we store authentication details.")
 
 (defconst talkapp/email-valid-db
