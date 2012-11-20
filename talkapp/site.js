@@ -8,6 +8,16 @@ var talkapp =
          var blurred = false;
          if (debug) { console.log("video-server: " + video_server); }
 
+         var toggle_debug = function (state) {
+             if (state === undefined) {
+                 // Just toggle
+                 debug = ! debug;
+             }
+             else {
+                 debug = state;
+             }
+         };
+
          // Init the carousel
          var carousel_boot = function () {
              $("#carousel").carouFredSel(
@@ -522,6 +532,7 @@ var talkapp =
 
          // Return public API in an object
          return {
+             toggle_debug: toggle_debug,
              channels: channels
          };
      })();
