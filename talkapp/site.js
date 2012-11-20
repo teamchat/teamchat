@@ -280,6 +280,13 @@ var talkapp =
              else {
                  channel = channel + " ";
              }
+
+             // Turn off the empty chat message if it's there
+             if (data.length > 0 && $("#empty-chat").length > 0) {
+                 $("#empty-chat").addClass("hidden");
+             }
+
+             // and display each one
              $.each(data,
                     function (key, arr) {
                         var looked_up = $("#" + key);

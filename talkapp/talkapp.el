@@ -640,7 +640,10 @@ TESTING is possible with this by turning off `talkapp-irc-provision'."
              (esxml-to-xml
               (apply 'talkapp/entry->html entry)))
         ;; Else send some appropriate xml
-        (esxml-to-xml '(div ((id . "empty-chat")) "no chat")))))
+        (esxml-to-xml
+         `(div ((id . "empty-chat"))
+           ,(format "no chat in the last %s minutes"
+                    talkapp/default-chat-history-minutes))))))
 
 (defun talkapp/since-list->htmlable (since-list)
   "Convert SINCE-LIST into something with HTML IDs."
