@@ -912,7 +912,7 @@ FN is called with the talkapp key id (which is
                (funcall
                 fn key-id
                 (format
-                 "command=\"%s %s %s %d %s\",permitopen=\"%s:%s\" %s %s"
+                 "command=\"%s %s %s %s %s\",permitopen=\"%s:%s\" %s %s"
                  talkapp-keys-program-home
                  username
                  ;; the command server and port
