@@ -591,7 +591,8 @@ If this variable is not bound or bound and t it will eval."
        ((class . "message"))
        ,(replace-regexp-in-string "\\\\" "/" message)))))
 
-(defconst talkapp/default-chat-history-minutes 60)
+(defconst talkapp/default-chat-history-minutes 60
+  "Number of minutes of history to display on the webclient.")
 
 (defun talkapp/chat-list (channel)
   "Make a list of the CHANNEL chatter."
