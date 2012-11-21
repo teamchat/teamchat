@@ -13,6 +13,12 @@
                 (list (cons "username" username)
                       (cons "password" pword)
                       (cons "email" email)))))
+    ;; Force the valid
+    (db-put
+     username
+     (acons "valid" t
+            (db-get username talkapp/user-db)) talkapp/user-db)
+    ;; Update the key
     (when sshkey
       (talkapp/key-save username "default" sshkey))))
 
