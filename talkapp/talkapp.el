@@ -1182,28 +1182,35 @@ user."
           (smtpmail-smtp-service "smtp")
           (mail-host-address "teamchat.com")
           (mail-user-address "registration")
-          (message-send-mail-function 'message-send-mail-with-sendmail))
+          (message-send-mail-function 'message-send-mail-with-sendmail)
+          (send-message-p t))
       (message
        "sending reg mail to %s via %s including reg %s"
        username email email-hash)
-      (if (equal org "launch")
-          (progn
-            (compose-mail
-             (format "%s <%s>" username email) ; email
-             (format "your teamchat.net account!")) ; subject
-            (insert "thanks for registering on teamchat!\n")
-            (insert "we will get back to you when we go live!\n")
-            (insert "\nThanks!\nThe teamchat.net team"))
-          (compose-mail
-           (format "%s <%s>" username email) ; email
-           (format "validate your teamchat.net account!")) ; subject
-          (insert "thanks for registering on teamchat!\n")
-          (insert "to validate your email please click on the following link.\n")
-          (insert
-           (format "\nhttp://%s/validate/%s/\n\n" host email-hash))
-          (insert "Thanks!\nThe teamchat.net team"))
-      (message-send)
-      (kill-buffer))))
+      (cond
+        ;; Test org
+        ((string-match "^[a-z]+test[0-9]+" org)
+         ;; Don't send a message at all
+         (setq send-message-p nil))
+        ;; Live launch stuff
+        ((equal org "launch")
+         (compose-mail
+          (format "%s <%s>" username email) ; email
+          (format "your teamchat.net account!")) ; subject
+         (insert "thanks for registering on teamchat!\n")
+         (insert "we will get back to you when we go live!\n")
+         (insert "\nThanks!\nThe teamchat.net team"))
+        ;; Normally we do this
+        (t
+         (compose-mail
+          (format "%s <%s>" username email) ; email
+          (format "validate your teamchat.net account!")) ; subject
+         (insert "thanks for registering on teamchat!\n")
+         (insert "to validate your email please click on the following link.\n")
+         (insert
+          (format "\nhttp://%s/validate/%s/\n\n" host email-hash))
+         (insert "Thanks!\nThe teamchat.net team")))
+      (when send-message-p (message-send) (kill-buffer)))))
 
 (defun talkapp-registered-handler (httpcon)
   "The registered page.
