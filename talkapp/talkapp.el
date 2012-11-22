@@ -66,10 +66,17 @@ environmental requirements."
   :group 'talkapp
   :type  'string)
 
-(defcustom talkapp-keys-file-name "~/.ssh/auth-keys"
+(defcustom talkapp-ngircd-configs-dir
+  "~/ngircd-configs"
+  "The location of the ngircd configs."
+  :group 'talkapp
+  :type 'directory)
+
+(defcustom talkapp-keys-file-name
+  "~/.ssh/auth-keys"
   "The filename of the authorized keys."
   :group 'talkapp
-  :type  'string)
+  :type  'file)
 
 
 (defconst talkapp/db-change-db
@@ -154,6 +161,9 @@ and store the username and the email.")
    (cons "footer" talkapp-template/body-footer))
   "List of template variables.")
 
+(defconst talkapp-cookie-name "talkapp-user"
+  "The name of the cookie we use for auth.")
+
 
 ;; Template function
 
@@ -206,6 +216,25 @@ Mixes in org specific CSS if it can be found via HTTPCON or
         keys)))
 
 
+(defun talkapp/port-next ()
+  "Return the next avaiable port."
+  (with-current-buffer
+      (find-file-noselect
+       (concat
+        (file-name-as-directory talkapp-ngircd-configs-dir)
+        ".ports"))
+    (goto-char (point-max))
+    (let ((new-port
+           (+ 1 (if (re-search-backward "^Port \\([0-9]+\\)" nil t)
+                    (string-to-number (match-string 1))
+                    ;; Else use the first one
+                    7002)))) ; we pre-allocated these
+      (goto-char (point-max))
+      (insert (format "Port %d\n" new-port))
+      (save-buffer)
+      new-port)))
+
+
 ;; Org function
 
 (defun* talkapp/org-new (org-name
@@ -254,12 +283,87 @@ Try EMAIL first (by pulling out the domain) and then HTTP-HOST."
         ;; Else return the whole org-record
         org-record)))
 
+(defun talkapp/template-ngircd-conf (org-record)
+  "Make an ORG-RECORD specific ngircd.conf.
 
-;; Auth cookie constants
+Return the filename of the config file."
+  (let* ((org-name (aget org-record "name"))
+         (irc-server (aget org-record "irc-server"))
+         (irc-server-pair (split-string irc-server ":"))
+         (irc-port (cadr irc-server-pair))
+         (conf-dir (file-name-as-directory talkapp-ngircd-configs-dir))
+         (config-file (concat conf-dir org-name ".conf"))
+         (motd-file (concat conf-dir org-name ".motd"))
+         (pid-file (concat conf-dir org-name ".pid"))
+         (server-name (concat org-name ".teamchat.net"))
+         (info (format "The %s team ircd" org-name))
+         (password (concat "secret" (number-to-string (random 1000))))
+         ;; The template variable list
+         (vars-alist
+          `(("SERVERNAME" . ,server-name)
+            ("INFO"       . ,info)
+            ("PASSWORD"   . ,password)
+            ("PORT"       . ,irc-port)
+            ("MOTDFILE"   . ,motd-file)
+            ("PIDFILE"    . ,pid-file))))
+    (unless (file-exists-p conf-dir)
+      (make-directory conf-dir t))
+    (with-current-buffer (find-file-noselect motd-file)
+      (insert "your new teamchat.net server is online!")
+      (save-buffer))
+    ;; Replace all the variables
+    (with-current-buffer
+        (find-file-noselect
+         (concat
+          (file-name-as-directory talkapp-dir)
+          "ngircd-template.conf"))
+      (goto-char (point-min))
+      (while (re-search-forward "$\\([A-Z_-]+\\)" nil t)
+        (let* ((variable (match-string 1))
+               (value (aget vars-alist variable)))
+          (when value
+            (replace-match value t))))
+      ;; Write the file, renames the buffer
+      (write-file config-file)
+      config-file)))
 
-(defconst talkapp-cookie-name "talkapp-user"
-  "The name of the cookie we use for auth.")
+(defun talkapp-ngircd-boot (org)
+  "Boot the irc server for the ORG."
+  (interactive
+   (list (read-from-minibuffer "org-name: ")))
+  (let* ((org-record (db-get org talkapp/org-db))
+         (conf-dir (file-name-as-directory talkapp-ngircd-configs-dir))
+         (org-name (aget org-record "name"))
+         (config-file (concat conf-dir org-name ".conf"))
+         (proc-name (format "*irc-server-%s*" org-name )))
+    (unless (file-exists-p config-file)
+      (talkapp/template-ngircd-conf org-record))
+    (start-process
+     proc-name proc-name
+     "/usr/sbin/ngircd" "-f" (expand-file-name config-file) "-n")))
 
+(defun talkapp-make-org (org-name)
+  "Make an org based on ORG-NAME.
+
+Does everything from the ORG-NAME including: saving the org
+record, allocating the port, making the ircd config and starting
+the irc server."
+  ;; FIXME should also allocate the robot
+  (interactive
+   (list (read-from-minibuffer "new org-name: ")))
+  (let* ((match-host (format "%s.teamchat.net" org-name))
+         (domain-name match-host)
+         (irc-port (talkapp/port-next))
+         (irc-server (format "irc.teamchat.net:%d" irc-port))
+         (primary-channel (format "#%s" org-name))
+         (org-record
+          (talkapp/org-new org-name
+                           :match-host match-host
+                           :domain-name domain-name
+                           :irc-server irc-server
+                           :primary-channel primary-channel)))
+    (talkapp-ngircd-boot (aget org-record "name"))
+    org-record))
 
 ;; IRC setup stuff
 
