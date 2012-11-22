@@ -13,6 +13,7 @@
          "talkapp-utils.el"
          "db-setup.el"
          "robots.txt"
+         "ngircd-template.conf"
          "main.html" 
          "registered.html" 
          "register.html" 
