@@ -152,6 +152,7 @@ textarea[name=keytext] {
 #carousel {
     margin-left: 10px;
     margin-right: 10px;
+    height: 800px;
 }
 
 #chat-panel {
