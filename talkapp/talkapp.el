@@ -398,12 +398,6 @@ present it's not possible to connect someone."
 
 ;; Rcirc stuff
 
-;; this should really be picked up from the org?
-(defcustom talkapp/rcirc-connect-with-ssh t
-  "Connect with ssh or not."
-  :group 'talkapp
-  :type 'boolean)
-
 (defun talkapp-rcirc-connect (server
                               &optional port nick user-name
                                 full-name startup-channels password encryption)
@@ -411,33 +405,18 @@ present it's not possible to connect someone."
 
 This ensures that bouncer sessions are namespaced with the user's
 name."
-  (let ((ons-func (symbol-function 'open-network-stream)))
+  (let ((ons-func (symbol-function 'open-network-stream))
+        ;; We don't use passwords to connect to the irc but ngircd
+        ;; requires them
+        (password ""))
     (flet ((open-network-stream
                (name buffer host service &rest parameters)
              ;; Override to ensure buffers are namespaced
              (let ((proc-name (concat name "~" user-name)))
                (funcall ons-func proc-name buffer host service parameters))))
-      (if talkapp/rcirc-connect-with-ssh
-          (flet ((rcirc-ssh--get-key (server port nick user-name)
-                   ;; Override ssh key finding to find the key for the user
-                   (expand-file-name (format "~/ircdkeys/%s" user-name))))
-            (rcirc-ssh-connect server
-                               port
-                               nick
-                               user-name
-                               full-name
-                               startup-channels
-                               password
-                               encryption))
-          ;; else do without ssh
-          (rcirc-connect server
-                         port
-                         nick
-                         user-name
-                         full-name
-                         startup-channels
-                         "" ; We don't use passwords internally
-                         encryption)))))
+      (rcirc-connect server port
+                     nick user-name full-name
+                     startup-channels password encryption))))
 
 (defun talkapp/rcirc-send (channel-buffer data)
   "Send DATA to CHANNEL-BUFFER."
