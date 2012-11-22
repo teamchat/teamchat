@@ -679,10 +679,9 @@ If this variable is not bound or bound and t it will eval."
 
 (defun talkapp/chat-list (channel)
   "Make a list of the CHANNEL chatter."
-  (reverse
-   (talkapp/list-since-mins-ago
-    talkapp/default-chat-history-minutes
-    channel)))
+  (talkapp/list-since-mins-ago
+   talkapp/default-chat-history-minutes
+    channel))
 
 (defun talkapp/get-irc-server (username)
   "Find the irc-server for USERNAME."
@@ -869,16 +868,25 @@ Either `closed' or `failed' is the same for this purpose."
       (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
       (elnode-http-return httpcon "enjoy the call"))))
 
-
 (defun talkapp-channel-messages (httpcon)
   "List the messages of the channel in JSON."
   (with-elnode-auth httpcon 'talkapp-auth
     (let* ((username (talkapp-cookie->user-name httpcon))
-           (email (aget (db-get username talkapp/user-db) "email"))
-           (channel (elnode-http-param httpcon "channel-name"))
+           (user-record (db-get username talkapp/user-db))
+           (email (aget user-record "email"))
+           (org-record (db-get (aget user-record "org") talkapp/org-db))
+           (main-channel (aget org-record "primary-channel"))
+           (channel (car
+                     (member-if
+                      (lambda (s) (not (equal s "")))
+                      (list
+                       (elnode-http-mapping httpcon 1)
+                       (or (elnode-http-param httpcon "channel-name") "")
+                       main-channel))))
+           (channel-name (talkapp/get-channel username channel))
            (messages (if talkapp-irc-provision
-                         (talkapp/chat-list channel)
-                         (talkapp/fake-chat-list username))))
+                         (talkapp/chat-list channel-name)
+                         (talkapp/fake-chat-list channel-name))))
       ;; FIXME - we should mark the user online
       (elnode-send-json httpcon messages :jsonp t))))
 
@@ -942,9 +950,7 @@ If there are people selected then make the channel private."
          (email (aget record "email")))
     (append
      (list
-      (cons
-       "messages"
-       (talkapp/list-to-html username))
+      ;;(cons "messages" (talkapp/list-to-html username))
       (cons
        "people"
        (talkapp/people-list username))
@@ -1290,8 +1296,8 @@ and directs you to validate."
        ("^[^/]*//user/session/" . talkapp-shoes-off-session)
        ("^[^/]*//user/chat/" . talkapp-chat-handler)
        ("^[^/]*//user/send/" . talkapp-chat-add-handler)
-       ("^[^/]*//user/channel-messages/" . talkapp-channel-messages)
-       ("^[^/]*//user/channel/" . talkapp-channel-handler)
+       ("^[^/]*//user/channeldata/\\(.*\\)/*" . talkapp-channel-messages)
+       ("^[^/]*//user/channel/$" . talkapp-channel-handler)
        ("^[^/]*//user/vidcall/" . talkapp-video-call-handler)
        ("^[^/]*//user/poll/" . talkapp-comet-handler)
        ("^[^/]*//user/keys/" . talkapp-keys-handler)

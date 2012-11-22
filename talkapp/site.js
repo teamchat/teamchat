@@ -358,6 +358,26 @@ var talkapp =
              );
          };
 
+         // For pulling back a lot of messages
+         var channel_messages = function (channel) {
+             var url = "/user/channeldata/";
+             if (typeof channel != "undefined") {
+                 url = url + "/" + channel + "/";
+             }
+             if (debug) { console.log("channel_messages for: " + url); }
+             $.ajax(
+                 { url: url,
+                   // We could use this for date?
+                   // data: { "channel-name": channel },
+                   dataType: "jsonp",
+                   success: function (data, status) {
+                       if (debug) { console.log("channel_messages back for: " + url); }
+                       do_messages(data, channel);
+                   }
+                 }
+             );
+         };
+
          var channel_open = function (channel) {
              console.log("channel open " + channel);
              $("#carousel").trigger(
@@ -374,15 +394,6 @@ var talkapp =
              );
              $("#" + channel + " h4 + form input[name=channel-name]").attr("value",channel);
              $("#carousel").trigger("next");
-             $.ajax(
-                 { url: "/user/channel-messages/",
-                   data: { "channel-name": channel },
-                   dataType: "jsonp",
-                   success: function (data, status) {
-                       do_messages(data, "#" + channel);
-                   }
-                 }
-             );
          };
 
          var channels = function () {
@@ -444,6 +455,7 @@ var talkapp =
 
          // If we should start the chat poller
          if (typeof talkapp_do_chat != "undefined") {
+             channel_messages();
              // Make the chat poller run
              setTimeout(chat_poll, 1000);
              // also urlize the chat panel everything
