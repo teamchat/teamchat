@@ -7,6 +7,9 @@ var talkapp =
          var my_nick = $("#mynick").text();
          var blurred = false;
          var audio_cookie = "teamchat-audio";
+         var chat_poll_time = 350 * 1000;
+         var chat_poll_timer = null;
+         var messages_callback = null;
          if (debug) { console.log("video-server: " + video_server); }
 
          var toggle_debug = function (state) {
@@ -317,13 +320,59 @@ var talkapp =
                             if (debug) { console.log("already got that one"); }
                         }
                     });
+             if ($.isFunction(messages_callback)) {
+                 messages_callback();
+                 messages_callback = null;
+             }
+         };
+
+         // Allow the time to be updated
+         var chat_poll_time_set = function (time) {
+             chat_poll_time = time;  
+             if (chat_poll_timer != null) {
+                 clearTimeout(chat_poll_timer);
+             }
+         };
+
+         var time_str = function (date) {
+             var hours = "" + date.getHours();
+             var mins = "" + date.getMinutes();
+             if (hours.length < 2) {
+                 hours = "0" + hours;
+             }
+             if (mins.length < 2) {
+                 mins = "0" + mins;
+             }
+             var time_string = hours + ":" + mins;
+             return time_string;
+         };
+
+         var chat_time = function () {
+             if ($("table tr:first-child").attr("class") != "chat_time") {
+                 var date = new Date();
+                 var last_time 
+                     = parseInt($(".chat_time").first().attr("data-time"));
+                 if (debug) { console.log("chat_time " + last_time); };
+                 if (isNaN(last_time) 
+                     || date.getTime() > (last_time/1000) + (15*60)) {
+                     $("<tr class='chat_time' "
+                       + "data-time='" +  date.getTime() + "'>"
+                       + "<td colspan='2'>" 
+                       + time_str(date)
+                       + "</td></tr>"
+                      ).insertBefore("table tr:first-child");
+                 }
+             }
+             else {
+                 if (debug) { console.log("chat_time - skipping"); };
+             }
          };
 
          var chat_poll = function () {
              $.ajax(
                  { url: '/user/poll/',
                    dataType: "jsonp",
-                   timeout: 350 * 1000,
+                   timeout: chat_poll_time,
                    success: function (data, status) {
                        // data key can be "message" or "user" or
                        // something else like "video"
@@ -349,13 +398,12 @@ var talkapp =
                              );
                    },
                    error: function (jqXHR, status) {
-                       if (debug) { console.log("poll returned status " + status); }
+                       if (debug) { console.log("chat_poll returned status " + status); }
+                       chat_time();
                    },
                    complete: function(jqXHR, status) {
                        // restart even if we failed
-                       if (!debug) {
-                       }
-                       setTimeout(chat_poll, 100);
+                       chat_poll_timer = setTimeout(chat_poll, 100);
                    }
                  }
              );
@@ -469,9 +517,22 @@ var talkapp =
                      $.cookie(audio_cookie, is_on, { expires: 365, path: '/user/chat/' });
                  }
              );
+
+             // Set the messages callback to something that will update
+             messages_callback = function (){
+                 var first_chat_row = $("table tr").last().prev();
+                 if (first_chat_row.length > 0) {
+                     var d = (/([0-9:-]+):[0-9]+/.exec(first_chat_row.attr("id"))[1]);
+                     $(".chat_time td").first().text(d);
+                 }
+                 else {
+                     $(".chat_time td").first().text(time_str(new Date()));
+                 }
+             };
              channel_messages();
+
              // Make the chat poller run
-             setTimeout(chat_poll, 1000);
+             chat_poll_timer = setTimeout(chat_poll, 1000);
              // also urlize the chat panel everything
              urlize("#chat-panel");
              // also collect gravatars
@@ -571,6 +632,7 @@ var talkapp =
          // Return public API in an object
          return {
              toggle_debug: toggle_debug,
+             chat_poll_time_set: chat_poll_time_set,
              channels: channels
          };
      })();

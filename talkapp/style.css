@@ -260,6 +260,18 @@ textarea[name=keytext] {
 
 /* chat-panel styles */
 
+.chat_time {
+    background-color: PaleGoldenRod;
+}
+
+.chat_time td {
+    width: 100%;
+    text-align: right;
+    line-height: .80em;
+    font-size: 8pt;
+    border: none;
+}
+
 table.chat {
     background-color: LemonChiffon;
     width: 100%;
