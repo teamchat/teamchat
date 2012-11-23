@@ -708,30 +708,7 @@ channel taken from the organisation record."
          (irc-server (talkapp/get-irc-server username)))
     (format "*%s~%s*" irc-server username)))
 
-(defun talkapp/list-to-html (username)
-  "Return the list of chat as rows for initial chat display.
-
-TESTING is possible with this by turning off `talkapp-irc-provision'."
-  (let* ((channel (talkapp/get-channel username))
-         (chat-list
-          (flet ((chat-list-fn (username)
-                   (if talkapp-irc-provision
-                       (talkapp/chat-list channel)
-                       (talkapp/fake-chat-list username))))
-            (chat-list-fn username))))
-    (if chat-list
-        (loop for entry in chat-list
-           if (equal 3 (length entry))
-           concat
-             (esxml-to-xml
-              (apply 'talkapp/entry->html entry)))
-        ;; Else send some appropriate xml
-        (esxml-to-xml
-         `(div ((id . "empty-chat"))
-           ,(format "no chat in the last %s minutes"
-                    talkapp/default-chat-history-minutes))))))
-
-(defun talkapp/since-list->htmlable (since-list)
+1(defun talkapp/since-list->htmlable (since-list)
   "Convert SINCE-LIST into something with HTML IDs."
   (loop
      for (date username msg) in since-list
@@ -950,7 +927,6 @@ If there are people selected then make the channel private."
          (email (aget record "email")))
     (append
      (list
-      ;;(cons "messages" (talkapp/list-to-html username))
       (cons
        "people"
        (talkapp/people-list username))
