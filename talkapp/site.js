@@ -6,6 +6,7 @@ var talkapp =
          var me = $("#myemail").text();
          var my_nick = $("#mynick").text();
          var blurred = false;
+         var audio_cookie = "teamchat-audio";
          if (debug) { console.log("video-server: " + video_server); }
 
          var toggle_debug = function (state) {
@@ -139,9 +140,13 @@ var talkapp =
          };
 
          var do_cough = function () {
-             var audioElement = document.createElement('audio');
-             audioElement.setAttribute('src', '/-/2012-11-05-220508.ogg');
-             audioElement.play();
+             var audio = $.cookie(audio_cookie);
+             if (debug) { console.log("do_cough audio = " + audio); }
+             if (audio == "true") {
+                 var audioElement = document.createElement('audio');
+                 audioElement.setAttribute('src', '/-/2012-11-05-220508.ogg');
+                 audioElement.play();
+             }
          };
 
          var do_incomming = function () {
@@ -284,6 +289,7 @@ var talkapp =
          };
 
          var do_messages = function (data, channel) {
+             if (debug) { console.log("messages " + data + " channel " + channel); }
              if (!channel) {
                  channel = "";
              }
@@ -303,9 +309,11 @@ var talkapp =
                         if (looked_up.length < 1) {
                             var username = arr[0];
                             var message = arr[1];
+                            if (debug) { console.log("messages " + username + " " + message); }
                             msg_template(
                                 key, username, message
                             ).insertBefore(channel + "table tr:first-child");
+                            if (debug) { console.log("messages call cough? " + blurred); }
                             if (blurred && username != my_nick) {
                                 do_cough();
                             }
@@ -326,7 +334,7 @@ var talkapp =
                        // something else like "video"
                        $.each(data,
                               function (key, arr) {
-                                  if (debug) { console.log("key=" + key + " arr=" + arr); }
+                                  if (debug) { console.log("chat_poll cb key=" + key + " arr=" + arr); }
                                   if (key == "message") {
                                       do_messages(arr);
                                   }
@@ -455,6 +463,17 @@ var talkapp =
 
          // If we should start the chat poller
          if (typeof talkapp_do_chat != "undefined") {
+             $("#ctrl-bar input[name=cough]").prop(
+                 "checked",
+                 $.cookie(audio_cookie)
+             );
+             $("#ctrl-bar input[name=cough]").on(
+                 "change",
+                 function (evt) {
+                     var is_on = $(evt.target).prop("checked");
+                     $.cookie(audio_cookie, is_on, { expires: 365, path: '/user/chat/' });
+                 }
+             );
              channel_messages();
              // Make the chat poller run
              setTimeout(chat_poll, 1000);
@@ -463,8 +482,20 @@ var talkapp =
              // also collect gravatars
              gravatarize();
              // also turn on blur notifications
-             $(window).on("blur", function (evt) { blurred = true; });
-             $(window).on("focus", function (evt) { blurred = false; });
+             $(window).on(
+                 "blur", 
+                 function (evt) { 
+                     if (debug) { console.log("blur - on"); }
+                     blurred = true;
+                 }
+             );
+             $(window).on(
+                 "focus", 
+                 function (evt) { 
+                     if (debug) { console.log("blur - off"); }
+                     blurred = false; 
+                 }
+             );
              // also turn on the carousel
              if (true) {
                  $(document).ready(carousel_boot);

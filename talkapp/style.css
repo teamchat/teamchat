@@ -6,6 +6,10 @@ a:visited {
     color: DarkSlateGrey;
 }
 
+input[type=checkbox] {
+    margin-bottom: 0.5em;
+}
+
 h1,h2,h3.h4 {
     color: DarkSlateGrey;
 }
@@ -175,16 +179,27 @@ textarea[name=keytext] {
     display: block;
     float: left;
     border-bottom: none;
-    height: 80px;
-    width: 80px;
+    height: 70px;
+    width: 70px;
     margin-left: 5px;
-    padding: 10px;
+    margin-right: 0px;
+    margin-bottom: 2px;
+    padding-left: 10px;
+    padding-right: 0px;
+    padding-top: 5px;
+    padding-bottom: 0px;
+    border: solid thin;
+}
+
+#gravatars abbr img {
+    height: 60px;
+    width: 60px;
 }
 
 #gravatars abbr a {
     position: relative;
-    top: -20px;
-    left: -5px;
+    top: -25px;
+    left: -2px;
 }
 
 .nick-select-hover {
