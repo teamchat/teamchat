@@ -36,6 +36,10 @@ input.input-xxlarge {
     color: #C1E14D;
 }
 
+.chat_time {
+    background-color: #4b5451;
+}
+
 table.chat {
     background-color: #4b5451;
     color: #C1E14D;
