@@ -706,7 +706,7 @@ channel taken from the organisation record."
   "Given a USERNAME return the channel name."
   (let* ((org (talkapp/get-org username))
          (irc-server (talkapp/get-irc-server username)))
-    (format "*%s~%s*" irc-server username)))
+    (format "%s~%s" irc-server username)))
 
 1(defun talkapp/since-list->htmlable (since-list)
   "Convert SINCE-LIST into something with HTML IDs."
