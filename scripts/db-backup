@@ -1,0 +1,7 @@
+#!/bin/bash
+
+DATE=$(date +'%Y%m%d%H%m')
+mkdir -p /home/teamchat/db-backups/$DATE
+cp -r /home/teamchat/talkapp-dbs /home/teamchat/db-backups/${DATE}
+
+# End
