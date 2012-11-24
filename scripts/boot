@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Start's talkapp's daemon
+
+DIR=$(cd $(dirname $0) ; cd .. ; pwd)
+DAEMON_NAME=teamchat
+
+case "$1" in 
+     check)
+        echo $DIR
+        ;;
+        
+     start)
+        ${DIR}/emacs-local/bin/emacs -Q --daemon=${DAEMON_NAME} -l ${DIR}/.emacs.d.teamchat/init.el
+        ;;
+
+     client)
+        ${DIR}/emacs-local/bin/emacsclient -s /tmp/emacs${UID}/${DAEMON_NAME} ${DIR}/.emacs.d.teamchat
+        ;;
+
+esac
+
+# End
