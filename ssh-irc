@@ -56,7 +56,7 @@ case $COMMAND in
         ;;
  
     *)
-        echo "unknown command"
+        echo "unknown command: " $COMMAND
         ;;
 
 esac
