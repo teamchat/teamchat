@@ -445,19 +445,28 @@ var talkapp =
              );
          };
 
-         var channel_form_attach = function () {
-             if (debug) { console.log("channel_form_attach connecting forms"); }
-             $(".channel-send").submit(
+         var form_attach = function (selector, callback) {
+             if (debug) { console.log("form_attach connecting forms"); }
+             $(selector).submit(
                  function (evt) {
-                     if (debug) { console.log("channe_form_attach target: ", evt.target); }
+                     if (debug) { console.log("form_attach target: ", evt.target); }
                      var data = $(evt.target).serialize();
-                     if (debug) { console.log("channel_form_attach data: ", data); }
-                     $.post(evt.target.action, 
-                            data, 
-                            function () { 
-                                evt.target.reset();
-                            }
-                           );
+                     if (debug) { console.log("form_attach data: ", data); }
+                     $.post(
+                         evt.target.action, 
+                         data, 
+                         function () { 
+                             console.log("form_attach success callback");
+                             evt.target.reset();
+                             try {
+                                 if ($.isFunction(callback)) { 
+                                     callback();
+                                 }
+                             } catch (x) {
+                                 if (debug) { console.log("form_attach success cb failed ", e); }
+                             }
+                         }
+                     );
                      return false;
                  }
              );
@@ -479,7 +488,7 @@ var talkapp =
              );
              $("#" + channel + " h4 + form input[name=channel-name]").attr("value",channel);
              $("#carousel").trigger("next");
-             channel_form_attach();
+             form_attach(".channel-send");
              channel_messages(channel);
          };
 
@@ -586,7 +595,7 @@ var talkapp =
                  $(document).ready(carousel_boot);
                  $(document).ready(
                      function (evt) {
-                         channel_form_attach();
+                         form_attach(".channel-send");
                      }
                  );
              }
@@ -667,7 +676,6 @@ var talkapp =
          return {
              toggle_debug: toggle_debug,
              chat_poll_time_set: chat_poll_time_set,
-             channel_form_attach: channel_form_attach,
              channels: channels
          };
      })();
