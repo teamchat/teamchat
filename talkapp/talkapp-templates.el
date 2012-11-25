@@ -10,6 +10,7 @@
         <div class=\"logo\">
             <h4>teamchat.net</h4>
             <p>all your communication needs</p>
+            <a href=\"/user/\">&lt;goto your profile&gt;</a>
         </div>
         <h1>TeamChat</h1>
     </div>
