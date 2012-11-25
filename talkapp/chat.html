@@ -7,8 +7,8 @@
 </head>
 <body>
 <!##E chat-header E##!>
-<a class="carousel-control left" href="#carousel" data-slide="prev">&lsaquo;</a>
-<a class="carousel-control right" href="#carousel" data-slide="next">&rsaquo;</a>
+<a class="carouselhidden carousel-control left" href="#carousel" data-slide="prev">&lsaquo;</a>
+<a class="carouselhidden carousel-control right" href="#carousel" data-slide="next">&rsaquo;</a>
 <div id="carousel" class="carousel slide row">
     <div id="chat-panel" class="span8">
         <h4>your team chat</h4>
@@ -60,18 +60,20 @@
                     to setup your photo
                 </p>
             </div>
-            <h4>
-                channels
-            </h4>
-            <div id="channels">
-                <input class="input-xxlarge"
-                       name="channel"
-                       type="text"
-                       placeholder="type the name of your new chat room"/>
-                <input class="btn" type="submit" name="make" value="make" />
+            <div class="carouselhidden">
+                <h4>
+                    channels
+                </h4>
+                <div id="channels">
+                    <input class="input-xxlarge"
+                           name="channel"
+                           type="text"
+                           placeholder="type the name of your new chat room"/>
+                    <input class="btn" type="submit" name="make" value="make" />
+                </div>
+                <ul id="channel-list">
+                </ul>
             </div>
-            <ul id="channel-list">
-            </ul>
         </form>
     </div>
 </div>
