@@ -14,7 +14,6 @@
             <li id="connect-to-chat" 
                 class="hidden"><a href="/user/chat/">go to your chat page</a></li>
         </ul>
-
         <div id="keys">
             <h4>your keys</h4>
             <p>If you wish to use teamchat.net via irc you can add SSH keys here.</p>
@@ -22,9 +21,9 @@
             <div class="panel hidden">
                 <table>
                 </table>
-                <form method="POST" 
-                      action="/user/keys/" 
-                      target="_sendtarget">
+                <form class="keysform"
+                      method="POST" 
+                      action="/user/keys/">
                     <legend>add a new key</legend>
                     <input type="text" 
                            class="input-large"

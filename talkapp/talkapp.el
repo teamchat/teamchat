@@ -1023,8 +1023,9 @@ FN is called with the talkapp key id (which is
 
 (defun talkapp/key-save (username key-name key-text)
   "Add and save the key."
-  (talkapp/key-add username key-name key-text)
-  (talkapp-keys-sync username))
+  (let ((keys (talkapp/key-add username key-name key-text)))
+    (talkapp-keys-sync username)
+    keys))
 
 (defun talkapp-keys-handler (httpcon)
   "Return the user's keys."
@@ -1037,9 +1038,9 @@ FN is called with the talkapp key id (which is
           (db-get username talkapp/keys-db):jsonp t))
         (POST
          (let* ((key-name (elnode-http-param httpcon "keyname"))
-                (key-text (elnode-http-param httpcon "keytext")))
-           (talkapp/key-save username key-name key-text)
-           (elnode-send-json httpcon new-keys :jsonp t)))))))
+                (key-text (elnode-http-param httpcon "keytext"))
+                (new-keys (talkapp/key-save username key-name key-text)))
+           (elnode-send-json httpcon new-keys)))))))
 
 ;; (let ((esxml-field-style :bootstrap))
 ;;   (esxml-form-handle

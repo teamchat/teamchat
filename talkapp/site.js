@@ -641,32 +641,39 @@ var talkapp =
              config();
          }
 
+         // Display the SSH keys
+         var do_keys_show = function () {
+             $("#keys .panel table").empty();
+             var keyrow = function (name, keytext) {
+                 keytext = keytext.substring(0,35) + "...";
+                 $("<tr>"
+                   + "<td>" + name + "</td>"
+                   + "<td>" + keytext + "</td></tr>\n"
+                  ).appendTo("#keys .panel table");
+             };
+             console.log("do_keys_show displaying keys");
+             $.ajax(
+                 { url: "/user/keys/",
+                   dataType: "jsonp",
+                   success:
+                   function (data, status) {
+                       if (data) {
+                           $.each(data, keyrow);
+                       }
+                   }
+                 }
+             );
+         };
+
          // Keys panel
          var keys_show = $("#keys .reveal");
          if (keys_show.length > 0) {
              keys_show.on(
                  "click",
                  function (evt) {
-                     var keyrow = function (name, keytext) {
-                         keytext = keytext.substring(0,35) + "...";
-                         $(
-                             "<tr>"
-                                 + "<td>" + name + "</td>"
-                                 + "<td>" + keytext + "</td></tr>\n"
-                         ).appendTo("#keys .panel table");
-                     };
                      $("#keys .reveal").addClass("hidden");
-                     $.ajax(
-                         { url: "/user/keys/",
-                           dataType: "jsonp",
-                           success:
-                           function (data, status) {
-                               if (data) {
-                                   $.each(data, keyrow);
-                               }
-                           }
-                         }
-                     );
+                     do_keys_show();
+                     form_attach(".keysform", do_keys_show);
                      $("#keys .panel").removeClass("hidden");
                  }
              );
