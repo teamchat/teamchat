@@ -36,13 +36,27 @@ var talkapp =
                          play: false,
                      },
                      prev: {
-                         key: "up",
+                         // key: "left",
                          items: 1,
                      },
                      next: {
-                         key: "down",
+                         // key: "right",
                          items: 1,
                      }
+                 }
+             );
+             $(".carousel-control").filter(".left").on(
+                 "click", 
+                 function (evt) {
+                     $("#carousel").trigger("prev");
+                     return false;
+                 }
+             );
+             $(".carousel-control").filter(".right").on(
+                 "click", 
+                 function (evt) {
+                     $("#carousel").trigger("next");
+                     return false;
                  }
              );
          };
@@ -301,25 +315,27 @@ var talkapp =
              }
 
              // and display each one
-             $.each(data,
-                    function (key, arr) {
-                        var looked_up = $("#" + key);
-                        if (looked_up.length < 1) {
-                            var username = arr[0];
-                            var message = arr[1];
-                            if (debug) { console.log("messages " + username + " " + message); }
-                            msg_template(
-                                key, username, message
-                            ).insertBefore(channel + "table tr:first-child");
-                            if (debug) { console.log("messages call cough? " + blurred); }
-                            if (blurred && username != my_nick) {
-                                do_cough();
+             if (data != null && $(data).length > 0) {
+                 $.each(data,
+                        function (key, arr) {
+                            var looked_up = $("#" + key);
+                            if (looked_up.length < 1) {
+                                var username = arr[0];
+                                var message = arr[1];
+                                if (debug) { console.log("messages " + username + " " + message); }
+                                msg_template(
+                                    key, username, message
+                                ).insertBefore(channel + "table tr:first-child");
+                                if (debug) { console.log("messages call cough? " + blurred); }
+                                if (blurred && username != my_nick) {
+                                    do_cough();
+                                }
                             }
-                        }
-                        else {
-                            if (debug) { console.log("already got that one"); }
-                        }
-                    });
+                            else {
+                                if (debug) { console.log("already got that one"); }
+                            }
+                        });
+             }
              if ($.isFunction(messages_callback)) {
                  messages_callback();
                  messages_callback = null;
@@ -429,6 +445,24 @@ var talkapp =
              );
          };
 
+         var channel_form_attach = function () {
+             if (debug) { console.log("channel_form_attach connecting forms"); }
+             $(".channel-send").submit(
+                 function (evt) {
+                     if (debug) { console.log("channe_form_attach target: ", evt.target); }
+                     var data = $(evt.target).serialize();
+                     if (debug) { console.log("channel_form_attach data: ", data); }
+                     $.post(evt.target.action, 
+                            data, 
+                            function () { 
+                                evt.target.reset();
+                            }
+                           );
+                     return false;
+                 }
+             );
+         };
+
          var channel_open = function (channel) {
              console.log("channel open " + channel);
              $("#carousel").trigger(
@@ -445,6 +479,8 @@ var talkapp =
              );
              $("#" + channel + " h4 + form input[name=channel-name]").attr("value",channel);
              $("#carousel").trigger("next");
+             channel_form_attach();
+             channel_messages(channel);
          };
 
          var channels = function () {
@@ -452,7 +488,6 @@ var talkapp =
                  { url: '/user/channel/',
                    dataType: "jsonp",
                    success: function (data, status) {
-                       $("#list-channels").addClass("hidden");
                        $.each(
                            data,
                            function (key, arr) {
@@ -474,14 +509,6 @@ var talkapp =
                  }
              );
          };
-
-         // Add the channels list
-         $("#list-channels").on(
-             "click", 
-             function (evt) {
-                 channels();
-             }
-         );
 
          // If we have an end-call button bind it
          var end_call = $("#end-call");
@@ -531,6 +558,8 @@ var talkapp =
              };
              channel_messages();
 
+             channels();
+
              // Make the chat poller run
              chat_poll_timer = setTimeout(chat_poll, 1000);
              // also urlize the chat panel everything
@@ -555,6 +584,11 @@ var talkapp =
              // also turn on the carousel
              if (true) {
                  $(document).ready(carousel_boot);
+                 $(document).ready(
+                     function (evt) {
+                         channel_form_attach();
+                     }
+                 );
              }
          }
 
@@ -633,6 +667,7 @@ var talkapp =
          return {
              toggle_debug: toggle_debug,
              chat_poll_time_set: chat_poll_time_set,
+             channel_form_attach: channel_form_attach,
              channels: channels
          };
      })();

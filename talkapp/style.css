@@ -23,6 +23,9 @@ h1,h2,h3.h4 {
     padding-right: 12px;
 }
 
+.carousel-control {
+    top: 10%;
+}
 
 body {
     font-family: sans-serif;
@@ -146,6 +149,12 @@ textarea[name=keytext] {
     margin: .1em;
 }
 
+.span8 {
+    /*border-left: solid thin;
+    border-right: solid thin;*/
+    padding-left: .5em;
+    padding-right: .5em;
+}
 
 /* Chat window styles */
 
