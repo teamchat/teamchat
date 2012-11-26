@@ -31,7 +31,9 @@ fieldset {
     background-color: #4b5451;
 }
 
-input.input-xxlarge {
+nput.input-large,
+input.input-xxlarge,
+textarea {
     background-color: #4b5451;
     color: #C1E14D;
 }
@@ -40,7 +42,7 @@ input.input-xxlarge {
     background-color: #4b5451;
 }
 
-table.chat {
+table {
     background-color: #4b5451;
     color: #C1E14D;
 }

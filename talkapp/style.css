@@ -108,7 +108,6 @@ fieldset input[type=submit] {
     margin-top: 1em;
     margin-bottom: 1em;
     width: 95%;
-    background-color: #eeeeee;
 }
 
 #keys .panel table td {
@@ -280,8 +279,11 @@ textarea[name=keytext] {
     color: DarkGrey;
 }
 
-table.chat {
+table {
     background-color: LemonChiffon;
+}
+
+table.chat {
     width: 100%;
     margin: 0;
 }
