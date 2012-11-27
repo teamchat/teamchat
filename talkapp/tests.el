@@ -150,7 +150,8 @@
          (lambda (key-id key-line) key-line)))
       (concat
        "command=\"/bin/ssh-irc "
-       "testuser2 testorg-irc.teamchat.net 6901 secret\" "
+       "testuser2 testorg-irc.teamchat.net 6901 secret\","
+       "permitopen=\"localhost:6901\" "
        "AAANDNBDb3223bdanbbdnad== nic testuser2:test-key")))))
 
 (ert-deftest talkapp-start-session-config ()
