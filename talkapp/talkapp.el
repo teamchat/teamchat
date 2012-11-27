@@ -253,8 +253,9 @@ PRIMARY-CHANNEL should include the #."
                   ("host" . ,match-host)
                   ("domain" . ,domain-name)
                   ("irc-server" . ,irc-server)
-                  ("primary-channel" . ,primary-channel)
-                  ("css" . ,css))))
+                  ("primary-channel" . ,primary-channel))))
+    (when css
+      (setq record (acons "css" css record)))
     (db-put org-name record talkapp/org-db)))
 
 (defun talkapp/get-my-org (email &optional http-host)
