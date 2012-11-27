@@ -1188,7 +1188,11 @@ user."
          (insert
           (format "\nhttp://%s/validate/%s/\n\n" host email-hash))
          (insert "Thanks!\nThe teamchat.net team")))
-      (when send-message-p (message-send) (kill-buffer)))))
+      (when send-message-p
+        (let ((ret (message-send)))
+          (set-buffer-modified-p nil)
+          (kill-buffer)
+          ret)))))
 
 (defun talkapp-registered-handler (httpcon)
   "The registered page.
