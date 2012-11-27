@@ -151,7 +151,7 @@
     (let (connected
           (shoes-off--sessions ; mock to an empty
            (make-hash-table :test 'equal)))
-      (flet ((shoes-off--get-config (username)
+      (flet ((shoes-off/get-config (username)
                (talkapp/get-shoes-off-config username))
              (rcirc-connect ; match the rcirc-connect arglist exactly
                  (server
