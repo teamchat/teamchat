@@ -17,16 +17,6 @@
              (db-make
               `(db-hash
                 :filename ,(format "/tmp/talk-user-db-%s" (uuid-string)))))
-            (talkapp/auth-token-db
-             (db-make
-              `(db-filter
-                :source ,talkapp/user-db
-                :filter talkapp/db-filter-get)))
-            (talkapp/valid-token-db
-             (db-make
-              `(db-filter
-                :source ,talkapp/user-db
-                :filter talkapp/token-valid-get)))
             (talkapp/email-valid-db
              (db-make
               `(db-hash
