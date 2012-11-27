@@ -105,7 +105,7 @@
    (talkapp/test-make-user-and-org)
    (should
     (equal
-     "#testorg@localhost~testuser2"
+     "#testorg@testorg-irc.teamchat.net~testuser2"
      (talkapp/get-channel "testuser2")))))
 
 (ert-deftest talkapp/irc-details ()
