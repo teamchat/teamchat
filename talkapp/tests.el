@@ -195,16 +195,6 @@
                :channels ("#testorg"))))
       (talkapp/shoes-off-auth "testuser2" "secret")))))
 
-(ert-deftest talkapp/shoes-off-valid ()
-  "Test validation."
-  (talkapp/mock-db
-    (talkapp/test-make-user)
-    (should-not (db-get "testuser1" talkapp/valid-token-db))
-    (let ((user (db-get "testuser1" talkapp/user-db)))
-      (db-put "testuser1" (acons "valid" t user) talkapp/user-db)
-      (let ((v (db-get "testuser1" talkapp/valid-token-db)))
-        (should v)))))
-
 (ert-deftest talkapp/org-new ()
   "Test the direcct creation of new organizations."
   (talkapp/mock-db
