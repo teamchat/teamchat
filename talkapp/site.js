@@ -83,16 +83,6 @@ var talkapp =
                     });
          };
 
-         var config = function () {
-             $.ajax({ url: "/user/config/",
-                      dataType: "text",
-                      success: function (data, status) {
-                          if (debug) { console.log("we configured with: " + data); }
-                          service();
-                      }
-                    });
-         };
-
          // Convert text urls into A link HTML
          var url_it = function (text) {
              var exp=/(http[s]*:\/\/[^ <>]+)/ig;
@@ -606,8 +596,8 @@ var talkapp =
          // /user/ page stuff
 
          // initialize the value of the status
-         var status_connected = $("#status_connected");
-         var status_disconnected = $("#status_disconnected");
+         var status_connected = $("#status-connected");
+         var status_disconnected = $("#status-disconnected");
          if (status_connected.length > 0 || status_disconnected.length > 0) {
              console.log("found status dom");
              $.ajax({ url: "/user/session/",
@@ -634,11 +624,6 @@ var talkapp =
                  "click", function (evt) {
                      service();
                  });
-         }
-
-         // If we should configure the user then do it
-         if (typeof talkapp_do_config != "undefined") {
-             config();
          }
 
          // Display the SSH keys
