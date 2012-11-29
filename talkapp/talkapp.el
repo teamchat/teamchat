@@ -328,12 +328,9 @@ Return the filename of the config file."
       (write-file config-file)
       config-file)))
 
-(defun talkapp-ngircd-boot (org)
+(defun talkapp/ngircd-boot (org-record)
   "Boot the irc server for the ORG."
-  (interactive
-   (list (read-from-minibuffer "org-name: ")))
-  (let* ((org-record (db-get org talkapp/org-db))
-         (conf-dir (file-name-as-directory talkapp-ngircd-configs-dir))
+  (let* ((conf-dir (file-name-as-directory talkapp-ngircd-configs-dir))
          (org-name (aget org-record "name"))
          (config-file (concat conf-dir org-name ".conf"))
          (proc-name (format "*irc-server-%s*" org-name )))
@@ -342,6 +339,29 @@ Return the filename of the config file."
     (start-process
      proc-name proc-name
      "/usr/sbin/ngircd" "-f" (expand-file-name config-file) "-n")))
+
+(defun talkapp/robot-start (org-record)
+  "Start the robot for the org."
+  (let* ((irc-server-url (aget org-record "irc-server"))
+         (irc-server-pair (split-string irc-server-url ":"))
+         (irc-server (car irc-server-pair))
+         (irc-port (cadr irc-server-pair))
+         (primary-channel (aget org-record "primary-channel")))
+    (talkapp-rcirc-connect
+     irc-server irc-port
+     ;; The robot's Nick, user-name and full-name should be configurable
+     "erwin" "erwin" "Emacs Robot Within IRC Network"
+     (list primary-channel)
+     "" ; no one internally needs a password to connect to the ircd
+     nil)))
+
+(defun talkapp-boot-org (org)
+  "Boot the ircd for the ORG."
+  (interactive
+   (list (read-from-minibuffer "org-name: ")))
+  (let* ((org-record (db-get org talkapp/org-db)))
+    (talkapp/ngircd-boot org-record)
+    (talkapp/robot-start org-record)))
 
 (defun talkapp-make-org (org-name)
   "Make an org based on ORG-NAME.
