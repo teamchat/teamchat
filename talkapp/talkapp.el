@@ -417,7 +417,7 @@ Return the username if it does.
 
 It also leaves the `match-data' for the RCIRC-NAME.  Sub-match 1
 the irc server name and sub-match 2 is the username."
-  (when (string-match "^\\(irc\\..*\\)~\\(.*\\)$" rcirc-name)
+  (when (string-match "^\\([^~]+\\)~\\(.*\\)$" rcirc-name)
     (match-string-no-properties 2 rcirc-name)))
 
 (defun talkapp-rcirc-connect (server
@@ -454,6 +454,7 @@ That is a hashtable of usernames to hashtables of channels to
 lists of updates.")
 
 (defun talkapp/user-chat-add (username sender target text)
+  "Add a record to the cache of updates."
   ;; add (list time-now sender text)
   ;; to the user's channel specific table
   (let ((channel-hash (gethash username talkapp/user-chat)))
@@ -475,10 +476,14 @@ lists of updates.")
     (message "print hook > (%s) [%s] {%s} [%s] /%s/"
              process sender response target text))
   ;; If the process is one under our control it has this
-  (when (process-get process :shoes-off-channel-list)
+  (when (and
+         (process-get process :shoes-off-channel-list)
+         (equal response "PRIVMSG"))
     ;; Get the username, this is the process-name
     (let ((username (talkapp/rcirc-name->username (process-name process))))
-      (talkapp/user-chat-add username sender target text))))
+      (flet ((deprop (s) (set-text-properties 0 (length s) nil s) s))
+        (talkapp/user-chat-add
+         username (deprop sender) (deprop target) (deprop text))))))
 
 (defun talkapp/rcirc-send (channel-buffer data)
   "Send DATA to CHANNEL-BUFFER."
@@ -537,9 +542,7 @@ If this variable is not bound or bound and t it will eval."
     (add-hook 'rcirc-print-hooks 'talkapp-rcirc-print-hook)
     (setq shoes-off/get-config-plugin 'talkapp/get-shoes-off-config)
     (setq shoes-off/auth-plugin 'talkapp/shoes-off-auth)
-    (setq shoes-off/rcirc-connect-plugin 'talkapp-rcirc-connect)
-    ;; Ensures the time format support us pulling back accurately
-    (setq rcirc-time-format "%Y-%m-%d %H:%M:%S:%N ")))
+    (setq shoes-off/rcirc-connect-plugin 'talkapp-rcirc-connect)))
 
 
 ;; Retrieval bits
@@ -617,107 +620,19 @@ If this variable is not bound or bound and t it will eval."
 
 ;; Chat webapp
 
-(defun talkapp/timestamp->time (source-time)
-  "Convert a timestamp to a time."
-  (let* ((encodeable-time
-          (progn
-            (string-match
-             (concat
-              "\\([0-9]+-[0-9]+-[0-9]+\\) " ; date part
-              "\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\):" ; time part
-              "\\(.*\\)") ; nano-seconds
-             source-time)
-            (concat
-             (match-string 1 source-time) " "
-             (match-string 2 source-time) ":"
-             (match-string 3 source-time) ":"
-             (match-string 4 source-time))))
-         (nano-seconds (string-to-number (match-string 5 source-time))))
-    (append
-     (apply
-      'encode-time
-      (parse-time-string encodeable-time))
-     (list nano-seconds))))
+(defun talkapp/time->str (emacs-time)
+  (format-time-string "%Y-%m-%d-%H-%M-%S-%N" emacs-time))
 
-(defun talkapp/list-since (time buffer-name)
-  "Get the list of chats since TIME from BUFFER-NAME."
-  (let ((time-to-find time)
-        (doit t)
-        (irc-line-re (concat
-                      "^\\([0-9]+-[0-9]+-[0-9]+ " ; date part
-                      "[0-9]+:[0-9]+:[0-9]+:[0-9]+\\) " ; time part
-                      "<\\([^>]+\\)> +\\(.*\\)"))) ; the rest
-    (with-current-buffer (get-buffer buffer-name)
-      (save-excursion
-        (goto-char (point-max))
-        ;; Find the first point greater than the time-to-find
-        (while doit
-          (if (not (re-search-backward irc-line-re nil t))
-              ;; No match - stop straight away
-              (setq doit nil)
-              ;; Else we have a match so check the time
-              ;;; (match-string-no-properties 0) ; useful for debug
-              (setq doit
-                    (time-less-p
-                     time-to-find
-                     (talkapp/timestamp->time
-                      (condition-case nil
-                          (match-string-no-properties 1)
-                        (error "1970-01-01 00:00:00:000000")))))))
-        (loop while (progn
-                      (forward-line 1)
-                      (re-search-forward irc-line-re nil t))
-           collect
-             (list
-              (match-string-no-properties 1)
-              (match-string-no-properties 2)
-              (get-text-property
-               (next-single-property-change
-                (line-beginning-position)
-                'rcirc-text)
-               'rcirc-text)))))))
-
-(defun talkapp/list-since-mins-ago (minutes buffer-name)
-  "Return all the chat since MINUTES ago."
-  (let* ((time-to-find
-          (time-subtract
-           (current-time)
-           (seconds-to-time (* minutes 60))))) ; seconds
-    (talkapp/list-since time-to-find  buffer-name)))
-
-(defun talkapp/date->id (date)
-  "Convert DATE to a form usable as an HTML ID."
-  (subst-char-in-string
-   ?: ?-
-   (apply 'format "%s-%s" (split-string date))))
-
-(defun talkapp/entry->html (date username message)
-  "Return the templated form of the row."
-  (let ((email
-         ;; FIXME this is ONLY because thoughtworks ran it's own irc
-         ;; with people registered out of band of the webapp
-         (aif (db-get username talkapp/user-db)
-             (aget it "email")
-           "unknown@thoughtworks.com")))
-    `(tr
-      ((id . ,(talkapp/date->id date)))
-      (td
-       ((class . ,(concat "username " username)))
-       (abbr
-        ((title . ,email))
-        ,username))
-      (td
-       ((class . "message"))
-       ,(replace-regexp-in-string "\\\\" "/" message)))))
-
-(defconst talkapp/default-chat-history-minutes 60
-  "Number of minutes of history to display on the webclient.")
-
-(defun talkapp/chat-list (channel)
-  "Make a list of the CHANNEL chatter."
-  (talkapp/list-since-mins-ago
-   talkapp/default-chat-history-minutes
-    channel))
+(defun talkapp/user-chat-list-since (username channel since)
+  "Pull the updates since SINCE from the CHANNEL of USERNAME."
+  (let ((channel-hash (gethash username talkapp/user-chat)))
+    (when channel-hash
+      (let ((updates (gethash channel channel-hash)))
+        (loop for (time-stamp sender text) in updates
+           if (time-less-p since time-stamp)
+           collect (list (talkapp/time->str time-stamp)
+                         sender
+                         text))))))
 
 (defun talkapp/get-irc-server (username)
   "Find the irc-server for USERNAME."
@@ -743,19 +658,6 @@ channel taken from the organisation record."
   (let* ((org (talkapp/get-org username))
          (irc-server (talkapp/get-irc-server username)))
     (format "%s~%s" irc-server username)))
-
-1(defun talkapp/since-list->htmlable (since-list)
-  "Convert SINCE-LIST into something with HTML IDs."
-  (loop
-     for (date username msg) in since-list
-     collect
-       (list (talkapp/date->id date) username msg)))
-
-(defun talkapp/comet-since-list (entered channel)
-  "Comet form of `talkapp/since-list'."
-  (let ((lst (talkapp/list-since entered channel)))
-    (when lst
-      (list :message (talkapp/since-list->htmlable lst)))))
 
 (defvar talkapp/online-cache
   (make-hash-table :test 'equal)
@@ -815,14 +717,16 @@ is the person making this COMET request."
     (remhash my-email talkapp/video-calls)
     (list :video (cons my-email (list (car it) (cdr it))))))
 
-(defun talkapp/comet-interrupt (entered channel my-email)
+(defun talkapp/comet-interrupt (entered username channel my-email)
   "Produce a list of interrupts."
-  (let ((msg-list (talkapp/comet-since-list entered channel))
+  (let ((msg-list (reverse
+                   (talkapp/user-chat-list-since
+                    username channel entered)))
         (user-list (talkapp/comet-user-state))
         (video (talkapp/comet-video-call my-email))
         to-send)
     (when msg-list
-      (setq to-send msg-list))
+      (setq to-send (list :message msg-list)))
     (when user-list
       (setq to-send (append user-list to-send)))
     (when video
@@ -837,7 +741,9 @@ or a video call or some other action."
   (with-elnode-auth httpcon 'talkapp-auth
     (let* ((username (talkapp-cookie->user-name httpcon))
            (email (aget (db-get username talkapp/user-db) "email"))
-           (channel (talkapp/get-channel username))
+           (default-channel (talkapp/get-org username "primary-channel"))
+           (channel (let ((chan (elnode-http-param httpcon "channel")))
+                      (if (equal chan "") default-channel chan)))
            (entered (current-time))
            (online (gethash username talkapp/online-cache)))
       ;; Mark the user online with the double hash
@@ -845,7 +751,8 @@ or a video call or some other action."
         (puthash httpcon email talkapp/httpcon-online-cache)
         (puthash email httpcon talkapp/online-cache))
       ;; Defer till the talk changes
-      (elnode-defer-until (talkapp/comet-interrupt entered channel email)
+      (elnode-defer-until
+          (talkapp/comet-interrupt entered username channel email)
           (elnode-send-json httpcon elnode-defer-guard-it :jsonp t)))))
 
 (defun talkapp/comet-fail-hook (httpcon state)
@@ -863,7 +770,6 @@ Either `closed' or `failed' is the same for this purpose."
         (setq talkapp/user-state-changes
               (append (list (cons email :offline))
                       talkapp/user-state-changes))))))
-
 
 (defun talkapp-video-call-handler (httpcon)
   "Do a video call."
@@ -886,18 +792,15 @@ Either `closed' or `failed' is the same for this purpose."
            (email (aget user-record "email"))
            (org-record (db-get (aget user-record "org") talkapp/org-db))
            (main-channel (aget org-record "primary-channel"))
-           (channel (car
-                     (member-if
-                      (lambda (s) (not (equal s "")))
-                      (list
-                       (elnode-http-mapping httpcon 1)
-                       (or (elnode-http-param httpcon "channel-name") "")
-                       main-channel))))
-           (channel-name (talkapp/get-channel username channel))
-           (messages (talkapp/chat-list channel-name)))
+           (channel (let ((chan (elnode-http-param httpcon "channel-name")))
+                     (if (equal (or chan "") "") main-channel chan)))
+           (an-hour (list 0 (* 60 60) 0))
+           (since (time-subtract (current-time) an-hour))
+           (messages (reverse
+                      (talkapp/user-chat-list-since
+                       username channel since))))
       ;; FIXME - we should mark the user online
       (elnode-send-json httpcon messages :jsonp t))))
-
 
 (defun talkapp-channel-handler (httpcon)
   "Add a new channel.
@@ -933,7 +836,6 @@ If there are people selected then make the channel private."
          (elnode-send-html
           httpcon "<html>thanks for that channel</html>"))))))
 
-
 (defun talkapp-chat-add-handler (httpcon)
   "Send some chat to somewhere."
   (with-elnode-auth httpcon 'talkapp-auth
@@ -946,7 +848,6 @@ If there are people selected then make the channel private."
                 channel-name)))
       (talkapp/rcirc-send channel msg)
       (elnode-send-html httpcon "<html>thanks for that chat</html>"))))
-
 
 (defun talkapp/chat-templater ()
   "Return the chat page template variables."
@@ -964,7 +865,6 @@ If there are people selected then make the channel private."
       (cons "video-server" talkapp-video-server)
       (cons "chat-header" talkapp-template/chat-header))
      (talkapp/template-std httpcon))))
-
 
 (defun talkapp-chat-handler (httpcon)
   "Handle the chat page."

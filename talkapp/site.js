@@ -548,8 +548,10 @@ var talkapp =
              messages_callback = function (){
                  var first_chat_row = $("table tr").last().prev();
                  if (first_chat_row.length > 0) {
-                     var d = (/([0-9:-]+):[0-9]+/.exec(first_chat_row.attr("id"))[1]);
-                     $(".chat_time td").first().text(d);
+                     var d = (/([0-9:-]+):[0-9]+/.exec(first_chat_row.attr("id")));
+                     if (d != null) {
+                         $(".chat_time td").first().text(d[1]);
+                     }
                  }
                  else {
                      $(".chat_time td").first().text(time_str(new Date()));
