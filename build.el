@@ -14,7 +14,7 @@
     "~/work/emacs-kv"
     "~/work/teamchat/talkapp"))
 
-(defconst talkapp-do-rcirc nil)
+;;(defconst talkapp-do-rcirc nil)
 
 ;; The local elpa dir
 (defun talkapp-do-elpakit-to-local ()
