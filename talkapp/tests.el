@@ -265,4 +265,37 @@
            "/"))
          (talkapp/send-email user-rec email-hash)))))))
 
+(ert-deftest talkapp/user-chat-add ()
+  "Test the rcirc print-hooks stuff which effects webchat.
+
+Some print hook logging:
+
+  print hook > (localhost~nictest78) [nictest78] {PRIVMSG} [#nictest1] /boo!/
+  print hook > (localhost~erwin) [nictest78] {PRIVMSG} [#nictest1] /boo!/
+
+Into the print hook that is:
+
+  process sender response target text
+
+The response is nearly always PRIVMSG so we don't bother passing
+that to this function we're testing here."
+  ;; Fake the current-time so we can assert it
+  (flet ((current-time ()
+           (list 20664 27109 109940)))
+    ;; Fake the chat store
+    (let ((talkapp/user-chat (talkapp/hash)))
+      (talkapp/user-chat-add
+       "testuser1" "testuser2" "#testchannel" "some text!")
+      (should
+       (equal
+        (list '((20664 27109 109940) "testuser2" "some text!"))
+        (gethash "#testchannel" (gethash "testuser1" talkapp/user-chat))))
+      (talkapp/user-chat-add
+       "testuser1" "testuser3" "#testchannel" "more text!")
+      (should
+       (equal
+        (list '((20664 27109 109940) "testuser3" "more text!")
+              '((20664 27109 109940) "testuser2" "some text!"))
+        (gethash "#testchannel" (gethash "testuser1" talkapp/user-chat)))))))
+
 ;; end

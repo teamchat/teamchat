@@ -410,6 +410,16 @@ present it's not possible to connect someone."
 
 ;; Rcirc stuff
 
+(defun talkapp/rcirc-name->username (rcirc-name)
+  "Check RCIRC-NAME to see if it has a username.
+
+Return the username if it does.
+
+It also leaves the `match-data' for the RCIRC-NAME.  Sub-match 1
+the irc server name and sub-match 2 is the username."
+  (when (string-match "^\\(irc\\..*\\)~\\(.*\\)$" rcirc-name)
+    (match-string-no-properties 2 rcirc-name)))
+
 (defun talkapp-rcirc-connect (server
                               &optional port nick user-name
                                 full-name startup-channels password encryption)
@@ -430,6 +440,46 @@ name."
                      nick user-name full-name
                      startup-channels password encryption))))
 
+(defun talkapp/hash ()
+  (make-hash-table :test 'equal))
+
+(defvar talkapp/user-chat (talkapp/hash)
+  "List of user's with chat.
+
+The structure is this:
+
+  { username -> { channel -> list-of-updates } }
+
+That is a hashtable of usernames to hashtables of channels to
+lists of updates.")
+
+(defun talkapp/user-chat-add (username sender target text)
+  ;; add (list time-now sender text)
+  ;; to the user's channel specific table
+  (let ((channel-hash (gethash username talkapp/user-chat)))
+    ;; Make the user's channel hash if it doesn't exist
+    (unless channel-hash
+      (setq channel-hash (talkapp/hash))
+      (puthash username channel-hash talkapp/user-chat))
+    ;; Get and update the user's list of changes
+    (let ((changes (gethash target channel-hash)))
+      (setq changes (cons (list (current-time) sender text) changes))
+      (puthash target changes channel-hash))))
+
+(defconst talkapp/print-hook-logging nil
+  "Control to switch print hook logging on and off.")
+
+(defun talkapp-rcirc-print-hook (process sender response target text)
+  "The print hook gets everything printed in a channel."
+  (when talkapp/print-hook-logging
+    (message "print hook > (%s) [%s] {%s} [%s] /%s/"
+             process sender response target text))
+  ;; If the process is one under our control it has this
+  (when (process-get process :shoes-off-channel-list)
+    ;; Get the username, this is the process-name
+    (let ((username (talkapp/rcirc-name->username (process-name process))))
+      (talkapp/user-chat-add username sender target text))))
+
 (defun talkapp/rcirc-send (channel-buffer data)
   "Send DATA to CHANNEL-BUFFER."
   (with-current-buffer (get-buffer channel-buffer)
@@ -448,7 +498,7 @@ name."
      in (loop for p in (process-list) ; list of process
            collect (list p (process-name p)))
      ;; Filter to the irc ones
-     if (string-match "^\\(irc\\..*\\)~\\(.*\\)$" name)
+     if (talkapp/rcirc-name->username name)
      do
        (let ((server (match-string-no-properties 1 name))
              (username (match-string-no-properties 2 name)))
@@ -484,6 +534,7 @@ We should expect USERNAME-SPEC to just be a username."
 
 If this variable is not bound or bound and t it will eval."
   (when (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
+    (add-hook 'rcirc-print-hooks 'talkapp-rcirc-print-hook)
     (setq shoes-off/get-config-plugin 'talkapp/get-shoes-off-config)
     (setq shoes-off/auth-plugin 'talkapp/shoes-off-auth)
     (setq shoes-off/rcirc-connect-plugin 'talkapp-rcirc-connect)
