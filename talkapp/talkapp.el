@@ -51,15 +51,6 @@ provides a web interface to it as well."
   :group 'talkapp
   :type 'string)
 
-(defcustom talkapp-irc-provision nil
-  "Control whether IRC account provisioning is done.
-
-This is useful for testing, turn it off and you have just an
-application that can run in a normal Emacs with no other
-environmental requirements."
-  :group 'talkapp
-  :type 'boolean)
-
 (defcustom talkapp-keys-program-home
   "/home/teamchat/teamchat.net/ssh-irc"
   "The location of the program for doing irc connections."
@@ -441,13 +432,10 @@ name."
 
 (defun talkapp/rcirc-send (channel-buffer data)
   "Send DATA to CHANNEL-BUFFER."
-  (if talkapp-irc-provision
-      (with-current-buffer (get-buffer channel-buffer)
-        (goto-char (point-max))
-        (insert data)
-        (rcirc-send-input))
-      ;; Else
-      (message "talkapp irc send %s to %s" data channel-buffer)))
+  (with-current-buffer (get-buffer channel-buffer)
+    (goto-char (point-max))
+    (insert data)
+    (rcirc-send-input)))
 
 
 ;; Shoes-off stuff
@@ -539,27 +527,6 @@ If this variable is not bound or bound and t it will eval."
    "username"))
 
 
-;; Provision the ircd with this user
-
-(defun talkapp-irc-config-handler (httpcon)
-  "Run the ircd provisioning script."
-  (with-elnode-auth httpcon 'talkapp-auth
-    (if talkapp-irc-provision
-        (let ((username (talkapp-cookie->user-name httpcon)))
-          (if (file-exists-p
-               (expand-file-name (concat "~/ircdkeys/" username)))
-              ;; If the key exists then don't do it again
-              (elnode-send-status httpcon 204)
-              ;; else make the key
-              (elnode-http-start httpcon 200 '("Content-type" . "text/plain"))
-              (if (or (not (boundp 'talkapp-do-rcirc)) talkapp-do-rcirc)
-                  (elnode-child-process
-                   httpcon
-                   "bash" "/home/emacs/ircdmakeuser" username)
-                  (elnode-send-json httpcon (list :error t)))))
-        ;; Else send a 200 with some fakery
-        (elnode-send-json httpcon (list :fake t)))))
-
 ;; Start the shoes-off session for this user
 
 (defun talkapp-shoes-off-session (httpcon)
@@ -589,13 +556,10 @@ If this variable is not bound or bound and t it will eval."
                ;; Can't start sessions that are already started
                (elnode-send-json httpcon (list :error "already started")))
               ((and (not session) do-start)
-               ;; Start the session
-               (if talkapp-irc-provision
-                   (progn
-                     (shoes-off-start-session username)
-                     (elnode-send-json httpcon (list :session t)))
-                   ;; Else just respond with fakery
-                   (elnode-send-json httpcon (list :session nil))))
+               ;; Try and start the session -- good point to send to
+               ;; another server?
+               (let ((started (shoes-off-start-session username)))
+                 (elnode-send-json httpcon (list :session started))))
               (t
                ;; Just return the status
                (elnode-send-json httpcon (list :session (and session t))))))))))
@@ -738,10 +702,7 @@ channel taken from the organisation record."
 
 (defun talkapp/comet-since-list (entered channel)
   "Comet form of `talkapp/since-list'."
-  (let ((lst (if talkapp-irc-provision
-                 (talkapp/list-since entered channel)
-                 ;; Else use the fake one
-                 (talkapp/fake-list-since entered channel))))
+  (let ((lst (talkapp/list-since entered channel)))
     (when lst
       (list :message (talkapp/since-list->htmlable lst)))))
 
@@ -882,9 +843,7 @@ Either `closed' or `failed' is the same for this purpose."
                        (or (elnode-http-param httpcon "channel-name") "")
                        main-channel))))
            (channel-name (talkapp/get-channel username channel))
-           (messages (if talkapp-irc-provision
-                         (talkapp/chat-list channel-name)
-                         (talkapp/fake-chat-list channel-name))))
+           (messages (talkapp/chat-list channel-name)))
       ;; FIXME - we should mark the user online
       (elnode-send-json httpcon messages :jsonp t))))
 
@@ -898,9 +857,7 @@ If there are people selected then make the channel private."
       (GET
        (let* ((username (talkapp-cookie->user-name httpcon))
               (ctrl (talkapp/get-ctrl-channel username))
-              (channels (if talkapp-irc-provision
-                            (shoes-off-get-channels ctrl)
-                            (list "#channel1" "#channel2"))))
+              (channels (shoes-off-get-channels ctrl)))
          (elnode-send-json httpcon channels :jsonp t)))
       (POST
        (let* ((new-channel (elnode-http-param httpcon "channel"))
