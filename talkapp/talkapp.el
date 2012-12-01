@@ -564,6 +564,32 @@ We should expect USERNAME-SPEC to just be a username."
       (when (equal password (aget details "password"))
         (talkapp/irc-details username password email)))))
 
+(defun talkapp/shoes-off-erwin-plugin (username args text shoes-off-con)
+  "Implement recent history for the bouncer.
+
+ARGS is the target, the channel or person being talked to.
+
+SHOES-OFF-CON is the connection back to the bouncer user."
+  (when (string-match "^erwin[ :]+\\(.*\\)" text)
+    (let ((target args)
+          (txt (match-string 1 text)))
+      (flet ((send (sender str)
+               (process-send-string
+                shoes-off-con
+                ;; This fakes the user's address badly
+                (format ":%s!%s@localhost PRIVMSG %s :%s\r\n"
+                        sender sender target str))))
+        (cond
+          ((equal txt "history")
+           (loop for (chat-time sender sent-text)
+              in (gethash target (gethash username talkapp/user-chat))
+              do (send sender sent-text))
+           (throw :shoes-off-escape-privmsg nil))
+          ((string-match "^hammertime[?]*$" txt)
+           ;; Actually not sure erwin should do this...
+           ;; ... he should probably respond properly via irc
+           (send "erwin" "YOU CAN'T TOUCH THIS!")))))))
+
 (defun talkapp/rcirc-config ()
   "Only do the rcirc init if we need to.
 
@@ -572,7 +598,8 @@ If this variable is not bound or bound and t it will eval."
     (add-hook 'rcirc-print-hooks 'talkapp-rcirc-print-hook)
     (setq shoes-off/get-config-plugin 'talkapp/get-shoes-off-config)
     (setq shoes-off/auth-plugin 'talkapp/shoes-off-auth)
-    (setq shoes-off/rcirc-connect-plugin 'talkapp-rcirc-connect)))
+    (setq shoes-off/rcirc-connect-plugin 'talkapp-rcirc-connect)
+    (setq shoes-off-privmsg-plugin 'talkapp/shoes-off-erwin-plugin)))
 
 
 ;; Retrieval bits
