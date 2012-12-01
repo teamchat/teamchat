@@ -453,6 +453,9 @@ The structure is this:
 That is a hashtable of usernames to hashtables of channels to
 lists of updates.")
 
+(defvar talkapp/user-chat-gc-timer nil
+  "Variable to hold the timer for the chat garbage collector.")
+
 (defun talkapp/user-chat-add (username sender target text)
   "Add a record to the cache of updates."
   ;; add (list time-now sender text)
@@ -486,6 +489,10 @@ lists of updates.")
                     finally return ret)))
             (if new-chat-list
                 (puthash channelname new-chat-list channelhash)
+                ;; Else message and remove it
+                (message
+                 "talkapp/user-chat-gc clearing chat for %s %s"
+                 username channelname)
                 (remhash channelname channelhash))))
         channelhash))
      talkapp/user-chat)))
@@ -1287,7 +1294,9 @@ and directs you to validate."
                 :port talkapp-start-port
                 :host "0.0.0.0")
   (add-hook 'elnode-defer-failure-hook 'talkapp/comet-fail-hook)
-  (elnode-deferred-queue-start))
+  (elnode-deferred-queue-start)
+  (setq talkapp/user-chat-gc-timer
+        (run-at-time "10 minutes" 'talkapp/user-chat-gc)))
 
 (provide 'talkapp)
 
