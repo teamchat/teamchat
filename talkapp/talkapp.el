@@ -467,6 +467,29 @@ lists of updates.")
       (setq changes (cons (list (current-time) sender text) changes))
       (puthash target changes channel-hash))))
 
+(defun talkapp/user-chat-gc ()
+  "Try and garbage collect inside the chat list."
+  (let* ((hours 2)
+         (cut-off (time-subtract
+                   (current-time)
+                   (list 0 (* 60 (* 60 hours)) 0))))
+    (maphash
+     (lambda (username channelhash)
+       (maphash
+        (lambda (channelname chat-list)
+          (let ((new-chat-list
+                 (loop for (chat-time sender text) in chat-list
+                    if (time-less-p chat-time cut-off)
+                    return ret
+                    collect (list chat-time sender text)
+                    into ret
+                    finally return ret)))
+            (if new-chat-list
+                (puthash channelname new-chat-list channelhash)
+                (remhash channelname channelhash))))
+        channelhash))
+     talkapp/user-chat)))
+
 (defconst talkapp/print-hook-logging nil
   "Control to switch print hook logging on and off.")
 

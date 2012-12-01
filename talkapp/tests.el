@@ -316,4 +316,33 @@ that to this function we're testing here."
           (select (car cls) 1 2)
           '("testuser2" "some text!")))))))
 
+
+(ert-deftest talkapp/user-chat-gc ()
+  (let ((talkapp/user-chat (talkapp/hash))
+        (channels (talkapp/hash))
+        (now-1hour (time-subtract (current-time) (list 0 (* 60 60) 0)))
+        (now-2hours (time-subtract (current-time) (list 0 (* 60 (* 2 60)) 0))))
+    (puthash
+     "testuser1"
+     (progn
+       (puthash
+        "#testchannel"
+        `((,now-1hour "testuser2" "hello!")
+          (,now-1hour "testuser5" "I have to work :-(")
+          (,now-2hours "testuser3" "cheers!")
+          (,now-2hours "testuser3" "hello!"))
+        channels) channels)
+     talkapp/user-chat)
+    (gethash "testuser1" talkapp/user-chat)
+    ;; Do the thing
+    (talkapp/user-chat-gc)
+    ;; Now check it
+    (should
+     (equal
+      `((,now-1hour "testuser2" "hello!")
+        (,now-1hour "testuser5" "I have to work :-("))
+      (gethash
+       "#testchannel"
+       (gethash "testuser1" talkapp/user-chat))))))
+
 ;; end
