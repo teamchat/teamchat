@@ -585,7 +585,21 @@ SHOES-OFF-CON is the connection back to the bouncer user."
               in (gethash target (gethash username talkapp/user-chat))
               do (send sender sent-text))
            (throw :shoes-off-escape-privmsg nil))
-          ((string-match "^hammertime[?]*$" txt)
+          ((string-match "^help\\( +\\([a-zA-Z]+\\)\\)*" txt)
+           (let* ((sub (match-string 2 txt))
+                  (sub-sym (when sub (intern sub))))
+             (case sub-sym
+               ('history
+                (send "erwin" (concat "ask me 'history' and I will "
+                                      "tell you the last 2 hours of history")))
+               ('hammertime
+                (send "erwin" (concat "ask me 'hammertime' and I will "
+                                      "impersonate MC Hammer")))
+               (nil
+                (send "erwin" "I am Erwin the Emacs Robot Within IRC Network.")
+                (send "erwin" (concat "here are irc specific commands: "
+                                      "history hammertime"))))))
+          ((string-match "^hammertime[?!]*$" txt)
            ;; Actually not sure erwin should do this...
            ;; ... he should probably respond properly via irc
            (send "erwin" "YOU CAN'T TOUCH THIS!")))))))
@@ -800,7 +814,7 @@ or a video call or some other action."
            (email (aget (db-get username talkapp/user-db) "email"))
            (default-channel (talkapp/get-org username "primary-channel"))
            (channel (let ((chan (elnode-http-param httpcon "channel")))
-                      (if (equal chan "") default-channel chan)))
+                      (if (equal (or chan "") "") default-channel chan)))
            (entered (current-time))
            (online (gethash username talkapp/online-cache)))
       ;; Mark the user online with the double hash
