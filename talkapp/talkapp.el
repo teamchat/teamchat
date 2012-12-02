@@ -697,16 +697,20 @@ If this variable is not bound or bound and t it will eval."
 (defun talkapp/time->str (emacs-time)
   (format-time-string "%Y-%m-%d-%H-%M-%S-%N" emacs-time))
 
-(defun talkapp/user-chat-list-since (username channel since)
-  "Pull the updates since SINCE from the CHANNEL of USERNAME."
+(defun talkapp/user-chat-list (username channel)
+  "Return the list of chats for the USERNAME and CHANNEL."
   (let ((channel-hash (gethash username talkapp/user-chat)))
     (when channel-hash
-      (let ((updates (gethash channel channel-hash)))
-        (loop for (time-stamp sender text) in updates
-           if (time-less-p since time-stamp)
-           collect (list (talkapp/time->str time-stamp)
-                         sender
-                         text))))))
+      (gethash channel channel-hash))))
+
+(defun talkapp/user-chat-list-since (username channel since)
+  "Pull the updates since SINCE from the CHANNEL of USERNAME."
+  (let ((updates (talkapp/user-chat-list username channel)))
+    (loop for (time-stamp sender text) in updates
+       if (time-less-p since time-stamp)
+       collect (list (talkapp/time->str time-stamp)
+                     sender
+                     text))))
 
 (defun talkapp/get-irc-server (username)
   "Find the irc-server for USERNAME."
