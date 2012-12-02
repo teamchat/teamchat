@@ -77,6 +77,16 @@ div.wiki * img.creole {
     border: solid thin LightSlateGrey;
 }
 
+div.wiki table  {
+    margin: 0 auto;
+    width: 90%;
+    margin-bottom: 1em;
+}
+
+div.wiki table * td {
+    border: solid thin;
+}
+
 /* Override some bootstrap styles */
 
 .form-horizontal div.control-group {

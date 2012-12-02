@@ -92,5 +92,8 @@ chat while working with them on a code snippet or a project outline.
 == Contacts ==
 
 For more information
-Caroline Ferrier <caroline@teamchat.net>
-Nic Ferrier <nic@teamchat.net>
+
+<<html
+<a href="mailto:caroline@teamchat.net">Caroline Ferrier &lt;caroline@teamchat.net&gt;</a><br/>
+<a href="mailto:nic@teamchat.net">Nic Ferrier &lt;nic@teamchat.net&gt;</a><br>
+html>>
