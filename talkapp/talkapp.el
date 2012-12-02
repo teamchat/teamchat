@@ -1340,7 +1340,7 @@ and directs you to validate."
   (add-hook 'elnode-defer-failure-hook 'talkapp/comet-fail-hook)
   (elnode-deferred-queue-start)
   (setq talkapp/user-chat-gc-timer
-        (run-at-time "10 minutes" 'talkapp/user-chat-gc)))
+        (run-at-time "10 minutes" 600 'talkapp/user-chat-gc)))
 
 (provide 'talkapp)
 
