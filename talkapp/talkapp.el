@@ -582,7 +582,10 @@ SHOES-OFF-CON is the connection back to the bouncer user."
         (cond
           ((equal txt "history")
            (loop for (chat-time sender sent-text)
-              in (gethash target (gethash username talkapp/user-chat))
+              in (reverse
+                  (gethash
+                   target
+                   (gethash username talkapp/user-chat)))
               do (send sender sent-text))
            (throw :shoes-off-escape-privmsg nil))
           ((string-match "^help\\( +\\([a-zA-Z]+\\)\\)*" txt)
@@ -595,7 +598,7 @@ SHOES-OFF-CON is the connection back to the bouncer user."
                ('hammertime
                 (send "erwin" (concat "ask me 'hammertime' and I will "
                                       "impersonate MC Hammer")))
-               (nil
+               (t
                 (send "erwin" "I am Erwin the Emacs Robot Within IRC Network.")
                 (send "erwin" (concat "here are irc specific commands: "
                                       "history hammertime"))))))
