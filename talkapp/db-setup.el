@@ -99,4 +99,25 @@
                    :irc-server "irc.teamchat.net:7002"
                    :primary-channel "#teamchatnet"))
 
+(db-change talkapp/db-change-db "20124703084732397311000"
+  (talkapp/org-new "mastodonc"
+                   :match-host "mastodonc.teamchat.net"
+                   :domain-name "mastodonc.teamchat.net"
+                   :irc-server "irc.teamchat.net:7003"
+                   :primary-channel "#mastodonc"))
+
+(db-change talkapp/db-change-db "20124803084812910780000"
+  (talkapp/org-new "sooh"
+                   :match-host "sooh.teamchat.net"
+                   :domain-name "sooh.teamchat.net"
+                   :irc-server "irc.teamchat.net:7004"
+                   :primary-channel "#sooh"))
+
+(db-change talkapp/db-change-db "20124803084844504255000"
+  (talkapp/org-new "twstudios"
+                   :match-host "studios.teamchat.net"
+                   :domain-name "studios.teamchat.net"
+                   :irc-server "irc.teamchat.net:7005"
+                   :primary-channel "#studios"))
+
 ;; db-setup.el ends here
