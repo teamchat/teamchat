@@ -12,8 +12,9 @@
     "~/work/esxml"
     "~/work/elnode-auth"
     "~/work/emacs-kv"
+    "~/work/emacs-web"
     "~/work/teamchat/talkapp"))
-
+x
 ;;(defconst talkapp-do-rcirc nil)
 
 ;; The local elpa dir

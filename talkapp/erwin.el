@@ -1,4 +1,4 @@
-;;; erwin - Emacs Robots Within IRC Network
+;;; erwin - Emacs Robots Within IRC Network -*- lexical-binding: t -*-
 
 (require 'rcirc)
 (require 'web)

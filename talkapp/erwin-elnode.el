@@ -1,4 +1,4 @@
-;;; erwin functions in elnode
+;;; erwin functions in elnode -*- lexical-binding: t -*-
 
 (require 'elnode)
 

@@ -25,7 +25,8 @@
 ;;; Code:
 
 (elnode-app talkapp-dir
-    talkapp-templates anaphora esxml esxml-form db kv uuid creole
+    erwin talkapp-templates esxml esxml-form web
+    anaphora db kv uuid creole
     shoes-off rcirc-ssh network-stream)
 
 (defgroup talkapp nil

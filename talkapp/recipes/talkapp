@@ -6,11 +6,13 @@
             (anaphora "0.0.6")
             (esxml "0.0.7")
             (rcirc-ssh "0.0.7")
+            (web "0.2.1")
             (uuid "0.0.3")
             (kv "0.0.10"))
  :files ("talkapp-templates.el"
          "talkapp-utils.el"
          "erwin.el"
+         "erwin-elnode.el"
          "talkapp.el" 
          "db-setup.el"
          "robots.txt"
