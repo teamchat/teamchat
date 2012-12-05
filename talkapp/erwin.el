@@ -1,7 +1,4 @@
-;;; erwin
-
-;; Example printhooks call
-;; (irc.teamchat.net~njferrier) [nferrier] {PRIVMSG} [#thoughtworks] /testy!/
+;;; erwin - Emacs Robots Within IRC Network
 
 (require 'rcirc)
 
@@ -64,6 +61,7 @@
   (when (string-match "^erwin[:, ] *insult \\(.*\\)" text)
     (let ((name (match-string 1 text))
           (gielgud-p (equal 10 (random 11)))
+          (bunny-p (equal 10 (random 11)))
           (adjective
            (elt
             erwin-insult-adjectives-list
@@ -72,14 +70,20 @@
            (elt
             erwin-insult-nouns-list
             (random (length erwin-insult-nouns-list)))))
-      (if gielgud-p
-          (erwin/send
-           process target
-           (format "%s: wash your own arse you little shit." sender))
-          ;; Else respond with the insult
-          (erwin/send
-           process target
-           (format "%s is a %s %s." name adjective noun))))))
+      (cond
+        (gielgud-p
+         (erwin/send
+          process target
+          (format "%s: wash your own arse you little shit." sender)))
+        (bunny-p
+         (erwin/send
+          process target
+          (format "NOBODY FUCKING MOVE! THIS IS A ROBBERY!")))
+        ;; Else respond with the proper insult
+        (t
+         (erwin/send
+          process target
+          (format "%s is a %s %s." name adjective noun)))))))
 
 (erwin/db-put "insult" 'erwin-insult)
 
@@ -91,7 +95,6 @@
     (erwin/send process target (elt quotes (random (length quotes))))))
 
 (erwin/db-put "hammertime" 'erwin-hammertime)
-
 
 (provide 'erwin)
 
