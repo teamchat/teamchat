@@ -38,52 +38,17 @@
 
 ;; Some simple built in robots
 
-(defvar erwin-insult-adjectives-list
-  (list
-   "stinky"
-   "tiny-minded"
-   "pea-brained"
-   "heavily lidded"
-   "muck minded"
-   "flat footed")
-  "List of adjectives used in the insulter.")
-
-(defvar erwin-insult-nouns-list
-  (list
-   "bog warbler"
-   "tin pincher"
-   "yeti"
-   "whoo-har")
-  "List of nouns used in the insulter.")
-
 (defun erwin-insult (process sender target text)
   "Insult people."
   (when (string-match "^erwin[:, ] *insult \\(.*\\)" text)
-    (let ((name (match-string 1 text))
-          (gielgud-p (equal 10 (random 11)))
-          (bunny-p (equal 10 (random 11)))
-          (adjective
-           (elt
-            erwin-insult-adjectives-list
-            (random (length erwin-insult-adjectives-list))))
-          (noun
-           (elt
-            erwin-insult-nouns-list
-            (random (length erwin-insult-nouns-list)))))
-      (cond
-        (gielgud-p
-         (erwin/send
-          process target
-          (format "%s: wash your own arse you little shit." sender)))
-        (bunny-p
-         (erwin/send
-          process target
-          (format "NOBODY FUCKING MOVE! THIS IS A ROBBERY!")))
-        ;; Else respond with the proper insult
-        (t
-         (erwin/send
-          process target
-          (format "%s is a %s %s." name adjective noun)))))))
+    (let ((name (match-string 1 text)))
+      (web-json-post
+       (lambda (data httpcon header)
+         (erwin/send process target (aget data 'insult)))
+       :url "http://localhost:8007/insult/"
+       :data (list (cons "who" name)
+                   (cons "sender" sender)
+                   (cons "target" target))))))
 
 (erwin/db-put "insult" 'erwin-insult)
 
