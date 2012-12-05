@@ -52,6 +52,20 @@
 
 (erwin/db-put "insult" 'erwin-insult)
 
+(defun erwin-cred (process sender target text)
+  "Give people credit."
+  (when (string-match "^erwin[:, ] *\\(.*\\)\\+\\+" text)
+    (let ((name (match-string 1 text)))
+      (web-json-post
+       (lambda (data httpcon header)
+         (erwin/send process target (aget data 'cred)))
+       :url "http://localhost:8007/cred/"
+       :data (list (cons "who" name)
+                   (cons "sender" sender)
+                   (cons "target" target))))))
+
+(erwin/db-put "cred" 'erwin-cred)
+
 (defun erwin-hammertime (process sender target text)
   "Impersonate MC Hammer."
   (let ((quotes (list

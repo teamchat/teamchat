@@ -148,9 +148,9 @@ Stores cred for everyone in a database."
            ;; Now send the json response
            (elnode-send-json
             httpcon
-            (list :cred count
+            (list :cred (format "one point for %s" whom)
                   :owner whom
-                  :message (format "one point for %s" whom))))))))
+                  :count count)))))))
 
 (defun erwin-elnode-router (httpcon)
   "Top level handler dispatching requests for Erwin stuff."
