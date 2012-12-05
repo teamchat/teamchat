@@ -64,7 +64,7 @@
                    (cons "sender" sender)
                    (cons "target" target))))))
 
-(erwin/db-put "cred" 'erwin-cred)
+(erwin/db-put ".*\\+\\+" 'erwin-cred)
 
 (defun erwin-hammertime (process sender target text)
   "Impersonate MC Hammer."
