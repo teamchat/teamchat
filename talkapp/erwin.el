@@ -1,6 +1,7 @@
 ;;; erwin - Emacs Robots Within IRC Network
 
 (require 'rcirc)
+(require 'web)
 
 (defvar erwin/db '()
   "Erwin's alist database of regexs to functions.")
@@ -32,7 +33,6 @@
     ;; Do erwin stuff on text
     (let ((fn (loop for (regex . handler) in erwin/db
                  if (string-match regex text) return handler)))
-      (message "the fn is %S" fn)
       (funcall fn process sender target text))))
 
 
