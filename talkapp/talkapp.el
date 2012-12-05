@@ -337,14 +337,16 @@ Return the filename of the config file."
          (irc-server-pair (split-string irc-server-url ":"))
          (irc-server (car irc-server-pair))
          (irc-port (cadr irc-server-pair))
-         (primary-channel (aget org-record "primary-channel")))
-    (talkapp-rcirc-connect
-     irc-server irc-port
-     ;; The robot's Nick, user-name and full-name should be configurable
-     "erwin" "erwin" "Emacs Robot Within IRC Network"
-     (list primary-channel)
-     "" ; no one internally needs a password to connect to the ircd
-     nil)))
+         (primary-channel (aget org-record "primary-channel"))
+         (rcirc-proc
+          (talkapp-rcirc-connect
+           irc-server irc-port
+           ;; The robot's Nick, user-name and full-name should be configurable
+           "erwin" "erwin" "Emacs Robot Within IRC Network"
+           (list primary-channel)
+           "" ; no one internally needs a password to connect to the ircd
+           nil)))
+    (process-put rcirc-proc :talkapp-erwin-org (aget org-record "name"))))
 
 (defun talkapp-boot-org (org)
   "Boot the ircd for the ORG."
@@ -505,15 +507,20 @@ lists of updates.")
   (when talkapp/print-hook-logging
     (message "print hook > (%s) [%s] {%s} [%s] /%s/"
              process sender response target text))
-  ;; If the process is one under our control it has this
-  (when (and
-         (process-get process :shoes-off-channel-list)
-         (equal response "PRIVMSG"))
-    ;; Get the username, this is the process-name
-    (let ((username (talkapp/rcirc-name->username (process-name process))))
-      (flet ((deprop (s) (set-text-properties 0 (length s) nil s) s))
-        (talkapp/user-chat-add
-         username (deprop sender) (deprop target) (deprop text))))))
+  (when (equal response "PRIVMSG")
+    (cond
+      ;; If the process is an end user it has this
+      ((process-get process :shoes-off-channel-list)
+       ;; Get the username, this is the process-name
+       (let ((username (talkapp/rcirc-name->username (process-name process))))
+         (flet ((deprop (s) (set-text-properties 0 (length s) nil s) s))
+           (talkapp/user-chat-add
+            username (deprop sender) (deprop target) (deprop text)))))
+      ;; If the process is erwin it has this
+      ((process-get process :talkapp-erwin-org)
+       (message "talkapp-rcirc-print-hook erwin called with %s" text)
+       (erwin-input process sender target text)
+       ))))
 
 (defun talkapp/rcirc-send (channel-buffer data)
   "Send DATA to CHANNEL-BUFFER."
