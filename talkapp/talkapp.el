@@ -603,17 +603,10 @@ SHOES-OFF-CON is the connection back to the bouncer user."
                ('history
                 (send "erwin" (concat "ask me 'history' and I will "
                                       "tell you the last 2 hours of history")))
-               ('hammertime
-                (send "erwin" (concat "ask me 'hammertime' and I will "
-                                      "impersonate MC Hammer")))
                (t
                 (send "erwin" "I am Erwin the Emacs Robot Within IRC Network.")
                 (send "erwin" (concat "here are irc specific commands: "
-                                      "history hammertime"))))))
-          ((string-match "^hammertime[?!]*$" txt)
-           ;; Actually not sure erwin should do this...
-           ;; ... he should probably respond properly via irc
-           (send "erwin" "YOU CAN'T TOUCH THIS!")))))))
+                                      "history")))))))))))
 
 (defun talkapp/rcirc-config ()
   "Only do the rcirc init if we need to.
