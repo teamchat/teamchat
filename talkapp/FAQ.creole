@@ -73,12 +73,13 @@ what you want to hear: you can still use the IRC interface by using
 SSH port forwarding. If you are using a OSX or Linux you can do this:
 
 {{{
-ssh -NL 6667:localhost:6667 teamchat@irc.teamchat.net irc
+ssh -NL 6907:localhost:6907 teamchat@irc.teamchat.net irc
 }}}
 
 If you are using Windows you can use the [[http://putty.com|Putty program]] 
 to make the same thing happen
 
+More information on this is in our [[/site/ssh-keys-for-irc/|SSH/IRC document]].
 
 === How configurable is the service? ===
 
