@@ -10,7 +10,7 @@ case "$1" in
         echo $DIR
         ;;
         
-     start)
+     server|start)
         ${DIR}/emacs-local/bin/emacs -Q --daemon=${DAEMON_NAME} -l ${DIR}/.emacs.d.teamchat/init.el
         ;;
 
