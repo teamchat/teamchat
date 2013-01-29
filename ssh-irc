@@ -31,6 +31,10 @@ case $COMMAND in
     # just connect to irc
     "irc")
 	echo if you are doing port forwarding you can connect your irc client now.
+        while [ 1 ] 
+        do 
+            sleep 60
+        done
         ;;
 
     # boot irssi
