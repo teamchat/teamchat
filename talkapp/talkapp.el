@@ -26,8 +26,8 @@
 
 (elnode-app talkapp-dir
     erwin talkapp-templates esxml esxml-form web
-    anaphora db kv uuid creole
-    shoes-off rcirc-ssh network-stream)
+    anaphora db db-pg kv uuid creole
+    shoes-off network-stream)
 
 (defgroup talkapp nil
   "An web and irc based application.
@@ -41,6 +41,16 @@ provides a web interface to it as well."
   "The directory used to store the talkapp databases."
   :group 'talkapp
   :type 'directory)
+
+(defcustom talkapp-db-pg-instance "teamchat"
+  "The PostgreSql instance used for pg databases."
+  :group 'talkapp
+  :type 'string)
+
+(defcustom talkapp-db-pg-username "teamchat"
+  "The PostgreSql username used for pg databases."
+  :group 'talkapp
+  :type 'string)
 
 (defcustom talkapp-start-port 8100
   "The port to start talkapp on."
@@ -93,9 +103,10 @@ There are no other primitives for managing db-changes, though
 there is the function `db-change-timestamp' which puts a useful
 timestamp in the kill-ring.")
 
-(defconst talkapp/org-db
+(defconst talkapp/org-db-file
   (db-make
    `(db-hash
+     :from-filename "/home/nferrier/work/teamchat/talkapp/org-db"
      :filename
      ,(expand-file-name
        (concat
@@ -103,6 +114,23 @@ timestamp in the kill-ring.")
         "org-db"))
      :query-equal kvassoc=))
   "The organization list.
+
+This is THE OLD VERSION.
+
+Contains the following fields:
+
+  host             the web server hostname for the service, or nil
+  name             the name of the organization
+  domain           the domain name, last part of any email
+  irc-server       the irc server to use
+  primary-channel  main channel to join everyone in this org to.")
+
+(defconst talkapp/org-db
+  (db-make
+   `(db-pg
+     :db ,talkapp-db-pg-instance :username ,talkapp-db-pg-username
+     :table "tc_org" :column "data" :key "name"))
+  "Org database in the Postgres server.
 
 Contains the following fields:
 
@@ -1113,7 +1141,7 @@ user."
   (esxml-form-save
    regform data
    :db-data (lambda (data)
-              (destructuring-bind (&key username password email)
+              (destructuring-bind (&key username password email organization)
                   (kvalist->plist data)
                 ;; Add in the org
                 (let ((org (talkapp/get-my-org email http-host)))
@@ -1153,7 +1181,31 @@ user."
      :check-failure
      ((:email "not a valid email address?")
       (:db-check "a user with that email exists"))))
-  "Registration form.")
+  "Registration form used for user's coming from an invite.")
+
+(defconst talkapp-regform-org
+  (esxml-form
+    (:db talkapp/user-db :db-key "username")
+    (username
+     :regex "^[A-Za-z0-9-]+$"
+     :db-check (= "username" $)
+     :check-failure
+     ((:regex "you need to use letters or digits to make a username")
+      (:db-check "a user with that name exists")))
+    (password :type :password :html :password)
+    (organization
+     :regex "^[A-Za-z0-9-]+$"
+     :db-check (= "org" $)
+     :check-failure
+     ((:regex "you need to use letters or numbers to make an org name")
+      (:db-check "An organization with that name exists - ask for an invite?")))
+    (email
+     :type :email
+     :db-check (= "email" $)
+     :check-failure
+     ((:email "not a valid email address?")
+      (:db-check "a user with that email exists"))))
+  "Registration form used for users coming in the front door.")
 
 (defun talkapp/send-email (user-record email-hash)
   "Send an email to the registrant."
@@ -1233,9 +1285,9 @@ and directs you to validate."
   "Take a registration and create a user."
   (let ((esxml-field-style :bootstrap))
     (esxml-form-handle
-     talkapp-regform httpcon (concat talkapp-dir "register.html")
+     talkapp-regform-org httpcon (concat talkapp-dir "register.html")
      (lambda (data)
-       (talkapp/save-reg httpcon talkapp-regform data))
+       (talkapp/save-reg httpcon talkapp-regform-org data))
      (talkapp/template-std httpcon))))
 
 (defun talkapp-main-handler (httpcon)
