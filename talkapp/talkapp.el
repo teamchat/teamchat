@@ -1336,8 +1336,13 @@ and directs you to validate."
 (defconst talkapp-access-log-name "talkapp"
   "The name of the access log.")
 
+;; The authentication scheme.
+(elnode-defauth 'talkapp-auth
+  :auth-test 'talkapp-auth-func
+  :cookie-name talkapp-cookie-name)
+
 ;;;###autoload
-(define-elnode-handler talkapp-router (httpcon)
+(defun talkapp-router (httpcon)
   "Main router."
   (let ((webserver (elnode-webserver-handler-maker talkapp-dir))
         (robots-txt (elnode-make-send-file (concat talkapp-dir "robots.txt")))
@@ -1363,14 +1368,8 @@ and directs you to validate."
        ("^[^/]*//robots.txt$" . ,robots-txt)
        ("^[^/]*//site/\\(.*\\)" . talkapp-wiki-server)
        ("^[^/]*//.*$" . talkapp-main-handler))
-     :log-name talkapp-access-log-name)))
-
-(elnode-auth-define-scheme
- 'talkapp-auth
- :auth-test (lambda (username) (talkapp-auth-func username))
- :cookie-name talkapp-cookie-name
- :redirect (elnode-auth-make-login-wrapper
-            'talkapp-router))
+     :log-name talkapp-access-log-name
+     :auth-scheme 'talkapp-auth)))
 
 (defun talkapp-access-log-formatter (httpcon)
   "Make an access log line."
