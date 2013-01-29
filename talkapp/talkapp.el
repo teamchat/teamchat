@@ -352,17 +352,27 @@ Return the filename of the config file."
       (write-file config-file)
       config-file)))
 
+(defun talkapp/ngircd-proc-name (org-name)
+  "Return the process name for the ORG-NAME."
+  (format "*irc-server-%s*" org-name))
+
 (defun talkapp/ngircd-boot (org-record)
   "Boot the irc server for the ORG."
   (let* ((conf-dir (file-name-as-directory talkapp-ngircd-configs-dir))
          (org-name (aget org-record "name"))
          (config-file (concat conf-dir org-name ".conf"))
-         (proc-name (format "*irc-server-%s*" org-name )))
+         (proc-name (talkapp/ngircd-proc-name org-name)))
+    ;; Make the config file if necessary
     (unless (file-exists-p config-file)
       (talkapp/template-ngircd-conf org-record))
-    (start-process
-     proc-name proc-name
-     "/usr/sbin/ngircd" "-f" (expand-file-name config-file) "-n")))
+    ;; Start the process if necessary
+    (unless
+        (and
+         (get-process proc-name)
+         (eq 'run (process-status (get-process proc-name))))
+      (start-process
+       proc-name proc-name
+       "/usr/sbin/ngircd" "-f" (expand-file-name config-file) "-n"))))
 
 (defun talkapp/robot-start (org-record)
   "Start the robot for the org."
@@ -700,7 +710,8 @@ If this variable is not bound or bound and t it will eval."
       (if (not org-rec)
           (elnode-send-json httpcon (list :error "no irc registered for org"))
           ;; Else provision the server
-          (let* ((irc-server-desc (aget org-rec "irc-server"))
+          (let* ((org-name (aget org-rec "name"))
+                 (irc-server-desc (aget org-rec "irc-server"))
                  (irc-server-pair (split-string irc-server-desc ":"))
                  (irc-server (car irc-server-pair))
                  (irc-port (string-to-number (cadr irc-server-pair)))
@@ -717,8 +728,12 @@ If this variable is not bound or bound and t it will eval."
                ;; Can't start sessions that are already started
                (elnode-send-json httpcon (list :error "already started")))
               ((and (not session) do-start)
-               ;; Try and start the session -- good point to send to
-               ;; another server?
+               ;; Try and start the session ...
+               ;; ... first test we have an irc process?
+               (unless (eq 'run
+                           (process-status
+                            (get-process (talkapp/ngircd-proc-name org-name))))
+                 (talkapp/ngircd-boot org-rec))
                (let ((started (shoes-off-start-session username)))
                  (elnode-send-json httpcon (list :session started))))
               (t
