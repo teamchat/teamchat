@@ -1163,7 +1163,9 @@ user."
               (destructuring-bind (&key username password email organization)
                   (kvalist->plist data)
                 ;; Add in the org
-                (let ((org (talkapp/get-my-org email http-host)))
+                (let ((org
+                       (or (aget data "organization")
+                           (talkapp/get-my-org email http-host))))
                   (acons
                    "org" (or org "UNKNOWN-ORG")
                    ;; Add in the auth token
