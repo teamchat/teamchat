@@ -695,7 +695,8 @@ var talkapp =
          return {
              toggle_debug: toggle_debug,
              chat_poll_time_set: chat_poll_time_set,
-             channels: channels
+             channels: channels,
+             form_queue: form_queue_list
          };
      })();
 
