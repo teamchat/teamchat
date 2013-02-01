@@ -511,9 +511,10 @@ name."
              ;; Override to ensure buffers are namespaced
              (let ((proc-name (concat name "~" user-name)))
                (funcall ons-func proc-name buffer host service parameters))))
-      (rcirc-connect server port
-                     nick user-name full-name
-                     startup-channels password encryption))))
+      (rcirc-connect
+       (talkapp/irc-server-name server) port
+       nick user-name full-name
+       startup-channels password encryption))))
 
 (defun talkapp/hash ()
   (make-hash-table :test 'equal))
@@ -794,9 +795,11 @@ If this variable is not bound or bound and t it will eval."
   "Find the irc-server for USERNAME."
   (let* ((org (talkapp/get-org username))
          (ircd (aget org "irc-server"))
-         (irc-server (progn
-                       (string-match "^\\([^:]+\\):[0-9]+" ircd)
-                       (match-string 1 ircd))))
+         (irc-server-name
+          (progn
+            (string-match "^\\([^:]+\\):[0-9]+" ircd)
+            (match-string 1 ircd)))
+         (irc-server (talkapp/irc-server-name irc-server-name)))
     irc-server))
 
 (defun talkapp/get-channel (username &optional channel-name)
