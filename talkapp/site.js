@@ -433,6 +433,9 @@ var talkapp =
                    success: function (data, status) {
                        if (debug) { console.log("channel_messages back for: " + url); }
                        do_messages(data, channel);
+                   },
+                   complete: function (jqXHR, status) {
+                       console.log("ajax compeltion status = " + status);
                    }
                  }
              );
