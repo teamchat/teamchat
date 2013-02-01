@@ -485,6 +485,8 @@ var talkapp =
              );
          };
 
+         // Channel stuff
+
          var channel_open = function (channel) {
              console.log("channel open " + channel);
              $("#carousel").trigger(
