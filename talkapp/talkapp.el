@@ -465,6 +465,36 @@ the irc server name and sub-match 2 is the username."
   (when (string-match "^\\([^~]+\\)~\\(.*\\)$" rcirc-name)
     (match-string-no-properties 2 rcirc-name)))
 
+(defcustom talkapp-irc-server-name-map '()
+  "A map of irc-server names to real names used to connect.
+
+This is useful because we store logical irc server names in the
+database but we want to actually connect to localhost (or
+whatever) when we're testing.
+
+This stores logical names against actual names, so for example
+\"example.teamchat.net\" -> \"localhost\".  It can also be used
+to store a default name mapping: \"*\".
+
+See `talkapp/irc-server-name' for more details."
+  :group 'talkapp
+  :type 'sexp)
+
+(defun talkapp/irc-server-name (name)
+  "Opportunity to transform the irc-server NAME.
+
+This is used to actually connect to the IRC server.
+
+`talkapp-irc-server-name-map' is used to lookup the mapping.  If
+there is a name match that is used, alternately \"*\* is
+attempted.  If either produces a string the string is returned
+else NAME is returned."
+  (let ((override
+         (or
+          (aget talkapp-irc-server-name-map name)
+          (aget talkapp-irc-server-name-map "*"))))
+    (if override override name)))
+
 (defun talkapp-rcirc-connect (server
                               &optional port nick user-name
                                 full-name startup-channels password encryption)
