@@ -441,28 +441,45 @@ var talkapp =
              );
          };
 
+         // Form handling
+         var form_queue = new Array();
+
+         var form_queue_list = function () { return form_queue; };
+
+         var form_queue_process = function (form_queue) {
+             var head = form_queue.shift();
+             while (!(head === undefined)) {
+                 var action = head[0];
+                 var data = head[1];
+                 var cb = head[2];
+                 $.post(
+                     action, data,
+                     function () { 
+                         try { if ($.isFunction(cb)) { cb(); } } 
+                         catch (x) {
+                             if (debug) { 
+                                 console.log(
+                                     "form_queue_process success cb failed ", e
+                                 );
+                             }
+                         }
+                     }
+                 );
+                 head = form_queue.shift();
+             }
+         };
+
          var form_attach = function (selector, callback) {
              if (debug) { console.log("form_attach connecting forms"); }
+             var action = $(selector).attr("action");
              $(selector).submit(
                  function (evt) {
                      if (debug) { console.log("form_attach target: ", evt.target); }
                      var data = $(evt.target).serialize();
+                     $(evt.target)[0].reset();
                      if (debug) { console.log("form_attach data: ", data); }
-                     $.post(
-                         evt.target.action, 
-                         data, 
-                         function () { 
-                             console.log("form_attach success callback");
-                             evt.target.reset();
-                             try {
-                                 if ($.isFunction(callback)) { 
-                                     callback();
-                                 }
-                             } catch (x) {
-                                 if (debug) { console.log("form_attach success cb failed ", e); }
-                             }
-                         }
-                     );
+                     form_queue.push([action, data, callback]);
+                     form_queue_process(form_queue);
                      return false;
                  }
              );
