@@ -409,6 +409,9 @@ var talkapp =
                    },
                    complete: function(jqXHR, status) {
                        // restart even if we failed
+                       if (status == "error") {
+                           // How do we find out if we're disconnected?
+                       }
                        chat_poll_timer = setTimeout(chat_poll, 100);
                    }
                  }
