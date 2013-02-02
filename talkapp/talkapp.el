@@ -144,7 +144,6 @@ Contains the following fields:
 (defconst talkapp/user-db
   (db-make
    `(db-hash
-     :from-filename "/home/nferrier/work/teamchat/talkapp/auth-db"
      :filename
      ,(expand-file-name
        (concat
@@ -156,7 +155,6 @@ Contains the following fields:
 (defconst talkapp/email-valid-db
   (db-make
    `(db-hash
-     :from-filename "/home/nferrier/work/teamchat/talkapp/email-db"
      :filename
      ,(expand-file-name
        (concat
@@ -170,7 +168,6 @@ and store the username and the email.")
 (defconst talkapp/keys-db
   (db-make
    `(db-hash
-     :from-filename "/home/nferrier/work/teamchat/talkapp/keys-db"
      :filename
      ,(expand-file-name
        (concat
