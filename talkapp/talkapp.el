@@ -728,26 +728,38 @@ If this variable is not bound or bound and t it will eval."
 
 ;; Start the shoes-off session for this user
 
+(defun talkapp/irc-server-start (org-name)
+  "Start the irc server."
+  (unless (eq 'run
+              (process-status
+               (get-process (talkapp/ngircd-proc-name org-name))))
+    (talkapp/ngircd-boot org-rec)))
+
+(defun talkapp/shoes-off-session-p (username org-name)
+  (let* ((org-rec (db-get org-name talkapp/org-db))
+         (irc-server-desc (aget org-rec "irc-server"))
+         (irc-server-pair (split-string irc-server-desc ":"))
+         (irc-server (car irc-server-pair))
+         (irc-port (string-to-number (cadr irc-server-pair)))
+         (session (let ((proc (gethash
+                               (concat username "@" irc-server)
+                               shoes-off/sessions)))
+                    (and (processp proc)
+                         (eq 'open (process-status proc)) proc))))
+    session))
+
 (defun talkapp-shoes-off-session (httpcon)
   "Manage sessions from the webapp."
   (with-elnode-auth httpcon 'talkapp-auth
     (let* ((username (talkapp-cookie->user-name httpcon))
            (user-rec (db-get username talkapp/user-db))
-           (org (aget user-rec "org"))
-           (org-rec (db-get org talkapp/org-db)))
+           (org-name (aget user-rec "org"))
+           (org-rec (db-get org-name talkapp/org-db)))
       (if (not org-rec)
           (elnode-send-json httpcon (list :error "no irc registered for org"))
           ;; Else provision the server
-          (let* ((org-name (aget org-rec "name"))
-                 (irc-server-desc (aget org-rec "irc-server"))
-                 (irc-server-pair (split-string irc-server-desc ":"))
-                 (irc-server (car irc-server-pair))
-                 (irc-port (string-to-number (cadr irc-server-pair)))
-                 (session (gethash
-                           (concat username "@" irc-server)
-                           shoes-off/sessions))
-                 (do-start (elnode-http-param httpcon "start"))
-                 (do-stop (elnode-http-param httpcon "stop")))
+          (let ((do-start (elnode-http-param httpcon "start"))
+                (do-stop (elnode-http-param httpcon "stop")))
             (cond
               ((and session do-stop)
                ;; Can't stop sessions right now
@@ -758,11 +770,8 @@ If this variable is not bound or bound and t it will eval."
               ((and (not session) do-start)
                ;; Try and start the session ...
                ;; ... first test we have an irc process?
-               (unless (eq 'run
-                           (process-status
-                            (get-process (talkapp/ngircd-proc-name org-name))))
-                 (talkapp/ngircd-boot org-rec))
-               (let ((started (shoes-off-start-session username)))
+               (talkapp/irc-server-start org-name)
+               (let ((started (shoes-off-start-session username org-name)))
                  (elnode-send-json httpcon (list :session started))))
               (t
                ;; Just return the status
@@ -967,7 +976,13 @@ If there are people selected then make the channel private."
       (GET
        (let* ((username (talkapp-cookie->user-name httpcon))
               (ctrl (talkapp/get-ctrl-channel username))
-              (channels (shoes-off-get-channels ctrl)))
+              (channels
+               (let* ((user-rec (db-get username talkapp/user-db))
+                      (org-name (aget user-rec "org")))
+                 (unless (talkapp/shoes-off-session-p username org-name)
+                   ;; Start the irc session
+                   (shoes-off-start-session username))
+                 (shoes-off-get-channels ctrl))))
          (elnode-send-json httpcon channels :jsonp t)))
       (POST
        (let* ((new-channel (elnode-http-param httpcon "channel"))
