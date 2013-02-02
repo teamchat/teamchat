@@ -7,45 +7,18 @@ a:visited {
 }
 
 body {
-    background-color: black;
-    color: #C1E14D;
 }
 
-#chat-header,
-#user-header,
-#registered-header {
-    background-color: #424244;
-    color: white;
-}
 
-.hero-unit {
-    background-color: #424244;
-    color: white;
+#chat-header {
+    color: #4b5451;
+    background-color: LightBlue;
 }
 
 div.logo + h1 {
-    color: #C1E14D;
+    color: #4b5451;
 }
 
-fieldset {
-    background-color: #4b5451;
-}
-
-nput.input-large,
-input.input-xxlarge,
-textarea {
-    background-color: #4b5451;
-    color: #C1E14D;
-}
-
-.chat_time {
-    background-color: #4b5451;
-}
-
-table {
-    background-color: #4b5451;
-    color: #C1E14D;
-}
 
 .footer {
     background-color: #4b5451;
