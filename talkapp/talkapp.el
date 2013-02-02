@@ -735,8 +735,17 @@ If this variable is not bound or bound and t it will eval."
                (get-process (talkapp/ngircd-proc-name org-name))))
     (talkapp/ngircd-boot org-rec)))
 
-(defun talkapp/shoes-off-session-p (username org-name)
-  (let* ((org-rec (db-get org-name talkapp/org-db))
+(defun talkapp/shoes-off-session-p (username &optional org-name)
+  "Is the IRC session for the USERNAME established?
+
+Passing an optional ORG-NAME saves a few db calls.
+
+Returns the relevant session, if it's there, or `nil'."
+  (let* ((org-rec (db-get
+                   (or
+                    org-name
+                    (aget (db-get username talkapp/user-db) "org"))
+                   talkapp/org-db))
          (irc-server-desc (aget org-rec "irc-server"))
          (irc-server-pair (split-string irc-server-desc ":"))
          (irc-server (car irc-server-pair))
@@ -759,7 +768,8 @@ If this variable is not bound or bound and t it will eval."
           (elnode-send-json httpcon (list :error "no irc registered for org"))
           ;; Else provision the server
           (let ((do-start (elnode-http-param httpcon "start"))
-                (do-stop (elnode-http-param httpcon "stop")))
+                (do-stop (elnode-http-param httpcon "stop"))
+                (session (talkapp/shoes-off-session-p username org-name)))
             (cond
               ((and session do-stop)
                ;; Can't stop sessions right now
