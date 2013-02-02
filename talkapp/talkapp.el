@@ -715,7 +715,7 @@ If this variable is not bound or bound and t it will eval."
    (lambda (key) (if (stringp key) key (symbol-name key)))))
 
 (defun talkapp/get-user-http (&optional httpcon)
-  "Get the user but force string keys."
+  "Get the user record but force string keys."
   (talkapp/keyify
    (talkapp/get-user httpcon)))
 
