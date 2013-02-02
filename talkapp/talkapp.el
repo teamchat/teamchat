@@ -165,6 +165,18 @@ Contains the following fields:
 We key it by the validation key (a hash of email and secret key)
 and store the username and the email.")
 
+(defconst talkapp/invite-db
+  (db-make
+   `(db-hash
+     :filename
+     ,(expand-file-name
+       (concat
+        (file-name-as-directory talkapp-db-dir)
+        "invite-db"))))
+  "The database where we store invites.
+
+What we store: ")
+
 (defconst talkapp/keys-db
   (db-make
    `(db-hash
@@ -1152,22 +1164,49 @@ FN is called with the talkapp key id (which is
                 (new-keys (talkapp/key-save username key-name key-text)))
            (elnode-send-json httpcon new-keys)))))))
 
-;; (let ((esxml-field-style :bootstrap))
-;;   (esxml-form-handle
-;;    talkapp-regform httpcon (concat talkapp-dir "register.html")
-;;    (lambda (data)
-;;      (talkapp/save-reg httpcon talkapp-regform data))
-;;    (talkapp/template-std httpcon))))
+;; user display
+
+(defun talkapp/make-invites (username org)
+  "Make 5 invites for USERNAME to send."
+  (let* ((invites-max 1)
+         (uuids
+          (loop for i from 1 to invites-max
+             collect (md5 (uuid-string))))
+         res)
+    (let ((hostname (aget org "host")))
+      (loop for invite-id in uuids
+         do
+           (setq invite-url
+                 (format
+                  "http://%s/invite/%s"
+                  hostname
+                  invite-id))
+           (db-put
+            invite-url `(("id" . ,invite-url)("maker" . ,username))
+            talkapp/invite-db)
+         collect invite-url))))
 
 (defun talkapp-user-handler (httpcon)
   "Present the main user page."
   (with-elnode-auth httpcon 'talkapp-auth
-    (let ((user-data (talkapp/get-user-http httpcon)))
+    (let* ((user-data (talkapp/get-user-http httpcon))
+           (invite-data
+            (talkapp/make-invites
+             (aget user-data "username")
+             (db-get (aget user-data "org") talkapp/org-db))))
       (elnode-send-file
        httpcon (concat talkapp-dir "user.html")
        :replacements
        (append
         user-data
+        `(("invite-link"
+           . ,(format
+               (concat
+                "<a title='copy this to invite others to teamchat' "
+                "onclick='return false;' "
+                "href='%s'>%s</a>")
+               (car invite-data)
+               (car invite-data))))
         (talkapp/template-std httpcon))))))
 
 

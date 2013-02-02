@@ -8,12 +8,24 @@
 <!##E body-header E##!>
 <div id="user-console">
     <div class="span6">
-        <p>This is the chat console page. You can start the
-        chat app from here.</p>
-        <ul>
-            <li id="connect-to-chat" 
-                class="hidden"><a href="/user/chat/">go to your chat page</a></li>
-        </ul>
+        <p>This is the chat console page.</p>
+        <p id="connect-to-chat" 
+           class="hidden">
+            <h4>your chat page</h4>
+            <p><a href="/user/chat/">click here to go to your chat page now</a></p>
+        </p>
+        <div id="invites">
+            <h4>invite your team mates to teamchat!</h4>
+            <p>You can invite more people to teamchat by cutting and
+            pasting this invite url. Send it to twitter or facebook
+            friends or email it to someone!</p>
+
+            <p><!##E invite-link E##!></p>
+
+            <p>Just right click on the link and select <i>copy
+            link</i> and then paste it to your teammates! They can
+            follow the link to register.</p>
+        </div>
         <div id="keys">
             <h4>your keys</h4>
             <p>If you wish to use teamchat.net via irc you can add SSH keys here.</p>

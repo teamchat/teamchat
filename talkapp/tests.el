@@ -17,6 +17,10 @@
              (db-make
               `(db-hash
                 :filename ,(format "/tmp/talk-user-db-%s" (uuid-string)))))
+            (talkapp/invite-db
+             (db-make
+              `(db-hash
+                :filename ,(format "/tmp/talk-invite-db-%s" (uuid-string)))))
             (talkapp/email-valid-db
              (db-make
               `(db-hash
@@ -99,6 +103,19 @@
        (kvalist->filter-keys
         (db-get "testuser2" talkapp/user-db)
         "username" "org" "password" "email") 'kvcmp)))))
+
+(ert-deftest talkapp/make-invites ()
+  "Test making invites."
+  (talkapp/mock-db
+    (talkapp/test-make-user-and-org)
+    (let ((invites
+           (talkapp/make-invites
+            "testuser2" (db-get "test-org" talkapp/org-db))))
+      (should (equal 5 (length invites))))
+    (let ((invites
+           (db-query talkapp/invite-db `(= "maker" "testuser2"))))
+      (should (equal 5 (length invites))))))
+
 
 (ert-deftest talkapp/get-channel ()
   (talkapp/mock-db
